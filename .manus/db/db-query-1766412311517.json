@@ -1,0 +1,9 @@
+{
+  "query": "SELECT sp.id, sp.accountId, sp.projectId, sp.content, sp.postUrl, a.deviceId, a.username \nFROM scheduled_posts sp \nJOIN accounts a ON sp.accountId = a.id \nWHERE sp.status = 'posted' AND sp.postUrl IS NOT NULL \nLIMIT 20",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT sp.id, sp.accountId, sp.projectId, sp.content, sp.postUrl, a.deviceId, a.username \nFROM scheduled_posts sp \nJOIN accounts a ON sp.accountId = a.id \nWHERE sp.status = 'posted' AND sp.postUrl IS NOT NULL \nLIMIT 20",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1619
+}

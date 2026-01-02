@@ -1,0 +1,36 @@
+{
+  "query": "SELECT * FROM projects ORDER BY createdAt DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM projects ORDER BY createdAt DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "150001",
+      "userId": "480001",
+      "name": "新規プロダクトマーケ",
+      "objective": "テスト",
+      "description": "テスト",
+      "status": "draft",
+      "startDate": "2025-12-15 00:00:00",
+      "endDate": "2025-12-19 00:00:00",
+      "createdAt": "2025-12-15 08:21:29",
+      "updatedAt": "2025-12-15 08:21:29",
+      "targets": "{\"followers\":1000,\"engagement\":3.3,\"clicks\":100,\"conversions\":100}"
+    },
+    {
+      "id": "90001",
+      "userId": "1",
+      "name": "Test Marketing Campaign",
+      "objective": "Increase brand awareness and gain 1000 followers",
+      "description": "Q1 2024 marketing campaign",
+      "status": "active",
+      "startDate": "NULL",
+      "endDate": "NULL",
+      "createdAt": "2025-12-14 15:39:48",
+      "updatedAt": "2025-12-14 15:39:50",
+      "targets": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tname\tobjective\tdescription\tstatus\tstartDate\tendDate\tcreatedAt\tupdatedAt\ttargets\n150001\t480001\t新規プロダクトマーケ\tテスト\tテスト\tdraft\t2025-12-15 00:00:00\t2025-12-19 00:00:00\t2025-12-15 08:21:29\t2025-12-15 08:21:29\t{\"followers\":1000,\"engagement\":3.3,\"clicks\":100,\"conversions\":100}\n90001\t1\tTest Marketing Campaign\tIncrease brand awareness and gain 1000 followers\tQ1 2024 marketing campaign\tactive\tNULL\tNULL\t2025-12-14 15:39:48\t2025-12-14 15:39:50\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1627
+}

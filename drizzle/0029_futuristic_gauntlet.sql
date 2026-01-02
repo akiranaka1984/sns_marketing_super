@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` MODIFY COLUMN `status` enum('pending','active','suspended','failed') NOT NULL DEFAULT 'active';

@@ -1,0 +1,1 @@
+ALTER TABLE `proxies` ADD `duoplusProxyId` varchar(255);

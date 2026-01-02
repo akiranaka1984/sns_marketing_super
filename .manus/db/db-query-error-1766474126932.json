@@ -1,0 +1,8 @@
+{
+  "query": "SELECT \n  i.id,\n  i.interactionType,\n  i.status,\n  i.executedAt,\n  i.errorMessage,\n  pu.url as post_url,\n  a.username as account_username\nFROM interactions i\nLEFT JOIN post_urls pu ON i.postUrlId = pu.id\nLEFT JOIN accounts a ON i.fromAccountId = a.id\nWHERE i.interactionType = 'like'\nORDER BY i.createdAt DESC\nLIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT \n  i.id,\n  i.interactionType,\n  i.status,\n  i.executedAt,\n  i.errorMessage,\n  pu.url as post_url,\n  a.username as account_username\nFROM interactions i\nLEFT JOIN post_urls pu ON i.postUrlId = pu.id\nLEFT JOIN accounts a ON i.fromAccountId = a.id\nWHERE i.interactionType = 'like'\nORDER BY i.createdAt DESC\nLIMIT 10",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'pu.url' in 'field list'"
+  ]
+}

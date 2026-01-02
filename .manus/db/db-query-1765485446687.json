@@ -1,0 +1,118 @@
+{
+  "query": "SELECT id, host, port, username, status, assignedAccountId, duoplusProxyId FROM proxies LIMIT 15",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, host, port, username, status, assignedAccountId, duoplusProxyId FROM proxies LIMIT 15",
+  "rows": [
+    {
+      "id": "7",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV",
+      "status": "assigned",
+      "assignedAccountId": "1",
+      "duoplusProxyId": "9H73j"
+    },
+    {
+      "id": "8",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1",
+      "status": "assigned",
+      "assignedAccountId": "2",
+      "duoplusProxyId": "lyD40"
+    },
+    {
+      "id": "9",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo",
+      "status": "assigned",
+      "assignedAccountId": "3",
+      "duoplusProxyId": "A0ysI"
+    },
+    {
+      "id": "10",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-fyJISfMz",
+      "status": "assigned",
+      "assignedAccountId": "4",
+      "duoplusProxyId": "SxWtf"
+    },
+    {
+      "id": "11",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-wuazP2WM",
+      "status": "assigned",
+      "assignedAccountId": "5",
+      "duoplusProxyId": "dEZUM"
+    },
+    {
+      "id": "12",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN",
+      "status": "assigned",
+      "assignedAccountId": "6",
+      "duoplusProxyId": "3lhD0"
+    },
+    {
+      "id": "13",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV",
+      "status": "assigned",
+      "assignedAccountId": "7",
+      "duoplusProxyId": "NULL"
+    },
+    {
+      "id": "14",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1",
+      "status": "assigned",
+      "assignedAccountId": "8",
+      "duoplusProxyId": "NULL"
+    },
+    {
+      "id": "15",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo",
+      "status": "assigned",
+      "assignedAccountId": "9",
+      "duoplusProxyId": "NULL"
+    },
+    {
+      "id": "16",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-fyJISfMz",
+      "status": "assigned",
+      "assignedAccountId": "10",
+      "duoplusProxyId": "NULL"
+    },
+    {
+      "id": "17",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-wuazP2WM",
+      "status": "assigned",
+      "assignedAccountId": "30001",
+      "duoplusProxyId": "NULL"
+    },
+    {
+      "id": "18",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN",
+      "status": "assigned",
+      "assignedAccountId": "30002",
+      "duoplusProxyId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\thost\tport\tusername\tstatus\tassignedAccountId\tduoplusProxyId\n7\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV\tassigned\t1\t9H73j\n8\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1\tassigned\t2\tlyD40\n9\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo\tassigned\t3\tA0ysI\n10\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-fyJISfMz\tassigned\t4\tSxWtf\n11\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-wuazP2WM\tassigned\t5\tdEZUM\n12\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN\tassigned\t6\t3lhD0\n13\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV\tassigned\t7\tNULL\n14\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1\tassigned\t8\tNULL\n15\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo\tassigned\t9\tNULL\n16\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-fyJISfMz\tassigned\t10\tNULL\n17\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-wuazP2WM\tassigned\t30001\tNULL\n18\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN\tassigned\t30002\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1803
+}

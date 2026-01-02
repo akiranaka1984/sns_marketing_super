@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, name, status, startDate, endDate FROM projects WHERE id = 90001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, name, status, startDate, endDate FROM projects WHERE id = 90001;",
+  "rows": [
+    {
+      "id": "90001",
+      "name": "Test Marketing Campaign",
+      "status": "active",
+      "startDate": "NULL",
+      "endDate": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tstartDate\tendDate\n90001\tTest Marketing Campaign\tactive\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1547
+}

@@ -1,0 +1,2 @@
+ALTER TABLE `scheduled_posts` ADD CONSTRAINT `scheduled_posts_account_fk` FOREIGN KEY (`accountId`) REFERENCES `accounts`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `scheduled_posts` ADD CONSTRAINT `scheduled_posts_project_fk` FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON DELETE cascade ON UPDATE no action;

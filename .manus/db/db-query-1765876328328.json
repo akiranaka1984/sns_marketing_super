@@ -1,0 +1,55 @@
+{
+  "query": "SELECT username, platform, COUNT(*) as count FROM accounts GROUP BY username, platform HAVING count > 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT username, platform, COUNT(*) as count FROM accounts GROUP BY username, platform HAVING count > 1;",
+  "rows": [
+    {
+      "username": "test_twitter",
+      "platform": "twitter",
+      "count": "10"
+    },
+    {
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "count": "11"
+    },
+    {
+      "username": "declining_account",
+      "platform": "facebook",
+      "count": "11"
+    },
+    {
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "count": "4"
+    },
+    {
+      "username": "test_facebook",
+      "platform": "facebook",
+      "count": "4"
+    },
+    {
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "count": "11"
+    },
+    {
+      "username": "test_instagram",
+      "platform": "instagram",
+      "count": "4"
+    },
+    {
+      "username": "testuser",
+      "platform": "twitter",
+      "count": "10"
+    },
+    {
+      "username": "test_project_account",
+      "platform": "twitter",
+      "count": "8"
+    }
+  ],
+  "messages": [],
+  "stdout": "username\tplatform\tcount\ntest_twitter\ttwitter\t10\nno_analytics_user\tinstagram\t11\ndeclining_account\tfacebook\t11\ntest_tiktok\ttiktok\t4\ntest_facebook\tfacebook\t4\ntest_analytics_user\ttwitter\t11\ntest_instagram\tinstagram\t4\ntestuser\ttwitter\t10\ntest_project_account\ttwitter\t8\n",
+  "stderr": "",
+  "execution_time_ms": 2346
+}

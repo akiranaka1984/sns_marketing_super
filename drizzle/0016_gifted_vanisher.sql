@@ -1,0 +1,1 @@
+ALTER TABLE `agent_execution_logs` MODIFY COLUMN `executionType` enum('content_generation','post_execution','learning','analysis','optimization','scheduled_post_generation') NOT NULL;

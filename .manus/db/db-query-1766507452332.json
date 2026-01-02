@@ -1,0 +1,55 @@
+{
+  "query": "SELECT a.id, a.username, a.platform, a.deviceId, a.status, d.status as device_status, d.deviceName \nFROM accounts a \nLEFT JOIN devices d ON a.deviceId = d.deviceId \nWHERE a.platform = 'twitter' \nORDER BY a.id DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT a.id, a.username, a.platform, a.deviceId, a.status, d.status as device_status, d.deviceName \nFROM accounts a \nLEFT JOIN devices d ON a.deviceId = d.deviceId \nWHERE a.platform = 'twitter' \nORDER BY a.id DESC;",
+  "rows": [
+    {
+      "id": "450001",
+      "username": "info@growlink-jp.com",
+      "platform": "twitter",
+      "deviceId": "snap_fmnPp",
+      "status": "active",
+      "device_status": "available",
+      "deviceName": "NULL"
+    },
+    {
+      "id": "420001",
+      "username": "arnoldmuran82@gmail.com",
+      "platform": "twitter",
+      "deviceId": "LVdTJ",
+      "status": "active",
+      "device_status": "NULL",
+      "deviceName": "NULL"
+    },
+    {
+      "id": "330003",
+      "username": "test_batch_1",
+      "platform": "twitter",
+      "deviceId": "NULL",
+      "status": "active",
+      "device_status": "NULL",
+      "deviceName": "NULL"
+    },
+    {
+      "id": "270002",
+      "username": "arnold@bkkeyforceservices.ph",
+      "platform": "twitter",
+      "deviceId": "s0t85",
+      "status": "active",
+      "device_status": "available",
+      "deviceName": "NULL"
+    },
+    {
+      "id": "30001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "deviceId": "NULL",
+      "status": "active",
+      "device_status": "NULL",
+      "deviceName": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tplatform\tdeviceId\tstatus\tdevice_status\tdeviceName\n450001\tinfo@growlink-jp.com\ttwitter\tsnap_fmnPp\tactive\tavailable\tNULL\n420001\tarnoldmuran82@gmail.com\ttwitter\tLVdTJ\tactive\tNULL\tNULL\n330003\ttest_batch_1\ttwitter\tNULL\tactive\tNULL\tNULL\n270002\tarnold@bkkeyforceservices.ph\ttwitter\ts0t85\tactive\tavailable\tNULL\n30001\ttest_analytics_user\ttwitter\tNULL\tactive\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1491
+}

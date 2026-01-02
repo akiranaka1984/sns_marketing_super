@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, userId, bearerToken, createdAt, updatedAt FROM x_api_settings ORDER BY updatedAt DESC LIMIT 1",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, userId, bearerToken, createdAt, updatedAt FROM x_api_settings ORDER BY updatedAt DESC LIMIT 1",
+  "rows": [
+    {
+      "id": "2",
+      "userId": "1",
+      "bearerToken": "AAAAAAAAAAAAAAAAAAAAAMpn6QEAAAAA2KcI2hOObE36xIqCezXBuDW8Ot0%3DjEkya7EjfXNZ9OXn1le4OiS5S2odmSRo457crzb5qbLJdzgzsk",
+      "createdAt": "2025-12-22 14:48:46",
+      "updatedAt": "2025-12-22 14:48:46"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tbearerToken\tcreatedAt\tupdatedAt\n2\t1\tAAAAAAAAAAAAAAAAAAAAAMpn6QEAAAAA2KcI2hOObE36xIqCezXBuDW8Ot0%3DjEkya7EjfXNZ9OXn1le4OiS5S2odmSRo457crzb5qbLJdzgzsk\t2025-12-22 14:48:46\t2025-12-22 14:48:46\n",
+  "stderr": "",
+  "execution_time_ms": 1613
+}

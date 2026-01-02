@@ -1,0 +1,35 @@
+{
+  "query": "SELECT id, username, deviceId FROM accounts WHERE deviceId IS NOT NULL LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, deviceId FROM accounts WHERE deviceId IS NOT NULL LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "username": "testuser",
+      "deviceId": "snap_1nTNY"
+    },
+    {
+      "id": "2",
+      "username": "test_twitter",
+      "deviceId": "snap_s0t85"
+    },
+    {
+      "id": "3",
+      "username": "test_tiktok",
+      "deviceId": "snap_LVdTJ"
+    },
+    {
+      "id": "4",
+      "username": "test_instagram",
+      "deviceId": "snap_fmnPp"
+    },
+    {
+      "id": "5",
+      "username": "test_facebook",
+      "deviceId": "snap_pJciL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tdeviceId\n1\ttestuser\tsnap_1nTNY\n2\ttest_twitter\tsnap_s0t85\n3\ttest_tiktok\tsnap_LVdTJ\n4\ttest_instagram\tsnap_fmnPp\n5\ttest_facebook\tsnap_pJciL\n",
+  "stderr": "",
+  "execution_time_ms": 1553
+}

@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, userId, bearerToken, isActive FROM x_api_settings",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, userId, bearerToken, isActive FROM x_api_settings",
+  "rows": [
+    {
+      "id": "1",
+      "userId": "480001",
+      "bearerToken": "AAAAAAAAAAAAAAAAAAAAAMpn6QEAAAAAwgRxZP9C9mbly%2B%2FN4dpppyY2TZI%3DK4ZLelBQsP0MwPjepxhudSLgqadKnDeJcXPcXff2uNsYVgrPRf",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tbearerToken\tisActive\n1\t480001\tAAAAAAAAAAAAAAAAAAAAAMpn6QEAAAAAwgRxZP9C9mbly%2B%2FN4dpppyY2TZI%3DK4ZLelBQsP0MwPjepxhudSLgqadKnDeJcXPcXff2uNsYVgrPRf\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1631
+}

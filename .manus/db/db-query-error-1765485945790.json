@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, username, platform, deviceId, assignedProxyId FROM accounts WHERE id IN (1, 2, 3, 4, 5, 6, 30001, 30002) ORDER BY id",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, platform, deviceId, assignedProxyId FROM accounts WHERE id IN (1, 2, 3, 4, 5, 6, 30001, 30002) ORDER BY id",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'assignedproxyid' in 'field list'"
+  ]
+}

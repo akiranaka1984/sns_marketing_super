@@ -1,0 +1,24 @@
+{
+  "query": "SELECT id, name, objective, status, createdAt FROM projects;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, name, objective, status, createdAt FROM projects;",
+  "rows": [
+    {
+      "id": "90001",
+      "name": "Test Marketing Campaign",
+      "objective": "Increase brand awareness and gain 1000 followers",
+      "status": "active",
+      "createdAt": "2025-12-14 15:39:48"
+    },
+    {
+      "id": "150001",
+      "name": "新規プロダクトマーケ",
+      "objective": "テスト",
+      "status": "draft",
+      "createdAt": "2025-12-15 08:21:29"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tobjective\tstatus\tcreatedAt\n90001\tTest Marketing Campaign\tIncrease brand awareness and gain 1000 followers\tactive\t2025-12-14 15:39:48\n150001\t新規プロダクトマーケ\tテスト\tdraft\t2025-12-15 08:21:29\n",
+  "stderr": "",
+  "execution_time_ms": 1488
+}

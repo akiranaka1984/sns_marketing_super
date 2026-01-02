@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, postUrl, status, error_message, created_at FROM interactions WHERE action_type = 'like' ORDER BY created_at DESC LIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, postUrl, status, error_message, created_at FROM interactions WHERE action_type = 'like' ORDER BY created_at DESC LIMIT 3",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'action_type' in 'where clause'"
+  ]
+}

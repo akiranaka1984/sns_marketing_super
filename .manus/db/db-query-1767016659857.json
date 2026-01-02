@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, userId, platform, username, status, createdAt FROM accounts WHERE userId = (SELECT id FROM users WHERE email = 'makoto.i0126@gmail.com') AND username = 'arnold@bkkeyforceservices.ph';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, userId, platform, username, status, createdAt FROM accounts WHERE userId = (SELECT id FROM users WHERE email = 'makoto.i0126@gmail.com') AND username = 'arnold@bkkeyforceservices.ph';",
+  "rows": [
+    {
+      "id": "480005",
+      "userId": "480001",
+      "platform": "twitter",
+      "username": "arnold@bkkeyforceservices.ph",
+      "status": "failed",
+      "createdAt": "2025-12-29 13:19:36"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tplatform\tusername\tstatus\tcreatedAt\n480005\t480001\ttwitter\tarnold@bkkeyforceservices.ph\tfailed\t2025-12-29 13:19:36\n",
+  "stderr": "",
+  "execution_time_ms": 1517
+}

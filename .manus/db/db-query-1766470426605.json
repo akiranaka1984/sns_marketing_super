@@ -1,0 +1,15 @@
+{
+  "query": "SELECT `key`, `value`, updatedAt FROM settings WHERE `key` = 'DUOPLUS_API_KEY';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT `key`, `value`, updatedAt FROM settings WHERE `key` = 'DUOPLUS_API_KEY';",
+  "rows": [
+    {
+      "key": "DUOPLUS_API_KEY",
+      "value": "9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb",
+      "updatedAt": "2025-12-23 06:13:41"
+    }
+  ],
+  "messages": [],
+  "stdout": "key\tvalue\tupdatedAt\nDUOPLUS_API_KEY\t9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb\t2025-12-23 06:13:41\n",
+  "stderr": "",
+  "execution_time_ms": 1619
+}

@@ -1,0 +1,148 @@
+{
+  "query": "SHOW TABLES",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SHOW TABLES",
+  "rows": [
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "ab_test_learnings"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "ab_test_variations"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "ab_tests"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "accounts"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agent_accounts"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agent_execution_logs"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agent_knowledge"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agent_rules"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agent_schedules"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "agents"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "ai_optimizations"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "alert_history"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "alert_settings"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "analytics"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "auto_responses"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "collected_contents"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "collection_schedules"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "content_reviews"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "content_rewrites"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "coordinate_learning_data"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "device_monitoring_status"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "device_status_history"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "devices"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "engagement_logs"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "engagement_tasks"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "freeze_detections"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "interaction_settings"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "interactions"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "logs"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "post_analytics"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "post_performance_feedback"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "post_urls"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "posts"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "project_accounts"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "projects"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "proxies"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "scheduled_posts"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "settings"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "strategies"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "tenant_users"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "tenants"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "users"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "video_generations"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "weekly_reviews"
+    },
+    {
+      "Tables_in_6jtzrVB6wF9khFezaTmFpE": "x_api_settings"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_6jtzrVB6wF9khFezaTmFpE\n__drizzle_migrations\nab_test_learnings\nab_test_variations\nab_tests\naccounts\nagent_accounts\nagent_execution_logs\nagent_knowledge\nagent_rules\nagent_schedules\nagents\nai_optimizations\nalert_history\nalert_settings\nanalytics\nauto_responses\ncollected_contents\ncollection_schedules\ncontent_reviews\ncontent_rewrites\ncoordinate_learning_data\ndevice_monitoring_status\ndevice_status_history\ndevices\nengagement_logs\nengagement_tasks\nfreeze_detections\ninteraction_settings\ninteractions\nlogs\npost_analytics\npost_performance_feedback\npost_urls\nposts\nproject_accounts\nprojects\nproxies\nscheduled_posts\nsettings\nstrategies\ntenant_users\ntenants\nusers\nvideo_generations\nweekly_reviews\nx_api_settings\n",
+  "stderr": "",
+  "execution_time_ms": 1577
+}

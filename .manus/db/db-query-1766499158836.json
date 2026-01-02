@@ -1,0 +1,31 @@
+{
+  "query": "SHOW CREATE TABLE accounts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SHOW CREATE TABLE accounts",
+  "rows": [
+    {
+      "Table": "accounts",
+      "Create Table": "CREATE TABLE `accounts` ("
+    }
+  ],
+  "messages": [
+    "  `id` int(11) NOT NULL AUTO_INCREMENT,",
+    "  `userId` int(11) NOT NULL,",
+    "  `platform` enum('twitter','tiktok','instagram','facebook') COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `password` text COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `status` enum('pending','active','suspended','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',",
+    "  `deviceId` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  `lastLoginAt` timestamp NULL DEFAULT NULL,",
+    "  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+    "  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+    "  `proxyId` int(11) DEFAULT NULL,",
+    "  `xHandle` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  `persona` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,",
+    "  UNIQUE KEY `username_platform_idx` (`username`,`platform`)",
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=480001"
+  ],
+  "stdout": "Table\tCreate Table\naccounts\tCREATE TABLE `accounts` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `userId` int(11) NOT NULL,\n  `platform` enum('twitter','tiktok','instagram','facebook') COLLATE utf8mb4_unicode_ci NOT NULL,\n  `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `password` text COLLATE utf8mb4_unicode_ci NOT NULL,\n  `status` enum('pending','active','suspended','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',\n  `deviceId` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `lastLoginAt` timestamp NULL DEFAULT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  `proxyId` int(11) DEFAULT NULL,\n  `xHandle` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `persona` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */,\n  UNIQUE KEY `username_platform_idx` (`username`,`platform`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci AUTO_INCREMENT=480001\n",
+  "stderr": "",
+  "execution_time_ms": 1548
+}

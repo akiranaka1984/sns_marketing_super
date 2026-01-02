@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, username, platform, deviceId FROM accounts WHERE id IN (1, 2, 3, 4, 5, 6, 30001, 30002) ORDER BY id",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, platform, deviceId FROM accounts WHERE id IN (1, 2, 3, 4, 5, 6, 30001, 30002) ORDER BY id",
+  "rows": [
+    {
+      "id": "1",
+      "username": "testuser",
+      "platform": "twitter",
+      "deviceId": "snap_1nTNY"
+    },
+    {
+      "id": "2",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "deviceId": "snap_s0t85"
+    },
+    {
+      "id": "3",
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "deviceId": "snap_LVdTJ"
+    },
+    {
+      "id": "4",
+      "username": "test_instagram",
+      "platform": "instagram",
+      "deviceId": "snap_fmnPp"
+    },
+    {
+      "id": "5",
+      "username": "test_facebook",
+      "platform": "facebook",
+      "deviceId": "snap_pJciL"
+    },
+    {
+      "id": "6",
+      "username": "testuser",
+      "platform": "twitter",
+      "deviceId": "NULL"
+    },
+    {
+      "id": "30001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "deviceId": "NULL"
+    },
+    {
+      "id": "30002",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "deviceId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tplatform\tdeviceId\n1\ttestuser\ttwitter\tsnap_1nTNY\n2\ttest_twitter\ttwitter\tsnap_s0t85\n3\ttest_tiktok\ttiktok\tsnap_LVdTJ\n4\ttest_instagram\tinstagram\tsnap_fmnPp\n5\ttest_facebook\tfacebook\tsnap_pJciL\n6\ttestuser\ttwitter\tNULL\n30001\ttest_analytics_user\ttwitter\tNULL\n30002\tno_analytics_user\tinstagram\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1507
+}

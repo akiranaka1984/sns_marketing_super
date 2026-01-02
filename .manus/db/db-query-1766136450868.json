@@ -1,0 +1,100 @@
+{
+  "query": "SELECT id, host, port, username, status, duoplusProxyId, assignedAccountId FROM proxies LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, host, port, username, status, duoplusProxyId, assignedAccountId FROM proxies LIMIT 10",
+  "rows": [
+    {
+      "id": "7",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV",
+      "status": "assigned",
+      "duoplusProxyId": "9H73j",
+      "assignedAccountId": "1"
+    },
+    {
+      "id": "8",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1",
+      "status": "assigned",
+      "duoplusProxyId": "lyD40",
+      "assignedAccountId": "2"
+    },
+    {
+      "id": "9",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo",
+      "status": "assigned",
+      "duoplusProxyId": "A0ysI",
+      "assignedAccountId": "3"
+    },
+    {
+      "id": "10",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-fyJISfMz",
+      "status": "assigned",
+      "duoplusProxyId": "SxWtf",
+      "assignedAccountId": "4"
+    },
+    {
+      "id": "11",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-wuazP2WM",
+      "status": "assigned",
+      "duoplusProxyId": "dEZUM",
+      "assignedAccountId": "5"
+    },
+    {
+      "id": "12",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN",
+      "status": "assigned",
+      "duoplusProxyId": "3lhD0",
+      "assignedAccountId": "6"
+    },
+    {
+      "id": "13",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV",
+      "status": "assigned",
+      "duoplusProxyId": "3lhD0",
+      "assignedAccountId": "7"
+    },
+    {
+      "id": "14",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1",
+      "status": "assigned",
+      "duoplusProxyId": "3lhD0",
+      "assignedAccountId": "8"
+    },
+    {
+      "id": "15",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo",
+      "status": "assigned",
+      "duoplusProxyId": "3lhD0",
+      "assignedAccountId": "9"
+    },
+    {
+      "id": "16",
+      "host": "sg.922s5.net",
+      "port": "6300",
+      "username": "10644873LJ-zone-custom-region-JP-sessid-fyJISfMz",
+      "status": "assigned",
+      "duoplusProxyId": "3lhD0",
+      "assignedAccountId": "10"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\thost\tport\tusername\tstatus\tduoplusProxyId\tassignedAccountId\n7\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV\tassigned\t9H73j\t1\n8\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1\tassigned\tlyD40\t2\n9\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo\tassigned\tA0ysI\t3\n10\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-fyJISfMz\tassigned\tSxWtf\t4\n11\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-wuazP2WM\tassigned\tdEZUM\t5\n12\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-aDDEQiDN\tassigned\t3lhD0\t6\n13\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-SXPc5lpV\tassigned\t3lhD0\t7\n14\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-QhYKpAR1\tassigned\t3lhD0\t8\n15\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-a9gJvEVo\tassigned\t3lhD0\t9\n16\tsg.922s5.net\t6300\t10644873LJ-zone-custom-region-JP-sessid-fyJISfMz\tassigned\t3lhD0\t10\n",
+  "stderr": "",
+  "execution_time_ms": 2230
+}

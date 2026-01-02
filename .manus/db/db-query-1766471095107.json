@@ -1,0 +1,60 @@
+{
+  "query": "SELECT id, postUrlId, fromAccountId, interactionType, status, errorMessage, executedAt, createdAt \nFROM interactions \nWHERE status = 'failed' \nORDER BY createdAt DESC \nLIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, postUrlId, fromAccountId, interactionType, status, errorMessage, executedAt, createdAt \nFROM interactions \nWHERE status = 'failed' \nORDER BY createdAt DESC \nLIMIT 5",
+  "rows": [
+    {
+      "id": "30012",
+      "postUrlId": "30001",
+      "fromAccountId": "270002",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome",
+      "executedAt": "2025-12-23 05:53:25",
+      "createdAt": "2025-12-23 05:53:23"
+    },
+    {
+      "id": "30011",
+      "postUrlId": "30001",
+      "fromAccountId": "270002",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome",
+      "executedAt": "2025-12-23 05:53:10",
+      "createdAt": "2025-12-23 05:53:08"
+    },
+    {
+      "id": "30010",
+      "postUrlId": "30001",
+      "fromAccountId": "270002",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome",
+      "executedAt": "2025-12-23 05:53:02",
+      "createdAt": "2025-12-23 05:53:01"
+    },
+    {
+      "id": "30009",
+      "postUrlId": "4",
+      "fromAccountId": "270002",
+      "interactionType": "comment",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d 'https://x.com/muran95271/status/2002812882019668163' -p com.android.chrome",
+      "executedAt": "2025-12-23 05:46:48",
+      "createdAt": "2025-12-23 05:46:47"
+    },
+    {
+      "id": "30008",
+      "postUrlId": "4",
+      "fromAccountId": "270002",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d 'https://x.com/muran95271/status/2002812882019668163' -p com.android.chrome",
+      "executedAt": "2025-12-23 05:46:34",
+      "createdAt": "2025-12-23 05:46:33"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrlId\tfromAccountId\tinteractionType\tstatus\terrorMessage\texecutedAt\tcreatedAt\n30012\t30001\t270002\tlike\tfailed\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome\t2025-12-23 05:53:25\t2025-12-23 05:53:23\n30011\t30001\t270002\tlike\tfailed\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome\t2025-12-23 05:53:10\t2025-12-23 05:53:08\n30010\t30001\t270002\tlike\tfailed\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome\t2025-12-23 05:53:02\t2025-12-23 05:53:01\n30009\t4\t270002\tcomment\tfailed\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d 'https://x.com/muran95271/status/2002812882019668163' -p com.android.chrome\t2025-12-23 05:46:48\t2025-12-23 05:46:47\n30008\t4\t270002\tlike\tfailed\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d 'https://x.com/muran95271/status/2002812882019668163' -p com.android.chrome\t2025-12-23 05:46:34\t2025-12-23 05:46:33\n",
+  "stderr": "",
+  "execution_time_ms": 1516
+}

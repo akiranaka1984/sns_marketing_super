@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO settings (`key`, `value`, createdAt, updatedAt) \nVALUES ('DUOPLUS_API_KEY', '9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb', NOW(), NOW())\nON DUPLICATE KEY UPDATE \n  `value` = '9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb',\n  updatedAt = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute INSERT INTO settings (`key`, `value`, createdAt, updatedAt) \nVALUES ('DUOPLUS_API_KEY', '9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb', NOW(), NOW())\nON DUPLICATE KEY UPDATE \n  `value` = '9b2f2c48-1e2b-4caa-a329-aec8e6bb7deb',\n  updatedAt = NOW();",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1557
+}

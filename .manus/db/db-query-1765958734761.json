@@ -1,0 +1,23 @@
+{
+  "query": "SELECT * FROM accounts WHERE id = 330001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM accounts WHERE id = 330001;",
+  "rows": [
+    {
+      "id": "330001",
+      "userId": "1",
+      "platform": "instagram",
+      "username": "a.muran@betrnk-junket.com",
+      "password": "admin123",
+      "status": "active",
+      "deviceId": "s0t85",
+      "lastLoginAt": "NULL",
+      "createdAt": "2025-12-17 06:55:32",
+      "updatedAt": "2025-12-17 07:11:28",
+      "proxyId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tplatform\tusername\tpassword\tstatus\tdeviceId\tlastLoginAt\tcreatedAt\tupdatedAt\tproxyId\n330001\t1\tinstagram\ta.muran@betrnk-junket.com\tadmin123\tactive\ts0t85\tNULL\t2025-12-17 06:55:32\t2025-12-17 07:11:28\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1521
+}

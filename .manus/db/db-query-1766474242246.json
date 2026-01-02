@@ -1,0 +1,60 @@
+{
+  "query": "SELECT \n  i.id,\n  i.interactionType,\n  i.status,\n  i.executedAt,\n  i.errorMessage,\n  pu.postUrl,\n  a.username,\n  a.xHandle\nFROM interactions i\nLEFT JOIN post_urls pu ON i.postUrlId = pu.id\nLEFT JOIN accounts a ON i.fromAccountId = a.id\nWHERE i.interactionType = 'like' AND pu.postUrl = 'https://x.com/muran95271/status/2002812882019668163'\nORDER BY i.createdAt DESC\nLIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT \n  i.id,\n  i.interactionType,\n  i.status,\n  i.executedAt,\n  i.errorMessage,\n  pu.postUrl,\n  a.username,\n  a.xHandle\nFROM interactions i\nLEFT JOIN post_urls pu ON i.postUrlId = pu.id\nLEFT JOIN accounts a ON i.fromAccountId = a.id\nWHERE i.interactionType = 'like' AND pu.postUrl = 'https://x.com/muran95271/status/2002812882019668163'\nORDER BY i.createdAt DESC\nLIMIT 5",
+  "rows": [
+    {
+      "id": "30019",
+      "interactionType": "like",
+      "status": "failed",
+      "executedAt": "2025-12-23 06:58:33",
+      "errorMessage": "いいねボタンが見つかりません: Element not found",
+      "postUrl": "https://x.com/muran95271/status/2002812882019668163",
+      "username": "arnoldmuran82@gmail.com",
+      "xHandle": "AkiraNakam61955"
+    },
+    {
+      "id": "30017",
+      "interactionType": "like",
+      "status": "completed",
+      "executedAt": "2025-12-23 06:58:05",
+      "errorMessage": "NULL",
+      "postUrl": "https://x.com/muran95271/status/2002812882019668163",
+      "username": "arnoldmuran82@gmail.com",
+      "xHandle": "AkiraNakam61955"
+    },
+    {
+      "id": "30013",
+      "interactionType": "like",
+      "status": "completed",
+      "executedAt": "2025-12-23 06:57:33",
+      "errorMessage": "NULL",
+      "postUrl": "https://x.com/muran95271/status/2002812882019668163",
+      "username": "arnoldmuran82@gmail.com",
+      "xHandle": "AkiraNakam61955"
+    },
+    {
+      "id": "30012",
+      "interactionType": "like",
+      "status": "failed",
+      "executedAt": "2025-12-23 05:53:25",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome",
+      "postUrl": "https://x.com/muran95271/status/2002812882019668163",
+      "username": "arnold@bkkeyforceservices.ph",
+      "xHandle": "muran95271"
+    },
+    {
+      "id": "30011",
+      "interactionType": "like",
+      "status": "failed",
+      "executedAt": "2025-12-23 05:53:10",
+      "errorMessage": "Error: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome",
+      "postUrl": "https://x.com/muran95271/status/2002812882019668163",
+      "username": "arnold@bkkeyforceservices.ph",
+      "xHandle": "muran95271"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tinteractionType\tstatus\texecutedAt\terrorMessage\tpostUrl\tusername\txHandle\n30019\tlike\tfailed\t2025-12-23 06:58:33\tいいねボタンが見つかりません: Element not found\thttps://x.com/muran95271/status/2002812882019668163\tarnoldmuran82@gmail.com\tAkiraNakam61955\n30017\tlike\tcompleted\t2025-12-23 06:58:05\tNULL\thttps://x.com/muran95271/status/2002812882019668163\tarnoldmuran82@gmail.com\tAkiraNakam61955\n30013\tlike\tcompleted\t2025-12-23 06:57:33\tNULL\thttps://x.com/muran95271/status/2002812882019668163\tarnoldmuran82@gmail.com\tAkiraNakam61955\n30012\tlike\tfailed\t2025-12-23 05:53:25\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome\thttps://x.com/muran95271/status/2002812882019668163\tarnold@bkkeyforceservices.ph\tmuran95271\n30011\tlike\tfailed\t2025-12-23 05:53:10\tError: Failed to execute ADB command: am start -a android.intent.action.VIEW -d \"https://x.com/muran95271/status/2002812882019668163\" -p com.android.chrome\thttps://x.com/muran95271/status/2002812882019668163\tarnold@bkkeyforceservices.ph\tmuran95271\n",
+  "stderr": "",
+  "execution_time_ms": 1545
+}

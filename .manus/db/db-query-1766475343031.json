@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, interactionType, commentContent, status, errorMessage, executedAt FROM interactions WHERE interactionType = 'comment' AND status = 'failed' ORDER BY createdAt DESC LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, interactionType, commentContent, status, errorMessage, executedAt FROM interactions WHERE interactionType = 'comment' AND status = 'failed' ORDER BY createdAt DESC LIMIT 5",
+  "rows": [
+    {
+      "id": "30024",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "コメントが投稿されませんでした",
+      "executedAt": "2025-12-23 07:32:30"
+    },
+    {
+      "id": "30020",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "Replyボタンが見つかりません",
+      "executedAt": "2025-12-23 06:58:59"
+    },
+    {
+      "id": "30018",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "Replyボタン用のスクリーンショット取得に失敗しました",
+      "executedAt": "2025-12-23 06:58:26"
+    },
+    {
+      "id": "30016",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "スクリーンショットの取得に失敗しました",
+      "executedAt": "2025-12-23 06:57:50"
+    },
+    {
+      "id": "30014",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "Error: Failed to execute ADB command: input tap 108 662. Device: LVdTJ. Error: Please do not repeat the operation.. Details: ",
+      "executedAt": "2025-12-23 06:57:40"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tinteractionType\tcommentContent\tstatus\terrorMessage\texecutedAt\n30024\tcomment\tNULL\tfailed\tコメントが投稿されませんでした\t2025-12-23 07:32:30\n30020\tcomment\tNULL\tfailed\tReplyボタンが見つかりません\t2025-12-23 06:58:59\n30018\tcomment\tNULL\tfailed\tReplyボタン用のスクリーンショット取得に失敗しました\t2025-12-23 06:58:26\n30016\tcomment\tNULL\tfailed\tスクリーンショットの取得に失敗しました\t2025-12-23 06:57:50\n30014\tcomment\tNULL\tfailed\tError: Failed to execute ADB command: input tap 108 662. Device: LVdTJ. Error: Please do not repeat the operation.. Details: \t2025-12-23 06:57:40\n",
+  "stderr": "",
+  "execution_time_ms": 1564
+}

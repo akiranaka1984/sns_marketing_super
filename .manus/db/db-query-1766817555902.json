@@ -1,0 +1,55 @@
+{
+  "query": "SELECT i.id, p.postUrl, i.status, i.errorMessage, i.interactionType, i.executedAt, i.createdAt \nFROM interactions i \nLEFT JOIN post_urls p ON i.postUrlId = p.id \nWHERE i.interactionType = 'like' \nORDER BY i.createdAt DESC \nLIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT i.id, p.postUrl, i.status, i.errorMessage, i.interactionType, i.executedAt, i.createdAt \nFROM interactions i \nLEFT JOIN post_urls p ON i.postUrlId = p.id \nWHERE i.interactionType = 'like' \nORDER BY i.createdAt DESC \nLIMIT 5",
+  "rows": [
+    {
+      "id": "150001",
+      "postUrl": "https://x.com/AkiraNakam61955/status/2003379261877747885",
+      "status": "failed",
+      "errorMessage": "いいねボタンをタップしましたが、いいねが付いていません。座標がずれているか、デバイスがログアウトしている可能性があります。",
+      "interactionType": "like",
+      "executedAt": "2025-12-27 01:35:55",
+      "createdAt": "2025-12-27 06:34:50"
+    },
+    {
+      "id": "120010",
+      "postUrl": "https://x.com/muran95271/status/2002806424972525666",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.289）",
+      "interactionType": "like",
+      "executedAt": "2025-12-26 12:32:29",
+      "createdAt": "2025-12-26 17:31:55"
+    },
+    {
+      "id": "120009",
+      "postUrl": "https://x.com/muran95271/status/2002806424972525666",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.179）",
+      "interactionType": "like",
+      "executedAt": "2025-12-26 12:24:47",
+      "createdAt": "2025-12-26 17:24:31"
+    },
+    {
+      "id": "120008",
+      "postUrl": "https://x.com/muran95271/status/2002807946821132797",
+      "status": "failed",
+      "errorMessage": "投稿表示の確認に失敗しました: TypeError: fetch failed",
+      "interactionType": "like",
+      "executedAt": "2025-12-26 12:22:04",
+      "createdAt": "2025-12-26 17:21:41"
+    },
+    {
+      "id": "120007",
+      "postUrl": "https://x.com/muran95271/status/2002806424972525666",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.106）",
+      "interactionType": "like",
+      "executedAt": "2025-12-26 12:12:53",
+      "createdAt": "2025-12-26 17:12:24"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrl\tstatus\terrorMessage\tinteractionType\texecutedAt\tcreatedAt\n150001\thttps://x.com/AkiraNakam61955/status/2003379261877747885\tfailed\tいいねボタンをタップしましたが、いいねが付いていません。座標がずれているか、デバイスがログアウトしている可能性があります。\tlike\t2025-12-27 01:35:55\t2025-12-27 06:34:50\n120010\thttps://x.com/muran95271/status/2002806424972525666\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.289）\tlike\t2025-12-26 12:32:29\t2025-12-26 17:31:55\n120009\thttps://x.com/muran95271/status/2002806424972525666\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.179）\tlike\t2025-12-26 12:24:47\t2025-12-26 17:24:31\n120008\thttps://x.com/muran95271/status/2002807946821132797\tfailed\t投稿表示の確認に失敗しました: TypeError: fetch failed\tlike\t2025-12-26 12:22:04\t2025-12-26 17:21:41\n120007\thttps://x.com/muran95271/status/2002806424972525666\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.106）\tlike\t2025-12-26 12:12:53\t2025-12-26 17:12:24\n",
+  "stderr": "",
+  "execution_time_ms": 1527
+}

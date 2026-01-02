@@ -1,0 +1,8 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS automation_tasks (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  postUrl TEXT NOT NULL,\n  action TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'pending',\n  deviceId TEXT NOT NULL,\n  persona TEXT,\n  generatedComment TEXT,\n  result TEXT,\n  executedAt TIMESTAMP NULL,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute CREATE TABLE IF NOT EXISTS automation_tasks (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  postUrl TEXT NOT NULL,\n  action TEXT NOT NULL,\n  status TEXT NOT NULL DEFAULT 'pending',\n  deviceId TEXT NOT NULL,\n  persona TEXT,\n  generatedComment TEXT,\n  result TEXT,\n  executedAt TIMESTAMP NULL,\n  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n)",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1101 (42000) at line 1: BLOB/TEXT/JSON column 'status' can't have a default value"
+  ]
+}

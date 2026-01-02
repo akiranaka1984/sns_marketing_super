@@ -1,0 +1,30 @@
+{
+  "query": "SELECT deviceId, deviceName, status FROM devices",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT deviceId, deviceName, status FROM devices",
+  "rows": [
+    {
+      "deviceId": "s0t85",
+      "deviceName": "NULL",
+      "status": "available"
+    },
+    {
+      "deviceId": "snap_LVdTJ",
+      "deviceName": "NULL",
+      "status": "available"
+    },
+    {
+      "deviceId": "snap_fmnPp",
+      "deviceName": "NULL",
+      "status": "available"
+    },
+    {
+      "deviceId": "snap_pJciL",
+      "deviceName": "NULL",
+      "status": "available"
+    }
+  ],
+  "messages": [],
+  "stdout": "deviceId\tdeviceName\tstatus\ns0t85\tNULL\tavailable\nsnap_LVdTJ\tNULL\tavailable\nsnap_fmnPp\tNULL\tavailable\nsnap_pJciL\tNULL\tavailable\n",
+  "stderr": "",
+  "execution_time_ms": 1513
+}

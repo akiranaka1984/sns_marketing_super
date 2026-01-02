@@ -1,0 +1,28 @@
+{
+  "query": "SELECT id, projectId, LEFT(objective, 50) as objective, LEFT(engagementStrategy, 200) as engagementStrategy FROM strategies LIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, projectId, LEFT(objective, 50) as objective, LEFT(engagementStrategy, 200) as engagementStrategy FROM strategies LIMIT 3",
+  "rows": [
+    {
+      "id": "1",
+      "projectId": "NULL",
+      "objective": "Increase brand awareness for a new eco-friendly pr",
+      "engagementStrategy": "Host weekly Q&A sessions about sustainability challenges and solutions. Respond to all comments within 30 minutes, prioritizing questions about product materials and sourcing. Run polls asking followe"
+    },
+    {
+      "id": "2",
+      "projectId": "NULL",
+      "objective": "Increase brand awareness for a new eco-friendly pr",
+      "engagementStrategy": "Run weekly Q&A sessions focused on sustainability challenges. Respond to all comments within 30 minutes during business hours. Partner with 5-10 micro-influencers in the eco-conscious niche for produc"
+    },
+    {
+      "id": "30001",
+      "projectId": "NULL",
+      "objective": "Increase brand awareness for a new eco-friendly pr",
+      "engagementStrategy": "Host weekly Q&A sessions about sustainability and the product materials. Run polls asking consumers about their biggest environmental concerns. Respond to all comments related to sustainability within"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tobjective\tengagementStrategy\n1\tNULL\tIncrease brand awareness for a new eco-friendly pr\tHost weekly Q&A sessions about sustainability challenges and solutions. Respond to all comments within 30 minutes, prioritizing questions about product materials and sourcing. Run polls asking followe\n2\tNULL\tIncrease brand awareness for a new eco-friendly pr\tRun weekly Q&A sessions focused on sustainability challenges. Respond to all comments within 30 minutes during business hours. Partner with 5-10 micro-influencers in the eco-conscious niche for produc\n30001\tNULL\tIncrease brand awareness for a new eco-friendly pr\tHost weekly Q&A sessions about sustainability and the product materials. Run polls asking consumers about their biggest environmental concerns. Respond to all comments related to sustainability within\n",
+  "stderr": "",
+  "execution_time_ms": 2195
+}

@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, userId, platform, username, status, createdAt FROM accounts WHERE username = 'a.muran@betrnk-junket.com' AND platform = 'instagram';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, userId, platform, username, status, createdAt FROM accounts WHERE username = 'a.muran@betrnk-junket.com' AND platform = 'instagram';",
+  "rows": [
+    {
+      "id": "330001",
+      "userId": "1",
+      "platform": "instagram",
+      "username": "a.muran@betrnk-junket.com",
+      "status": "active",
+      "createdAt": "2025-12-17 06:55:32"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tplatform\tusername\tstatus\tcreatedAt\n330001\t1\tinstagram\ta.muran@betrnk-junket.com\tactive\t2025-12-17 06:55:32\n",
+  "stderr": "",
+  "execution_time_ms": 1536
+}

@@ -1,0 +1,12 @@
+{
+  "query": "SELECT * FROM scheduled_posts WHERE id = 60001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM scheduled_posts WHERE id = 60001;",
+  "rows": [],
+  "messages": [
+    "60001\t90001\t330001\tねぇねぇ、聞いて！最近、謎のプロジェクト『Test theme for skip review』に取り組んでるんだけど、これがもう冒険なの😂。最初は「スキップレビューって何？」って感じだったんだけど、蓋を開けてみたら、まるで宝探し！🔍 誰も辿り着いたことのない場所に、新しい発見があるんだよね。テストオーディエンスの皆、この物語の結末、一緒に見届けようよ！✨",
+    "#スキップレビューの謎 #テストテーマ #カジュアルストーリー #新発見 #冒険中\tNULL\tNULL\t2025-12-17 07:15:00\tnone\tfailed\tNULL\tNO_MEDIA_PROVIDED\t2025-12-17 07:13:15\t2025-12-17 07:15:12\tNULL\t0\tdraft\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL"
+  ],
+  "stdout": "id\tprojectId\taccountId\tcontent\tmediaUrls\thashtags\tscheduledTime\trepeatInterval\tstatus\tpostedAt\terrorMessage\tcreatedAt\tupdatedAt\tagentId\tgeneratedByAgent\treviewStatus\treviewedAt\treviewNotes\toriginalContent\tcontentConfidence\tpostUrl\tscreenshotUrl\n60001\t90001\t330001\tねぇねぇ、聞いて！最近、謎のプロジェクト『Test theme for skip review』に取り組んでるんだけど、これがもう冒険なの😂。最初は「スキップレビューって何？」って感じだったんだけど、蓋を開けてみたら、まるで宝探し！🔍 誰も辿り着いたことのない場所に、新しい発見があるんだよね。テストオーディエンスの皆、この物語の結末、一緒に見届けようよ！✨\n\n#スキップレビューの謎 #テストテーマ #カジュアルストーリー #新発見 #冒険中\tNULL\tNULL\t2025-12-17 07:15:00\tnone\tfailed\tNULL\tNO_MEDIA_PROVIDED\t2025-12-17 07:13:15\t2025-12-17 07:15:12\tNULL\t0\tdraft\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1618
+}

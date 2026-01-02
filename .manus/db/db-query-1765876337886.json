@@ -1,0 +1,602 @@
+{
+  "query": "SELECT id, username, platform, userId, deviceId, createdAt FROM accounts ORDER BY username, platform, createdAt;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, platform, userId, deviceId, createdAt FROM accounts ORDER BY username, platform, createdAt;",
+  "rows": [
+    {
+      "id": "30003",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:32:04"
+    },
+    {
+      "id": "30006",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:33:02"
+    },
+    {
+      "id": "30014",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:40"
+    },
+    {
+      "id": "30022",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:39"
+    },
+    {
+      "id": "120004",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:48"
+    },
+    {
+      "id": "150004",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:11"
+    },
+    {
+      "id": "150010",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:04"
+    },
+    {
+      "id": "150016",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:12"
+    },
+    {
+      "id": "180004",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 15:39:50"
+    },
+    {
+      "id": "210004",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:40"
+    },
+    {
+      "id": "240004",
+      "username": "declining_account",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:04"
+    },
+    {
+      "id": "30002",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:32:02"
+    },
+    {
+      "id": "30005",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:33:00"
+    },
+    {
+      "id": "30013",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:37"
+    },
+    {
+      "id": "30021",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:36"
+    },
+    {
+      "id": "120003",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:46"
+    },
+    {
+      "id": "150003",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:10"
+    },
+    {
+      "id": "150009",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:02"
+    },
+    {
+      "id": "150015",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:11"
+    },
+    {
+      "id": "180003",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 15:39:48"
+    },
+    {
+      "id": "210003",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:38"
+    },
+    {
+      "id": "240003",
+      "username": "no_analytics_user",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:03"
+    },
+    {
+      "id": "30001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:32:00"
+    },
+    {
+      "id": "30004",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:32:57"
+    },
+    {
+      "id": "30007",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:35"
+    },
+    {
+      "id": "30015",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:33"
+    },
+    {
+      "id": "120001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:45"
+    },
+    {
+      "id": "150001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:08"
+    },
+    {
+      "id": "150007",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:01"
+    },
+    {
+      "id": "150013",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:10"
+    },
+    {
+      "id": "180001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 15:39:47"
+    },
+    {
+      "id": "210001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:37"
+    },
+    {
+      "id": "240001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:01"
+    },
+    {
+      "id": "5",
+      "username": "test_facebook",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "snap_pJciL",
+      "createdAt": "2025-12-10 11:18:11"
+    },
+    {
+      "id": "10",
+      "username": "test_facebook",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:18:46"
+    },
+    {
+      "id": "30012",
+      "username": "test_facebook",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:37"
+    },
+    {
+      "id": "30020",
+      "username": "test_facebook",
+      "platform": "facebook",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:36"
+    },
+    {
+      "id": "4",
+      "username": "test_instagram",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "snap_fmnPp",
+      "createdAt": "2025-12-10 11:18:10"
+    },
+    {
+      "id": "9",
+      "username": "test_instagram",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:18:45"
+    },
+    {
+      "id": "30011",
+      "username": "test_instagram",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:37"
+    },
+    {
+      "id": "30019",
+      "username": "test_instagram",
+      "platform": "instagram",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:35"
+    },
+    {
+      "id": "90001",
+      "username": "test_new_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 15:14:50"
+    },
+    {
+      "id": "60001",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 22:02:30"
+    },
+    {
+      "id": "120002",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:46"
+    },
+    {
+      "id": "150002",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:09"
+    },
+    {
+      "id": "150008",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:02"
+    },
+    {
+      "id": "150014",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:10"
+    },
+    {
+      "id": "180002",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 15:39:48"
+    },
+    {
+      "id": "210002",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:38"
+    },
+    {
+      "id": "240002",
+      "username": "test_project_account",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:02"
+    },
+    {
+      "id": "3",
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "userId": "1",
+      "deviceId": "snap_LVdTJ",
+      "createdAt": "2025-12-10 11:18:10"
+    },
+    {
+      "id": "8",
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:18:45"
+    },
+    {
+      "id": "30010",
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:36"
+    },
+    {
+      "id": "30018",
+      "username": "test_tiktok",
+      "platform": "tiktok",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:35"
+    },
+    {
+      "id": "2",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "snap_s0t85",
+      "createdAt": "2025-12-10 11:18:10"
+    },
+    {
+      "id": "7",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:18:44"
+    },
+    {
+      "id": "30009",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:36"
+    },
+    {
+      "id": "30017",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:34"
+    },
+    {
+      "id": "120006",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:53"
+    },
+    {
+      "id": "150006",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:17"
+    },
+    {
+      "id": "150012",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:09"
+    },
+    {
+      "id": "150018",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:19"
+    },
+    {
+      "id": "210006",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:46"
+    },
+    {
+      "id": "240006",
+      "username": "test_twitter",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:17"
+    },
+    {
+      "id": "1",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "snap_x647M",
+      "createdAt": "2025-12-10 11:18:09"
+    },
+    {
+      "id": "6",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:18:44"
+    },
+    {
+      "id": "30008",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:36:36"
+    },
+    {
+      "id": "30016",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-10 11:41:34"
+    },
+    {
+      "id": "120005",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-13 19:34:53"
+    },
+    {
+      "id": "150005",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:01:17"
+    },
+    {
+      "id": "150011",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 13:19:09"
+    },
+    {
+      "id": "150017",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-14 14:03:18"
+    },
+    {
+      "id": "210005",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 05:18:45"
+    },
+    {
+      "id": "240005",
+      "username": "testuser",
+      "platform": "twitter",
+      "userId": "1",
+      "deviceId": "NULL",
+      "createdAt": "2025-12-15 14:55:17"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tplatform\tuserId\tdeviceId\tcreatedAt\n30003\tdeclining_account\tfacebook\t1\tNULL\t2025-12-10 11:32:04\n30006\tdeclining_account\tfacebook\t1\tNULL\t2025-12-10 11:33:02\n30014\tdeclining_account\tfacebook\t1\tNULL\t2025-12-10 11:36:40\n30022\tdeclining_account\tfacebook\t1\tNULL\t2025-12-10 11:41:39\n120004\tdeclining_account\tfacebook\t1\tNULL\t2025-12-13 19:34:48\n150004\tdeclining_account\tfacebook\t1\tNULL\t2025-12-14 13:01:11\n150010\tdeclining_account\tfacebook\t1\tNULL\t2025-12-14 13:19:04\n150016\tdeclining_account\tfacebook\t1\tNULL\t2025-12-14 14:03:12\n180004\tdeclining_account\tfacebook\t1\tNULL\t2025-12-14 15:39:50\n210004\tdeclining_account\tfacebook\t1\tNULL\t2025-12-15 05:18:40\n240004\tdeclining_account\tfacebook\t1\tNULL\t2025-12-15 14:55:04\n30002\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-10 11:32:02\n30005\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-10 11:33:00\n30013\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-10 11:36:37\n30021\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-10 11:41:36\n120003\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-13 19:34:46\n150003\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-14 13:01:10\n150009\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-14 13:19:02\n150015\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-14 14:03:11\n180003\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-14 15:39:48\n210003\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-15 05:18:38\n240003\tno_analytics_user\tinstagram\t1\tNULL\t2025-12-15 14:55:03\n30001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-10 11:32:00\n30004\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-10 11:32:57\n30007\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-10 11:36:35\n30015\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-10 11:41:33\n120001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-13 19:34:45\n150001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-14 13:01:08\n150007\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-14 13:19:01\n150013\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-14 14:03:10\n180001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-14 15:39:47\n210001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-15 05:18:37\n240001\ttest_analytics_user\ttwitter\t1\tNULL\t2025-12-15 14:55:01\n5\ttest_facebook\tfacebook\t1\tsnap_pJciL\t2025-12-10 11:18:11\n10\ttest_facebook\tfacebook\t1\tNULL\t2025-12-10 11:18:46\n30012\ttest_facebook\tfacebook\t1\tNULL\t2025-12-10 11:36:37\n30020\ttest_facebook\tfacebook\t1\tNULL\t2025-12-10 11:41:36\n4\ttest_instagram\tinstagram\t1\tsnap_fmnPp\t2025-12-10 11:18:10\n9\ttest_instagram\tinstagram\t1\tNULL\t2025-12-10 11:18:45\n30011\ttest_instagram\tinstagram\t1\tNULL\t2025-12-10 11:36:37\n30019\ttest_instagram\tinstagram\t1\tNULL\t2025-12-10 11:41:35\n90001\ttest_new_account\ttwitter\t1\tNULL\t2025-12-13 15:14:50\n60001\ttest_project_account\ttwitter\t1\tNULL\t2025-12-10 22:02:30\n120002\ttest_project_account\ttwitter\t1\tNULL\t2025-12-13 19:34:46\n150002\ttest_project_account\ttwitter\t1\tNULL\t2025-12-14 13:01:09\n150008\ttest_project_account\ttwitter\t1\tNULL\t2025-12-14 13:19:02\n150014\ttest_project_account\ttwitter\t1\tNULL\t2025-12-14 14:03:10\n180002\ttest_project_account\ttwitter\t1\tNULL\t2025-12-14 15:39:48\n210002\ttest_project_account\ttwitter\t1\tNULL\t2025-12-15 05:18:38\n240002\ttest_project_account\ttwitter\t1\tNULL\t2025-12-15 14:55:02\n3\ttest_tiktok\ttiktok\t1\tsnap_LVdTJ\t2025-12-10 11:18:10\n8\ttest_tiktok\ttiktok\t1\tNULL\t2025-12-10 11:18:45\n30010\ttest_tiktok\ttiktok\t1\tNULL\t2025-12-10 11:36:36\n30018\ttest_tiktok\ttiktok\t1\tNULL\t2025-12-10 11:41:35\n2\ttest_twitter\ttwitter\t1\tsnap_s0t85\t2025-12-10 11:18:10\n7\ttest_twitter\ttwitter\t1\tNULL\t2025-12-10 11:18:44\n30009\ttest_twitter\ttwitter\t1\tNULL\t2025-12-10 11:36:36\n30017\ttest_twitter\ttwitter\t1\tNULL\t2025-12-10 11:41:34\n120006\ttest_twitter\ttwitter\t1\tNULL\t2025-12-13 19:34:53\n150006\ttest_twitter\ttwitter\t1\tNULL\t2025-12-14 13:01:17\n150012\ttest_twitter\ttwitter\t1\tNULL\t2025-12-14 13:19:09\n150018\ttest_twitter\ttwitter\t1\tNULL\t2025-12-14 14:03:19\n210006\ttest_twitter\ttwitter\t1\tNULL\t2025-12-15 05:18:46\n240006\ttest_twitter\ttwitter\t1\tNULL\t2025-12-15 14:55:17\n1\ttestuser\ttwitter\t1\tsnap_x647M\t2025-12-10 11:18:09\n6\ttestuser\ttwitter\t1\tNULL\t2025-12-10 11:18:44\n30008\ttestuser\ttwitter\t1\tNULL\t2025-12-10 11:36:36\n30016\ttestuser\ttwitter\t1\tNULL\t2025-12-10 11:41:34\n120005\ttestuser\ttwitter\t1\tNULL\t2025-12-13 19:34:53\n150005\ttestuser\ttwitter\t1\tNULL\t2025-12-14 13:01:17\n150011\ttestuser\ttwitter\t1\tNULL\t2025-12-14 13:19:09\n150017\ttestuser\ttwitter\t1\tNULL\t2025-12-14 14:03:18\n210005\ttestuser\ttwitter\t1\tNULL\t2025-12-15 05:18:45\n240005\ttestuser\ttwitter\t1\tNULL\t2025-12-15 14:55:17\n",
+  "stderr": "",
+  "execution_time_ms": 1538
+}

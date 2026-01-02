@@ -1,0 +1,19 @@
+{
+  "query": "\nSELECT \n  i.id,\n  pu.postUrl,\n  i.interactionType,\n  i.status,\n  i.errorMessage,\n  i.executedAt,\n  i.createdAt\nFROM interactions i\nJOIN post_urls pu ON i.postUrlId = pu.id\nWHERE pu.projectId = 90001\n  AND i.status = 'failed'\nORDER BY i.createdAt DESC\nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute \nSELECT \n  i.id,\n  pu.postUrl,\n  i.interactionType,\n  i.status,\n  i.errorMessage,\n  i.executedAt,\n  i.createdAt\nFROM interactions i\nJOIN post_urls pu ON i.postUrlId = pu.id\nWHERE pu.projectId = 90001\n  AND i.status = 'failed'\nORDER BY i.createdAt DESC\nLIMIT 1;\n",
+  "rows": [
+    {
+      "id": "120010",
+      "postUrl": "https://x.com/muran95271/status/2002806424972525666",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.289）",
+      "executedAt": "2025-12-26 12:32:29",
+      "createdAt": "2025-12-26 17:31:55"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrl\tinteractionType\tstatus\terrorMessage\texecutedAt\tcreatedAt\n120010\thttps://x.com/muran95271/status/2002806424972525666\tlike\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.289）\t2025-12-26 12:32:29\t2025-12-26 17:31:55\n",
+  "stderr": "",
+  "execution_time_ms": 1516
+}

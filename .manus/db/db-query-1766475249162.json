@@ -1,0 +1,43 @@
+{
+  "query": "SELECT id, postUrlId, fromAccountId, interactionType, commentContent, status, errorMessage, executedAt, createdAt FROM interactions WHERE interactionType = 'comment' ORDER BY createdAt DESC LIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, postUrlId, fromAccountId, interactionType, commentContent, status, errorMessage, executedAt, createdAt FROM interactions WHERE interactionType = 'comment' ORDER BY createdAt DESC LIMIT 3",
+  "rows": [
+    {
+      "id": "30024",
+      "postUrlId": "5",
+      "fromAccountId": "420001",
+      "interactionType": "comment",
+      "commentContent": "NULL",
+      "status": "failed",
+      "errorMessage": "コメントが投稿されませんでした",
+      "executedAt": "2025-12-23 07:32:30",
+      "createdAt": "2025-12-23 07:31:48"
+    },
+    {
+      "id": "30023",
+      "postUrlId": "5",
+      "fromAccountId": "420001",
+      "interactionType": "comment",
+      "commentContent": "本当にそうだね！毎日がちょっとした冒険みたいだね😊✨",
+      "status": "completed",
+      "errorMessage": "NULL",
+      "executedAt": "2025-12-23 07:27:21",
+      "createdAt": "2025-12-23 07:26:51"
+    },
+    {
+      "id": "30022",
+      "postUrlId": "5",
+      "fromAccountId": "420001",
+      "interactionType": "comment",
+      "commentContent": "本当ですね！毎日新しい発見があります。🌟 どんな発見があったの？",
+      "status": "completed",
+      "errorMessage": "NULL",
+      "executedAt": "2025-12-23 07:23:40",
+      "createdAt": "2025-12-23 07:23:09"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrlId\tfromAccountId\tinteractionType\tcommentContent\tstatus\terrorMessage\texecutedAt\tcreatedAt\n30024\t5\t420001\tcomment\tNULL\tfailed\tコメントが投稿されませんでした\t2025-12-23 07:32:30\t2025-12-23 07:31:48\n30023\t5\t420001\tcomment\t本当にそうだね！毎日がちょっとした冒険みたいだね😊✨\tcompleted\tNULL\t2025-12-23 07:27:21\t2025-12-23 07:26:51\n30022\t5\t420001\tcomment\t本当ですね！毎日新しい発見があります。🌟 どんな発見があったの？\tcompleted\tNULL\t2025-12-23 07:23:40\t2025-12-23 07:23:09\n",
+  "stderr": "",
+  "execution_time_ms": 1619
+}

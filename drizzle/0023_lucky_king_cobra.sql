@@ -1,0 +1,1 @@
+ALTER TABLE `accounts` ADD `xHandle` varchar(255);

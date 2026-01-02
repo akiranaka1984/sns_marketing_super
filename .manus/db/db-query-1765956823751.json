@@ -1,0 +1,12 @@
+{
+  "query": "SELECT * FROM scheduled_posts WHERE id = 60002;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM scheduled_posts WHERE id = 60002;",
+  "rows": [],
+  "messages": [
+    "60002\t90001\t330001\tみんな、聞いて！この前、ちょっとした実験をしてみたんだ。いつもならすごく時間をかけてレビューする作業を、今回は思い切って「スキップ」してみたの。結果は...なんと、予想外にスムーズ！もちろん、全部が全部スキップできるわけじゃないけど、この「Test theme for skip review」のテーマで得た教訓は、時には立ち止まらない勇気も大事ってこと。新しい挑戦って、ドキドキするけど、その先には新しい発見があるんだね。みんなも、日常の「当たり前」をちょっと疑ってみると面白いかも？😊",
+    "#スキップレビュー #新しい挑戦 #時短テク #実験してみた #カジュアルストーリー\t[\"https://d2xsxph8kpxj0f.cloudfront.net/310519663209474318/6jtzrVB6wF9khFezaTmFpE/uploads/1765956489276-f464e7336cc11755.svg\"]\tNULL\t2025-12-17 07:30:00\tnone\tposted\t2025-12-17 07:31:45\tNULL\t2025-12-17 07:28:10\t2025-12-17 07:31:45\tNULL\t0\tdraft\tNULL\tNULL\tNULL\tNULL"
+  ],
+  "stdout": "id\tprojectId\taccountId\tcontent\tmediaUrls\thashtags\tscheduledTime\trepeatInterval\tstatus\tpostedAt\terrorMessage\tcreatedAt\tupdatedAt\tagentId\tgeneratedByAgent\treviewStatus\treviewedAt\treviewNotes\toriginalContent\tcontentConfidence\n60002\t90001\t330001\tみんな、聞いて！この前、ちょっとした実験をしてみたんだ。いつもならすごく時間をかけてレビューする作業を、今回は思い切って「スキップ」してみたの。結果は...なんと、予想外にスムーズ！もちろん、全部が全部スキップできるわけじゃないけど、この「Test theme for skip review」のテーマで得た教訓は、時には立ち止まらない勇気も大事ってこと。新しい挑戦って、ドキドキするけど、その先には新しい発見があるんだね。みんなも、日常の「当たり前」をちょっと疑ってみると面白いかも？😊\n\n#スキップレビュー #新しい挑戦 #時短テク #実験してみた #カジュアルストーリー\t[\"https://d2xsxph8kpxj0f.cloudfront.net/310519663209474318/6jtzrVB6wF9khFezaTmFpE/uploads/1765956489276-f464e7336cc11755.svg\"]\tNULL\t2025-12-17 07:30:00\tnone\tposted\t2025-12-17 07:31:45\tNULL\t2025-12-17 07:28:10\t2025-12-17 07:31:45\tNULL\t0\tdraft\tNULL\tNULL\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1540
+}

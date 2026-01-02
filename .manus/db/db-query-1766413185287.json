@@ -1,0 +1,38 @@
+{
+  "query": "SELECT id, username, platform, status, deviceId FROM accounts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, platform, status, deviceId FROM accounts",
+  "rows": [
+    {
+      "id": "30001",
+      "username": "test_analytics_user",
+      "platform": "twitter",
+      "status": "active",
+      "deviceId": "NULL"
+    },
+    {
+      "id": "270002",
+      "username": "a.muran@betrnk-junket.com",
+      "platform": "twitter",
+      "status": "active",
+      "deviceId": "s0t85"
+    },
+    {
+      "id": "330003",
+      "username": "test_batch_1",
+      "platform": "twitter",
+      "status": "active",
+      "deviceId": "NULL"
+    },
+    {
+      "id": "420001",
+      "username": "arnoldmuran82@gmail.com",
+      "platform": "twitter",
+      "status": "active",
+      "deviceId": "LVdTJ"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tplatform\tstatus\tdeviceId\n30001\ttest_analytics_user\ttwitter\tactive\tNULL\n270002\ta.muran@betrnk-junket.com\ttwitter\tactive\ts0t85\n330003\ttest_batch_1\ttwitter\tactive\tNULL\n420001\tarnoldmuran82@gmail.com\ttwitter\tactive\tLVdTJ\n",
+  "stderr": "",
+  "execution_time_ms": 1581
+}

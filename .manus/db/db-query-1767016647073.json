@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, email, name FROM users WHERE email = 'makoto.i0126@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, email, name FROM users WHERE email = 'makoto.i0126@gmail.com';",
+  "rows": [
+    {
+      "id": "480001",
+      "email": "makoto.i0126@gmail.com",
+      "name": "中村晃輝"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\n480001\tmakoto.i0126@gmail.com\t中村晃輝\n",
+  "stderr": "",
+  "execution_time_ms": 1511
+}

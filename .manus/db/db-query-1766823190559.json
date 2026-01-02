@@ -1,0 +1,21 @@
+{
+  "query": "SELECT * FROM post_urls ORDER BY id DESC LIMIT 1",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM post_urls ORDER BY id DESC LIMIT 1",
+  "rows": [
+    {
+      "id": "90004",
+      "projectId": "90001",
+      "scheduledPostId": "NULL",
+      "accountId": "420001",
+      "deviceId": "LVdTJ",
+      "username": "arnoldmuran82@gmail.com",
+      "postUrl": "https://x.com/AkiraNakam61955/status/2003379047301337421",
+      "postContent": "テスト投稿です",
+      "createdAt": "2025-12-27 06:34:46"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tprojectId\tscheduledPostId\taccountId\tdeviceId\tusername\tpostUrl\tpostContent\tcreatedAt\n90004\t90001\tNULL\t420001\tLVdTJ\tarnoldmuran82@gmail.com\thttps://x.com/AkiraNakam61955/status/2003379047301337421\tテスト投稿です\t2025-12-27 06:34:46\n",
+  "stderr": "",
+  "execution_time_ms": 1609
+}

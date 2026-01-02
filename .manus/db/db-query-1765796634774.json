@@ -1,0 +1,18 @@
+{
+  "query": "SELECT * FROM settings;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM settings;",
+  "rows": [
+    {
+      "id": "1",
+      "key": "DUOPLUS_API_KEY",
+      "value": "test-key-123",
+      "description": "Test DuoPlus API key",
+      "createdAt": "2025-12-15 11:03:47",
+      "updatedAt": "2025-12-15 11:03:47"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tkey\tvalue\tdescription\tcreatedAt\tupdatedAt\n1\tDUOPLUS_API_KEY\ttest-key-123\tTest DuoPlus API key\t2025-12-15 11:03:47\t2025-12-15 11:03:47\n",
+  "stderr": "",
+  "execution_time_ms": 1551
+}

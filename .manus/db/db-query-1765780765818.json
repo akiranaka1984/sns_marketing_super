@@ -1,0 +1,16 @@
+{
+  "query": "SELECT COUNT(*) as total_accounts, \n       SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_accounts,\n       SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_accounts,\n       SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_accounts\nFROM accounts;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT COUNT(*) as total_accounts, \n       SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_accounts,\n       SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_accounts,\n       SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_accounts\nFROM accounts;",
+  "rows": [
+    {
+      "total_accounts": "68",
+      "active_accounts": "20",
+      "pending_accounts": "48",
+      "failed_accounts": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_accounts\tactive_accounts\tpending_accounts\tfailed_accounts\n68\t20\t48\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1546
+}

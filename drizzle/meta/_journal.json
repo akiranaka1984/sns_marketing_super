@@ -1,0 +1,216 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1765364817735,
+      "tag": "0000_flawless_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1765364922798,
+      "tag": "0001_special_rachel_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765366030353,
+      "tag": "0002_chief_jazinda",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1765403627518,
+      "tag": "0003_late_retro_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1765443500446,
+      "tag": "0004_spicy_shockwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1765482048112,
+      "tag": "0005_legal_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1765483105011,
+      "tag": "0006_soft_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1765641708178,
+      "tag": "0007_nostalgic_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1765648142404,
+      "tag": "0008_parallel_lethal_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1765654428166,
+      "tag": "0009_nasty_midnight",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1765716879556,
+      "tag": "0010_overconfident_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1765720916978,
+      "tag": "0011_silent_kabuki",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1765786105074,
+      "tag": "0012_spicy_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1765814093349,
+      "tag": "0013_famous_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "5",
+      "when": 1765858300761,
+      "tag": "0014_tidy_millenium_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "5",
+      "when": 1765867578240,
+      "tag": "0015_slow_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1765867697747,
+      "tag": "0016_gifted_vanisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1765874923210,
+      "tag": "0017_little_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1765876549993,
+      "tag": "0018_fresh_cyclops",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1765952300472,
+      "tag": "0019_cooing_baron_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1765957086284,
+      "tag": "0020_clear_omega_flight",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1766150738941,
+      "tag": "0021_dazzling_human_torch",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1766407127909,
+      "tag": "0022_wet_silverclaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1766413276180,
+      "tag": "0023_lucky_king_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1766427453129,
+      "tag": "0024_shiny_shiva",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1766507954297,
+      "tag": "0025_tired_mimic",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1766768507743,
+      "tag": "0026_pretty_slyde",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1766989319140,
+      "tag": "0027_lethal_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1766992882464,
+      "tag": "0028_good_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1767008598714,
+      "tag": "0029_futuristic_gauntlet",
+      "breakpoints": true
+    }
+  ]
+}

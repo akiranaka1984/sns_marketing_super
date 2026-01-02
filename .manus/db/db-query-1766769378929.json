@@ -1,0 +1,37 @@
+{
+  "query": "SELECT id, interactionType, status, errorMessage, beforeScreenshotUrl, afterScreenshotUrl, createdAt FROM interactions WHERE interactionType = 'like' ORDER BY createdAt DESC LIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, interactionType, status, errorMessage, beforeScreenshotUrl, afterScreenshotUrl, createdAt FROM interactions WHERE interactionType = 'like' ORDER BY createdAt DESC LIMIT 3",
+  "rows": [
+    {
+      "id": "120007",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.106）",
+      "beforeScreenshotUrl": "NULL",
+      "afterScreenshotUrl": "NULL",
+      "createdAt": "2025-12-26 17:12:24"
+    },
+    {
+      "id": "120006",
+      "interactionType": "like",
+      "status": "failed",
+      "errorMessage": "いいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.179）",
+      "beforeScreenshotUrl": "NULL",
+      "afterScreenshotUrl": "NULL",
+      "createdAt": "2025-12-26 17:11:51"
+    },
+    {
+      "id": "120005",
+      "interactionType": "like",
+      "status": "processing",
+      "errorMessage": "NULL",
+      "beforeScreenshotUrl": "NULL",
+      "afterScreenshotUrl": "NULL",
+      "createdAt": "2025-12-26 17:06:58"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tinteractionType\tstatus\terrorMessage\tbeforeScreenshotUrl\tafterScreenshotUrl\tcreatedAt\n120007\tlike\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.106）\tNULL\tNULL\t2025-12-26 17:12:24\n120006\tlike\tfailed\tいいねボタンの座標検出に失敗しました: テンプレートマッチングの信頼度が低すぎます（NCC: 0.179）\tNULL\tNULL\t2025-12-26 17:11:51\n120005\tlike\tprocessing\tNULL\tNULL\tNULL\t2025-12-26 17:06:58\n",
+  "stderr": "",
+  "execution_time_ms": 10726
+}

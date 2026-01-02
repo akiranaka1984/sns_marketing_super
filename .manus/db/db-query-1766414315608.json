@@ -1,0 +1,24 @@
+{
+  "query": "SELECT * FROM accounts WHERE username = 'arnold@bkkeyforceservices.ph'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM accounts WHERE username = 'arnold@bkkeyforceservices.ph'",
+  "rows": [
+    {
+      "id": "270002",
+      "userId": "1",
+      "platform": "twitter",
+      "username": "arnold@bkkeyforceservices.ph",
+      "password": "admin123",
+      "status": "active",
+      "deviceId": "s0t85",
+      "lastLoginAt": "NULL",
+      "createdAt": "2025-12-16 10:45:35",
+      "updatedAt": "2025-12-22 14:38:22",
+      "proxyId": "NULL",
+      "xHandle": "muran49129"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tplatform\tusername\tpassword\tstatus\tdeviceId\tlastLoginAt\tcreatedAt\tupdatedAt\tproxyId\txHandle\n270002\t1\ttwitter\tarnold@bkkeyforceservices.ph\tadmin123\tactive\ts0t85\tNULL\t2025-12-16 10:45:35\t2025-12-22 14:38:22\tNULL\tmuran49129\n",
+  "stderr": "",
+  "execution_time_ms": 1518
+}

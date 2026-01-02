@@ -1,0 +1,41 @@
+const bearerToken = "AAAAAAAAAAAAAAAAAAAAAMpn6QEAAAAA2KcI2hOObE36xIqCezXBuDW8Ot0%3DjEkya7EjfXNZ9OXn1le4OiS5S2odmSRo457crzb5qbLJdzgzsk";
+
+// @muran95271の投稿を検索
+const username = "muran95271";
+const query = `from:${username} -is:retweet -is:reply`;
+const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id`;
+
+console.log("Fetching tweets for @" + username + "...\n");
+
+const response = await fetch(url, {
+  headers: {
+    Authorization: `Bearer ${bearerToken}`,
+  },
+});
+
+console.log("Response status:", response.status);
+
+if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  console.error("API Error:", response.status, JSON.stringify(errorData, null, 2));
+  process.exit(1);
+}
+
+const data = await response.json();
+
+if (data.data && data.data.length > 0) {
+  console.log(`\nFound ${data.data.length} tweets:\n`);
+  data.data.forEach((tweet, index) => {
+    console.log(`--- Tweet ${index + 1} ---`);
+    console.log(`ID: ${tweet.id}`);
+    console.log(`Created: ${tweet.created_at}`);
+    console.log(`Text: ${tweet.text}`);
+    console.log(`URL: https://twitter.com/${username}/status/${tweet.id}`);
+    console.log();
+  });
+} else {
+  console.log("\nNo tweets found for @" + username);
+  if (data.meta) {
+    console.log("Meta:", JSON.stringify(data.meta, null, 2));
+  }
+}

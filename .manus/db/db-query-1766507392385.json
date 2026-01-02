@@ -1,0 +1,43 @@
+{
+  "query": "SELECT i.id, i.postUrlId, i.fromAccountId, i.fromDeviceId, i.interactionType, i.status, i.executedAt, i.errorMessage, p.postUrl \nFROM interactions i \nLEFT JOIN post_urls p ON i.postUrlId = p.id \nWHERE i.interactionType = 'like' \nORDER BY i.createdAt DESC \nLIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT i.id, i.postUrlId, i.fromAccountId, i.fromDeviceId, i.interactionType, i.status, i.executedAt, i.errorMessage, p.postUrl \nFROM interactions i \nLEFT JOIN post_urls p ON i.postUrlId = p.id \nWHERE i.interactionType = 'like' \nORDER BY i.createdAt DESC \nLIMIT 3;",
+  "rows": [
+    {
+      "id": "60006",
+      "postUrlId": "2",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "status": "completed",
+      "executedAt": "2025-12-23 11:27:50",
+      "errorMessage": "NULL",
+      "postUrl": "https://x.com/muran95271/status/2003010241009435062"
+    },
+    {
+      "id": "60005",
+      "postUrlId": "3",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "status": "completed",
+      "executedAt": "2025-12-23 11:27:03",
+      "errorMessage": "NULL",
+      "postUrl": "https://x.com/muran95271/status/2002994805010464980"
+    },
+    {
+      "id": "60004",
+      "postUrlId": "2",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "status": "completed",
+      "executedAt": "2025-12-23 11:26:18",
+      "errorMessage": "NULL",
+      "postUrl": "https://x.com/muran95271/status/2003010241009435062"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrlId\tfromAccountId\tfromDeviceId\tinteractionType\tstatus\texecutedAt\terrorMessage\tpostUrl\n60006\t2\t450001\tsnap_fmnPp\tlike\tcompleted\t2025-12-23 11:27:50\tNULL\thttps://x.com/muran95271/status/2003010241009435062\n60005\t3\t450001\tsnap_fmnPp\tlike\tcompleted\t2025-12-23 11:27:03\tNULL\thttps://x.com/muran95271/status/2002994805010464980\n60004\t2\t450001\tsnap_fmnPp\tlike\tcompleted\t2025-12-23 11:26:18\tNULL\thttps://x.com/muran95271/status/2003010241009435062\n",
+  "stderr": "",
+  "execution_time_ms": 1538
+}

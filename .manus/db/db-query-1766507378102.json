@@ -1,0 +1,52 @@
+{
+  "query": "SELECT * FROM interactions WHERE interactionType = 'like' ORDER BY createdAt DESC LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM interactions WHERE interactionType = 'like' ORDER BY createdAt DESC LIMIT 3;",
+  "rows": [
+    {
+      "id": "60006",
+      "postUrlId": "2",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "commentContent": "NULL",
+      "status": "completed",
+      "scheduledAt": "NULL",
+      "executedAt": "2025-12-23 11:27:50",
+      "errorMessage": "NULL",
+      "retryCount": "0",
+      "createdAt": "2025-12-23 16:27:30"
+    },
+    {
+      "id": "60005",
+      "postUrlId": "3",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "commentContent": "NULL",
+      "status": "completed",
+      "scheduledAt": "NULL",
+      "executedAt": "2025-12-23 11:27:03",
+      "errorMessage": "NULL",
+      "retryCount": "0",
+      "createdAt": "2025-12-23 16:26:43"
+    },
+    {
+      "id": "60004",
+      "postUrlId": "2",
+      "fromAccountId": "450001",
+      "fromDeviceId": "snap_fmnPp",
+      "interactionType": "like",
+      "commentContent": "NULL",
+      "status": "completed",
+      "scheduledAt": "NULL",
+      "executedAt": "2025-12-23 11:26:18",
+      "errorMessage": "NULL",
+      "retryCount": "0",
+      "createdAt": "2025-12-23 16:25:57"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpostUrlId\tfromAccountId\tfromDeviceId\tinteractionType\tcommentContent\tstatus\tscheduledAt\texecutedAt\terrorMessage\tretryCount\tcreatedAt\n60006\t2\t450001\tsnap_fmnPp\tlike\tNULL\tcompleted\tNULL\t2025-12-23 11:27:50\tNULL\t0\t2025-12-23 16:27:30\n60005\t3\t450001\tsnap_fmnPp\tlike\tNULL\tcompleted\tNULL\t2025-12-23 11:27:03\tNULL\t0\t2025-12-23 16:26:43\n60004\t2\t450001\tsnap_fmnPp\tlike\tNULL\tcompleted\tNULL\t2025-12-23 11:26:18\tNULL\t0\t2025-12-23 16:25:57\n",
+  "stderr": "",
+  "execution_time_ms": 1560
+}

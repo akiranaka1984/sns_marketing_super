@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, platform, username, xHandle, status, deviceId FROM accounts WHERE username = 'arnold@bkkeyforceservices.ph' OR username = 'a.muran@betrnk-junket.com'",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, platform, username, xHandle, status, deviceId FROM accounts WHERE username = 'arnold@bkkeyforceservices.ph' OR username = 'a.muran@betrnk-junket.com'",
+  "rows": [
+    {
+      "id": "270002",
+      "platform": "twitter",
+      "username": "arnold@bkkeyforceservices.ph",
+      "xHandle": "muran49129",
+      "status": "active",
+      "deviceId": "s0t85"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tplatform\tusername\txHandle\tstatus\tdeviceId\n270002\ttwitter\tarnold@bkkeyforceservices.ph\tmuran49129\tactive\ts0t85\n",
+  "stderr": "",
+  "execution_time_ms": 1517
+}

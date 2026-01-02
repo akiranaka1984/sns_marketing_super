@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, username, platform, deviceId, status, lastLoginAt FROM accounts WHERE id IN (330001, 270002);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, username, platform, deviceId, status, lastLoginAt FROM accounts WHERE id IN (330001, 270002);",
+  "rows": [
+    {
+      "id": "330001",
+      "username": "a.muran@betrnk-junket.com",
+      "platform": "instagram",
+      "deviceId": "s0t85",
+      "status": "active",
+      "lastLoginAt": "NULL"
+    },
+    {
+      "id": "270002",
+      "username": "a.muran@betrnk-junket.com",
+      "platform": "twitter",
+      "deviceId": "s0t85",
+      "status": "active",
+      "lastLoginAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tusername\tplatform\tdeviceId\tstatus\tlastLoginAt\n330001\ta.muran@betrnk-junket.com\tinstagram\ts0t85\tactive\tNULL\n270002\ta.muran@betrnk-junket.com\ttwitter\ts0t85\tactive\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1507
+}

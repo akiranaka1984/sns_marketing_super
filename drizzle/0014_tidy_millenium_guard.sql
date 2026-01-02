@@ -1,0 +1,61 @@
+CREATE TABLE `ab_test_learnings` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`testId` int NOT NULL,
+	`agentId` int NOT NULL,
+	`learningType` enum('tone_preference','length_preference','emoji_preference','hashtag_preference','media_preference','timing_preference','general') NOT NULL,
+	`title` varchar(255) NOT NULL,
+	`insight` text NOT NULL,
+	`winningValue` varchar(255),
+	`losingValue` varchar(255),
+	`performanceDiff` int,
+	`confidence` int NOT NULL DEFAULT 50,
+	`isApplied` boolean NOT NULL DEFAULT false,
+	`appliedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `ab_test_learnings_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `ab_test_variations` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`testId` int NOT NULL,
+	`variationName` varchar(50) NOT NULL,
+	`content` text NOT NULL,
+	`hashtags` text,
+	`mediaUrls` text,
+	`tone` varchar(100),
+	`contentLength` enum('short','medium','long') NOT NULL DEFAULT 'medium',
+	`emojiUsage` enum('none','minimal','moderate','heavy') NOT NULL DEFAULT 'minimal',
+	`hashtagCount` int NOT NULL DEFAULT 0,
+	`hasMedia` boolean NOT NULL DEFAULT false,
+	`postId` int,
+	`likesCount` int NOT NULL DEFAULT 0,
+	`commentsCount` int NOT NULL DEFAULT 0,
+	`sharesCount` int NOT NULL DEFAULT 0,
+	`viewsCount` int NOT NULL DEFAULT 0,
+	`engagementRate` int NOT NULL DEFAULT 0,
+	`performanceScore` int NOT NULL DEFAULT 0,
+	`isWinner` boolean NOT NULL DEFAULT false,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `ab_test_variations_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `ab_tests` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`agentId` int NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`description` text,
+	`theme` text NOT NULL,
+	`status` enum('draft','running','completed','cancelled') NOT NULL DEFAULT 'draft',
+	`variationCount` int NOT NULL DEFAULT 2,
+	`testDurationHours` int NOT NULL DEFAULT 48,
+	`minEngagementThreshold` int NOT NULL DEFAULT 10,
+	`winnerId` int,
+	`winnerDeterminedAt` timestamp,
+	`confidenceLevel` int,
+	`startedAt` timestamp,
+	`completedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `ab_tests_id` PRIMARY KEY(`id`)
+);

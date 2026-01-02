@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, openId, name, email, role FROM users WHERE name LIKE '%中村%' OR name LIKE '%晃輝%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, openId, name, email, role FROM users WHERE name LIKE '%中村%' OR name LIKE '%晃輝%';",
+  "rows": [
+    {
+      "id": "480001",
+      "openId": "SbVkRMfTu8gwFZG4keRmpM",
+      "name": "中村晃輝",
+      "email": "makoto.i0126@gmail.com",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\trole\n480001\tSbVkRMfTu8gwFZG4keRmpM\t中村晃輝\tmakoto.i0126@gmail.com\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 1533
+}

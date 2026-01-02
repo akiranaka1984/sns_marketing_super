@@ -1,0 +1,418 @@
+{
+  "query": "SELECT id, openId, name, email FROM users;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT id, openId, name, email FROM users;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "TmCLdJCVAbQVHhTctixhKf",
+      "name": "fu",
+      "email": "lz8950239@gmail.com"
+    },
+    {
+      "id": "450001",
+      "openId": "test-kpi-user",
+      "name": "Test KPI User",
+      "email": "kpi@test.com"
+    },
+    {
+      "id": "480001",
+      "openId": "SbVkRMfTu8gwFZG4keRmpM",
+      "name": "中村晃輝",
+      "email": "makoto.i0126@gmail.com"
+    },
+    {
+      "id": "480002",
+      "openId": "test-agent-user-1765651566387",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480003",
+      "openId": "test-agent-user-1765651568296",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480004",
+      "openId": "test-agent-user-1765651568984",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480005",
+      "openId": "test-agent-user-1765651569672",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480006",
+      "openId": "test-agent-user-1765651570589",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480007",
+      "openId": "test-agent-user-1765651571503",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480008",
+      "openId": "test-agent-user-1765651574013",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480009",
+      "openId": "test-agent-user-1765651576996",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480010",
+      "openId": "test-agent-user-1765651577681",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "480011",
+      "openId": "test-agent-user-1765651578365",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510001",
+      "openId": "test-agent-user-1765654484390",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510002",
+      "openId": "test-agent-user-1765654486322",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510003",
+      "openId": "test-agent-user-1765654487016",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510004",
+      "openId": "test-agent-user-1765654487713",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510005",
+      "openId": "test-agent-user-1765654488640",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510006",
+      "openId": "test-agent-user-1765654489571",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510007",
+      "openId": "test-agent-user-1765654492111",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510008",
+      "openId": "test-agent-user-1765654495119",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510009",
+      "openId": "test-agent-user-1765654495813",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "510010",
+      "openId": "test-agent-user-1765654496508",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540001",
+      "openId": "test-agent-user-1765717267618",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540002",
+      "openId": "test-agent-user-1765717269540",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540003",
+      "openId": "test-agent-user-1765717270231",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540004",
+      "openId": "test-agent-user-1765717271173",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540005",
+      "openId": "test-agent-user-1765717272097",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540006",
+      "openId": "test-agent-user-1765717273019",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540007",
+      "openId": "test-agent-user-1765717275539",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540008",
+      "openId": "test-agent-user-1765717278519",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540009",
+      "openId": "test-agent-user-1765717279209",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540010",
+      "openId": "test-agent-user-1765717279901",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540011",
+      "openId": "test-agent-user-1765718340228",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540012",
+      "openId": "test-agent-user-1765718342057",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540013",
+      "openId": "test-agent-user-1765718342717",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540014",
+      "openId": "test-agent-user-1765718343385",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540015",
+      "openId": "test-agent-user-1765718344267",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540016",
+      "openId": "test-agent-user-1765718345146",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540017",
+      "openId": "test-agent-user-1765718347553",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540019",
+      "openId": "test-agent-user-1765718350434",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540020",
+      "openId": "test-agent-user-1765718351092",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540021",
+      "openId": "test-agent-user-1765718351756",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540024",
+      "openId": "test-agent-user-1765720988815",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540025",
+      "openId": "test-agent-user-1765720990596",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540026",
+      "openId": "test-agent-user-1765720991240",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540027",
+      "openId": "test-agent-user-1765720991885",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540028",
+      "openId": "test-agent-user-1765720992743",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540029",
+      "openId": "test-agent-user-1765720993600",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540030",
+      "openId": "test-agent-user-1765720995946",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540032",
+      "openId": "test-agent-user-1765720998718",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540033",
+      "openId": "test-agent-user-1765720999357",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "540034",
+      "openId": "test-agent-user-1765720999997",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "570001",
+      "openId": "test-agent-user-1765726786294",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "570002",
+      "openId": "test-agent-user-1765726788154",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "570003",
+      "openId": "test-agent-user-1765726788813",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "570004",
+      "openId": "test-agent-user-1765726789474",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "570005",
+      "openId": "test-agent-user-1765726790355",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600001",
+      "openId": "test-agent-user-1765775916392",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600002",
+      "openId": "test-agent-user-1765775918204",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600003",
+      "openId": "test-agent-user-1765775918853",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600004",
+      "openId": "test-agent-user-1765775919505",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600005",
+      "openId": "test-agent-user-1765775920371",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600006",
+      "openId": "test-agent-user-1765775921235",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600007",
+      "openId": "test-agent-user-1765775923608",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600008",
+      "openId": "test-agent-user-1765775926414",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600009",
+      "openId": "test-agent-user-1765775927060",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    },
+    {
+      "id": "600010",
+      "openId": "test-agent-user-1765775927738",
+      "name": "Agent Test User",
+      "email": "agent-test@example.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\n1\tTmCLdJCVAbQVHhTctixhKf\tfu\tlz8950239@gmail.com\n450001\ttest-kpi-user\tTest KPI User\tkpi@test.com\n480001\tSbVkRMfTu8gwFZG4keRmpM\t中村晃輝\tmakoto.i0126@gmail.com\n480002\ttest-agent-user-1765651566387\tAgent Test User\tagent-test@example.com\n480003\ttest-agent-user-1765651568296\tAgent Test User\tagent-test@example.com\n480004\ttest-agent-user-1765651568984\tAgent Test User\tagent-test@example.com\n480005\ttest-agent-user-1765651569672\tAgent Test User\tagent-test@example.com\n480006\ttest-agent-user-1765651570589\tAgent Test User\tagent-test@example.com\n480007\ttest-agent-user-1765651571503\tAgent Test User\tagent-test@example.com\n480008\ttest-agent-user-1765651574013\tAgent Test User\tagent-test@example.com\n480009\ttest-agent-user-1765651576996\tAgent Test User\tagent-test@example.com\n480010\ttest-agent-user-1765651577681\tAgent Test User\tagent-test@example.com\n480011\ttest-agent-user-1765651578365\tAgent Test User\tagent-test@example.com\n510001\ttest-agent-user-1765654484390\tAgent Test User\tagent-test@example.com\n510002\ttest-agent-user-1765654486322\tAgent Test User\tagent-test@example.com\n510003\ttest-agent-user-1765654487016\tAgent Test User\tagent-test@example.com\n510004\ttest-agent-user-1765654487713\tAgent Test User\tagent-test@example.com\n510005\ttest-agent-user-1765654488640\tAgent Test User\tagent-test@example.com\n510006\ttest-agent-user-1765654489571\tAgent Test User\tagent-test@example.com\n510007\ttest-agent-user-1765654492111\tAgent Test User\tagent-test@example.com\n510008\ttest-agent-user-1765654495119\tAgent Test User\tagent-test@example.com\n510009\ttest-agent-user-1765654495813\tAgent Test User\tagent-test@example.com\n510010\ttest-agent-user-1765654496508\tAgent Test User\tagent-test@example.com\n540001\ttest-agent-user-1765717267618\tAgent Test User\tagent-test@example.com\n540002\ttest-agent-user-1765717269540\tAgent Test User\tagent-test@example.com\n540003\ttest-agent-user-1765717270231\tAgent Test User\tagent-test@example.com\n540004\ttest-agent-user-1765717271173\tAgent Test User\tagent-test@example.com\n540005\ttest-agent-user-1765717272097\tAgent Test User\tagent-test@example.com\n540006\ttest-agent-user-1765717273019\tAgent Test User\tagent-test@example.com\n540007\ttest-agent-user-1765717275539\tAgent Test User\tagent-test@example.com\n540008\ttest-agent-user-1765717278519\tAgent Test User\tagent-test@example.com\n540009\ttest-agent-user-1765717279209\tAgent Test User\tagent-test@example.com\n540010\ttest-agent-user-1765717279901\tAgent Test User\tagent-test@example.com\n540011\ttest-agent-user-1765718340228\tAgent Test User\tagent-test@example.com\n540012\ttest-agent-user-1765718342057\tAgent Test User\tagent-test@example.com\n540013\ttest-agent-user-1765718342717\tAgent Test User\tagent-test@example.com\n540014\ttest-agent-user-1765718343385\tAgent Test User\tagent-test@example.com\n540015\ttest-agent-user-1765718344267\tAgent Test User\tagent-test@example.com\n540016\ttest-agent-user-1765718345146\tAgent Test User\tagent-test@example.com\n540017\ttest-agent-user-1765718347553\tAgent Test User\tagent-test@example.com\n540019\ttest-agent-user-1765718350434\tAgent Test User\tagent-test@example.com\n540020\ttest-agent-user-1765718351092\tAgent Test User\tagent-test@example.com\n540021\ttest-agent-user-1765718351756\tAgent Test User\tagent-test@example.com\n540024\ttest-agent-user-1765720988815\tAgent Test User\tagent-test@example.com\n540025\ttest-agent-user-1765720990596\tAgent Test User\tagent-test@example.com\n540026\ttest-agent-user-1765720991240\tAgent Test User\tagent-test@example.com\n540027\ttest-agent-user-1765720991885\tAgent Test User\tagent-test@example.com\n540028\ttest-agent-user-1765720992743\tAgent Test User\tagent-test@example.com\n540029\ttest-agent-user-1765720993600\tAgent Test User\tagent-test@example.com\n540030\ttest-agent-user-1765720995946\tAgent Test User\tagent-test@example.com\n540032\ttest-agent-user-1765720998718\tAgent Test User\tagent-test@example.com\n540033\ttest-agent-user-1765720999357\tAgent Test User\tagent-test@example.com\n540034\ttest-agent-user-1765720999997\tAgent Test User\tagent-test@example.com\n570001\ttest-agent-user-1765726786294\tAgent Test User\tagent-test@example.com\n570002\ttest-agent-user-1765726788154\tAgent Test User\tagent-test@example.com\n570003\ttest-agent-user-1765726788813\tAgent Test User\tagent-test@example.com\n570004\ttest-agent-user-1765726789474\tAgent Test User\tagent-test@example.com\n570005\ttest-agent-user-1765726790355\tAgent Test User\tagent-test@example.com\n600001\ttest-agent-user-1765775916392\tAgent Test User\tagent-test@example.com\n600002\ttest-agent-user-1765775918204\tAgent Test User\tagent-test@example.com\n600003\ttest-agent-user-1765775918853\tAgent Test User\tagent-test@example.com\n600004\ttest-agent-user-1765775919505\tAgent Test User\tagent-test@example.com\n600005\ttest-agent-user-1765775920371\tAgent Test User\tagent-test@example.com\n600006\ttest-agent-user-1765775921235\tAgent Test User\tagent-test@example.com\n600007\ttest-agent-user-1765775923608\tAgent Test User\tagent-test@example.com\n600008\ttest-agent-user-1765775926414\tAgent Test User\tagent-test@example.com\n600009\ttest-agent-user-1765775927060\tAgent Test User\tagent-test@example.com\n600010\ttest-agent-user-1765775927738\tAgent Test User\tagent-test@example.com\n",
+  "stderr": "",
+  "execution_time_ms": 1526
+}

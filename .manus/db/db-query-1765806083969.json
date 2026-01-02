@@ -1,0 +1,18 @@
+{
+  "query": "SELECT * FROM settings WHERE `key` = 'DUOPLUS_API_KEY';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute SELECT * FROM settings WHERE `key` = 'DUOPLUS_API_KEY';",
+  "rows": [
+    {
+      "id": "2",
+      "key": "DUOPLUS_API_KEY",
+      "value": "0ee79724-1633-458d-abb5-12ffb5e4a9e9",
+      "description": "DuoPlus API key for device management",
+      "createdAt": "2025-12-15 11:43:42",
+      "updatedAt": "2025-12-15 12:47:42"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tkey\tvalue\tdescription\tcreatedAt\tupdatedAt\n2\tDUOPLUS_API_KEY\t0ee79724-1633-458d-abb5-12ffb5e4a9e9\tDuoPlus API key for device management\t2025-12-15 11:43:42\t2025-12-15 12:47:42\n",
+  "stderr": "",
+  "execution_time_ms": 1575
+}

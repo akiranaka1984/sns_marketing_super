@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  i.id,\n  pu.post_url,\n  i.interactionType,\n  i.status,\n  i.errorMessage,\n  i.executedAt,\n  i.createdAt\nFROM interactions i\nJOIN post_urls pu ON i.postUrlId = pu.id\nWHERE pu.projectId = 90001\n  AND i.status = 'failed'\nORDER BY i.createdAt DESC\nLIMIT 1;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3acLf9NzZ7hRWmZ.d99a3ea649fd --database 6jtzrVB6wF9khFezaTmFpE --execute \nSELECT \n  i.id,\n  pu.post_url,\n  i.interactionType,\n  i.status,\n  i.errorMessage,\n  i.executedAt,\n  i.createdAt\nFROM interactions i\nJOIN post_urls pu ON i.postUrlId = pu.id\nWHERE pu.projectId = 90001\n  AND i.status = 'failed'\nORDER BY i.createdAt DESC\nLIMIT 1;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'pu.post_url' in 'field list'"
+  ]
+}
