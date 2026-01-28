@@ -58,8 +58,8 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 
-# Install production dependencies + vite (needed for serving static files)
-RUN pnpm install --frozen-lockfile --prod && pnpm add vite
+# Install production dependencies + vite + drizzle-kit (needed for serving static files and migrations)
+RUN pnpm install --frozen-lockfile --prod && pnpm add vite drizzle-kit
 
 # Copy built application from builder stage
 # Vite builds to dist/public, server builds to dist/
@@ -67,6 +67,7 @@ COPY --from=builder /app/dist ./dist
 
 # Copy necessary runtime files
 COPY drizzle/ ./drizzle/
+COPY drizzle.config.ts ./
 COPY scripts/ ./scripts/
 COPY python/ ./python/
 
