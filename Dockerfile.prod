@@ -62,8 +62,8 @@ COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile --prod
 
 # Copy built application from builder stage
+# Vite builds to dist/public, server builds to dist/
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 
 # Copy necessary runtime files
 COPY drizzle/ ./drizzle/
