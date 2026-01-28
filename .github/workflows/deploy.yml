@@ -67,6 +67,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
+            VITE_APP_ID=${{ secrets.VITE_APP_ID }}
+            VITE_OAUTH_PORTAL_URL=${{ secrets.VITE_OAUTH_PORTAL_URL }}
 
       - name: Extract metadata for Python Worker
         id: meta-python
