@@ -185,9 +185,9 @@ jobs:
             echo "Waiting for database to be ready..."
             sleep 30
 
-            # Run database migrations
+            # Run database migrations (as root to avoid permission issues)
             echo "Running database migrations..."
-            docker compose -p sns-marketing -f docker-compose.prod.yml exec -T app pnpm db:push || echo "Migration failed or not needed"
+            docker compose -p sns-marketing -f docker-compose.prod.yml exec -T -u root app pnpm db:push || echo "Migration failed or not needed"
 
             # Update symlink
             ln -sfn "\$DEPLOY_DIR" "${{ env.DEPLOY_PATH }}/current"
