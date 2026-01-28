@@ -103,11 +103,12 @@ jobs:
           echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-          echo "Host vps" >> ~/.ssh/config
-          echo "  HostName ${{ secrets.VPS_HOST }}" >> ~/.ssh/config
-          echo "  User ${{ secrets.VPS_USER }}" >> ~/.ssh/config
-          echo "  IdentityFile ~/.ssh/deploy_key" >> ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "=== Key file info ==="
+          ls -la ~/.ssh/deploy_key
+          head -1 ~/.ssh/deploy_key
+          tail -1 ~/.ssh/deploy_key
+          echo "=== Testing SSH connection ==="
+          ssh -v -o BatchMode=yes -o ConnectTimeout=10 -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo SSH OK" || echo "SSH test failed"
 
       - name: Create deployment directory
         run: |
