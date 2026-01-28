@@ -138,7 +138,9 @@ jobs:
       - name: Deploy new version
         env:
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin"
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << ENDSSH
             set -e
             DEPLOY_DIR=\$(cat ${{ env.DEPLOY_PATH }}/new_deploy_dir)
