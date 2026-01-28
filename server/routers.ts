@@ -5,8 +5,11 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
+import { db as drizzleDb } from "./db";
+import { agentAccounts, agents, settings } from "../drizzle/schema";
+import { eq, and } from "drizzle-orm";
 import { registerAccountWithRetry } from "./accountRegistration";
-import { generateStrategy } from "./aiEngine";
+import { generateStrategy, generatePersonaCharacteristics } from "./aiEngine";
 import { automationRouter } from "./automation.routers";
 import { automationRouter as newAutomationRouter } from "./routers/automation";
 import { settingsRouter } from "./settings.routers";
@@ -39,9 +42,27 @@ import { xApiSettingsRouter } from './x-api-settings.routers';
 import { interactionsRouter } from './interactions.routers';
 import { interactionSettingsRouter } from './interaction-settings.routers';
 import { schedulerRouter } from './scheduler.routers';
+import { accountRelationshipsRouter } from './account-relationships.routers';
+import { modelAccountsRouter } from './model-accounts.routers';
+import { buzzAnalysisRouter } from './buzz-analysis.routers';
+import { profileOptimizationRouter } from './profile-optimization.routers';
+import { projectModelAccountsRouter } from './project-model-accounts.routers';
+import { kpiTrackingRouter } from './kpi-tracking.routers';
 import { startScheduler, stopScheduler, isSchedulerRunning, getAllScheduledExecutions, checkAndRunScheduledAgents } from "./agent-scheduler";
+import { getAccountGrowthStats, getAccountLearningsWithDetails, syncAccountGrowthFromLearnings } from "./services/account-growth-service";
 
 export const appRouter = router({
+  // Health check endpoint for CI/CD and monitoring
+  health: publicProcedure.query(async () => {
+    // Verify database connectivity by running a simple query
+    await drizzleDb.select().from(settings).limit(1);
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+    };
+  }),
+
   system: systemRouter,
   automation: automationRouter,
   newAutomation: newAutomationRouter,
@@ -74,6 +95,12 @@ export const appRouter = router({
   interactions: interactionsRouter,
   interactionSettings: interactionSettingsRouter,
   scheduler: schedulerRouter,
+  accountRelationships: accountRelationshipsRouter,
+  modelAccounts: modelAccountsRouter,
+  buzzAnalysis: buzzAnalysisRouter,
+  profileOptimization: profileOptimizationRouter,
+  projectModelAccounts: projectModelAccountsRouter,
+  kpiTracking: kpiTrackingRouter,
 
   // Agent Scheduler endpoints
   agentScheduler: router({
@@ -210,11 +237,12 @@ export const appRouter = router({
         }
       }),
 
-    // Update account (including xHandle)
+    // Update account (including xHandle and planType)
     update: protectedProcedure
       .input(z.object({
         accountId: z.number(),
         xHandle: z.string().optional(),
+        planType: z.enum(['free', 'premium', 'premium_plus']).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
@@ -225,6 +253,9 @@ export const appRouter = router({
         const updateData: any = {};
         if (input.xHandle !== undefined) {
           updateData.xHandle = input.xHandle;
+        }
+        if (input.planType !== undefined) {
+          updateData.planType = input.planType;
         }
 
         await db.updateAccount(input.accountId, updateData);
@@ -435,6 +466,236 @@ export const appRouter = router({
           console.error('[AssignDevice] Error:', error);
           return { success: false, message: `デバイス割り当てに失敗しました: ${error.message}` };
         }
+      }),
+
+    // Get account growth stats (level, XP, learnings count)
+    growthStats: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        return await getAccountGrowthStats(input.accountId);
+      }),
+
+    // Get account learnings with XP details
+    learnings: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        type: z.string().optional(),
+        limit: z.number().optional(),
+        minConfidence: z.number().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        return await getAccountLearningsWithDetails(input.accountId, {
+          type: input.type,
+          limit: input.limit,
+          minConfidence: input.minConfidence,
+        });
+      }),
+
+    // Sync growth data from existing learnings (for migration/fix)
+    syncGrowth: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        return await syncAccountGrowthFromLearnings(input.accountId);
+      }),
+
+    // Update account persona settings
+    updatePersona: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        personaRole: z.string().optional().nullable(),
+        personaTone: z.enum(['formal', 'casual', 'friendly', 'professional', 'humorous']).optional().nullable(),
+        personaCharacteristics: z.string().optional().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        await db.updateAccountPersona(input.accountId, {
+          personaRole: input.personaRole,
+          personaTone: input.personaTone,
+          personaCharacteristics: input.personaCharacteristics,
+        });
+        return { success: true };
+      }),
+
+    // Generate persona characteristics using AI
+    generatePersonaCharacteristics: protectedProcedure
+      .input(z.object({
+        role: z.string(),
+        tone: z.enum(['formal', 'casual', 'friendly', 'professional', 'humorous']),
+      }))
+      .mutation(async ({ input }) => {
+        const characteristics = await generatePersonaCharacteristics(input.role, input.tone);
+        return { characteristics };
+      }),
+
+    // Get linked model accounts for this account
+    linkedModelAccounts: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        return await db.getLinkedModelAccountsForAccount(input.accountId);
+      }),
+
+    // Link a model account to this account
+    linkModelAccount: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        modelAccountId: z.number(),
+        autoApplyLearnings: z.boolean().optional().default(false),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        await db.linkModelAccountToAccount(input.accountId, input.modelAccountId, input.autoApplyLearnings);
+        return { success: true };
+      }),
+
+    // Unlink a model account from this account
+    unlinkModelAccount: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        modelAccountId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        await db.unlinkModelAccountFromAccount(input.accountId, input.modelAccountId);
+        return { success: true };
+      }),
+
+    // Update model account link settings
+    updateModelAccountLink: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        modelAccountId: z.number(),
+        autoApplyLearnings: z.boolean(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+        await db.updateAccountModelAccountLink(input.accountId, input.modelAccountId, {
+          autoApplyLearnings: input.autoApplyLearnings,
+        });
+        return { success: true };
+      }),
+
+    // Get linked agents for this account
+    getLinkedAgents: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+
+        // Get all agents linked to this account
+        const linkedAgentAccounts = await drizzleDb
+          .select({
+            agentAccountId: agentAccounts.id,
+            agentId: agentAccounts.agentId,
+            isActive: agentAccounts.isActive,
+            agentName: agents.name,
+            agentTheme: agents.theme,
+            agentProjectId: agents.projectId,
+          })
+          .from(agentAccounts)
+          .leftJoin(agents, eq(agentAccounts.agentId, agents.id))
+          .where(eq(agentAccounts.accountId, input.accountId));
+
+        return linkedAgentAccounts;
+      }),
+
+    // Get available agents to link (agents that this account is not linked to)
+    getAvailableAgents: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const account = await db.getAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found or unauthorized',
+          });
+        }
+
+        // Get all agents for this user
+        const allAgents = await drizzleDb
+          .select()
+          .from(agents)
+          .where(eq(agents.userId, ctx.user.id));
+
+        // Get already linked agent IDs
+        const linkedAgentIds = await drizzleDb
+          .select({ agentId: agentAccounts.agentId })
+          .from(agentAccounts)
+          .where(and(
+            eq(agentAccounts.accountId, input.accountId),
+            eq(agentAccounts.isActive, 1)
+          ));
+
+        const linkedIds = new Set(linkedAgentIds.map(l => l.agentId));
+
+        // Filter out already linked agents
+        return allAgents.filter(agent => !linkedIds.has(agent.id));
       }),
   }),
 
