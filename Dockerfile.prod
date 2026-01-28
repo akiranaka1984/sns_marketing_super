@@ -58,8 +58,8 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# Install production dependencies + vite (needed for serving static files)
+RUN pnpm install --frozen-lockfile --prod && pnpm add vite
 
 # Copy built application from builder stage
 # Vite builds to dist/public, server builds to dist/
