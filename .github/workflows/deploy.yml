@@ -17,7 +17,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_PATH: ~/sns-marketing
+  DEPLOY_PATH: /root/sns-marketing
 
 concurrency:
   group: deploy-${{ github.ref }}
