@@ -167,7 +167,15 @@ jobs:
             # Pull new images
             docker compose -p sns-marketing -f docker-compose.prod.yml pull
 
-            # Stop ALL sns-marketing containers (use fixed project name)
+            # Stop ALL containers using port 3000 (handle legacy deployments with different project names)
+            echo "Stopping all containers using port 3000..."
+            docker ps --filter "publish=3000" -q | xargs -r docker stop 2>/dev/null || true
+            docker ps -a --filter "publish=3000" -q | xargs -r docker rm -f 2>/dev/null || true
+
+            # Also stop any containers from old timestamp-based project names
+            docker ps -a --format '{{.Names}}' | grep -E '^[0-9]{8}_[0-9]{6}' | xargs -r docker rm -f 2>/dev/null || true
+
+            # Stop current sns-marketing project if running
             docker compose -p sns-marketing -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
             # Start new containers with fixed project name
