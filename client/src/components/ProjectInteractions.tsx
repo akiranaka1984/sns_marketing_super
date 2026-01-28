@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Heart, MessageCircle, RefreshCw, Plus, Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Heart, MessageCircle, RefreshCw, Plus, Loader2, Repeat2, UserPlus } from "lucide-react";
 import InteractionSettings from "./InteractionSettings";
 import SchedulerDashboard from "./SchedulerDashboard";
+// AccountPersonaSettings removed - now managed at account detail page
+import AccountRelationships from "./AccountRelationships";
 
 interface ProjectInteractionsProps {
   projectId: number;
@@ -22,13 +23,14 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
   // データ取得
   const { data: postUrls, refetch: refetchPostUrls } = trpc.interactions.getPostUrls.useQuery({ projectId });
   const { data: accounts } = trpc.interactions.getProjectAccounts.useQuery({ projectId });
-  const { data: history, refetch: refetchHistory } = trpc.interactions.getHistory.useQuery({ projectId });
 
   // ミューテーション
   const addPostUrlMutation = trpc.interactions.addPostUrl.useMutation();
   const fetchLatestMutation = trpc.interactions.fetchLatestPosts.useMutation();
   const likeMutation = trpc.interactions.executeLike.useMutation();
   const commentMutation = trpc.interactions.executeComment.useMutation();
+  const retweetMutation = trpc.interactions.executeRetweet.useMutation();
+  const followMutation = trpc.interactions.executeFollow.useMutation();
 
   const selectedAccount = accounts?.find(a => a.id.toString() === selectedAccountId);
 
@@ -109,7 +111,6 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
       } else {
         toast.error(`いいね失敗: ${result.error}`);
       }
-      refetchHistory();
     } catch (error) {
       toast.error("いいねに失敗しました");
     }
@@ -133,9 +134,64 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
       } else {
         toast.error(`コメント失敗: ${result.error}`);
       }
-      refetchHistory();
     } catch (error) {
       toast.error("コメントに失敗しました");
+    }
+  };
+
+  // リツイート実行
+  const handleRetweet = async (postUrlId: number) => {
+    if (!selectedAccount) {
+      toast.error("実行するアカウントを選択してください");
+      return;
+    }
+
+    try {
+      const result = await retweetMutation.mutateAsync({
+        postUrlId,
+        fromAccountId: selectedAccount.id,
+        fromDeviceId: selectedAccount.deviceId!,
+      });
+      if (result.success) {
+        toast.success("リツイートしました");
+      } else {
+        const url = (result as any).usedUrl || "不明";
+        toast.error(`リツイート失敗: ${result.error}\nURL: ${url}`);
+        console.log("Retweet failed. Used URL:", url);
+      }
+    } catch (error) {
+      toast.error("リツイートに失敗しました");
+    }
+  };
+
+  // フォロー実行
+  const handleFollow = async (postUrl: string) => {
+    if (!selectedAccount) {
+      toast.error("実行するアカウントを選択してください");
+      return;
+    }
+
+    // URLからXハンドルを抽出 (https://x.com/username/status/...)
+    const match = postUrl.match(/x\.com\/([^\/]+)\/status/);
+    if (!match) {
+      toast.error("投稿URLからユーザー名を取得できません");
+      return;
+    }
+    const username = match[1];
+
+    try {
+      const result = await followMutation.mutateAsync({
+        targetUsername: username,
+        fromAccountId: selectedAccount.id,
+        fromDeviceId: selectedAccount.deviceId!,
+      });
+      if (result.success) {
+        toast.success(`@${username}をフォローしました`);
+      } else {
+        toast.error(`フォロー失敗: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error("フォローに失敗しました");
     }
   };
 
@@ -143,6 +199,9 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
     <div className="space-y-6">
       {/* 相互連携設定 */}
       <InteractionSettings projectId={projectId} />
+
+      {/* アカウント間関係性 */}
+      <AccountRelationships projectId={projectId} />
 
       {/* スケジューラー */}
       <SchedulerDashboard projectId={projectId} />
@@ -202,13 +261,17 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
             {postUrls?.map((post) => (
               <div
                 key={post.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">@{post.username}</p>
-                  <p className="text-xs text-gray-500 truncate">{post.postContent || post.postUrl}</p>
+                  <p className="text-sm font-medium truncate text-slate-900">
+                    <span className="text-slate-400 mr-2">#{post.id}</span>
+                    @{post.username}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">{post.postContent || post.postUrl}</p>
+                  <p className="text-xs text-blue-500 truncate">{post.postUrl}</p>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-2 ml-4 flex-wrap">
                   <Button
                     size="sm"
                     variant="outline"
@@ -227,11 +290,29 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
                     <MessageCircle className="w-4 h-4 mr-1" />
                     コメント
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRetweet(post.id)}
+                    disabled={!selectedAccount || retweetMutation.isPending}
+                  >
+                    <Repeat2 className="w-4 h-4 mr-1" />
+                    RT
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFollow(post.postUrl)}
+                    disabled={!selectedAccount || followMutation.isPending}
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" />
+                    フォロー
+                  </Button>
                 </div>
               </div>
             ))}
             {postUrls?.length === 0 && (
-              <p className="text-center text-gray-500 py-4">
+              <p className="text-center text-slate-500 py-4">
                 投稿URLがありません。「最新を取得」または手動で追加してください。
               </p>
             )}
@@ -239,30 +320,6 @@ export default function ProjectInteractions({ projectId }: ProjectInteractionsPr
         </CardContent>
       </Card>
 
-      {/* 実行履歴 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>最近の実行履歴（24時間）</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {history?.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-2 text-sm">
-                <span>{item.actionType}</span>
-                <div className="flex items-center gap-2">
-                  {item.status === "success" && <CheckCircle className="w-4 h-4 text-green-500" />}
-                  {item.status === "failed" && <XCircle className="w-4 h-4 text-red-500" />}
-                  {item.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
-                  <span className="text-gray-500 text-xs">{new Date(item.createdAt).toLocaleString()}</span>
-                </div>
-              </div>
-            ))}
-            {history?.length === 0 && (
-              <p className="text-center text-gray-500 py-4">実行履歴がありません</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, mysqlEnum, varchar, text, timestamp, index, foreignKey, tinyint } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, mysqlEnum, varchar, text, timestamp, index, foreignKey, tinyint, decimal } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const abTestLearnings = mysqlTable("ab_test_learnings", {
@@ -74,10 +74,38 @@ export const accounts = mysqlTable("accounts", {
 	proxyId: int(),
 	xHandle: varchar({ length: 255 }),
 	persona: varchar({ length: 200 }),
+	// Persona settings (account-level)
+	personaRole: varchar({ length: 255 }), // e.g., "specialist", "casual_user", "reviewer"
+	personaTone: mysqlEnum(['formal', 'casual', 'friendly', 'professional', 'humorous']),
+	personaCharacteristics: text(), // Free text describing account personality
+	// X (Twitter) plan type - determines character limit
+	// free: 280 chars, premium: 280 chars (articles separate), premium_plus: 25000 chars
+	planType: mysqlEnum(['free', 'premium', 'premium_plus']).default('free').notNull(),
+	// Growth system fields - account leveling and experience points
+	experiencePoints: int().default(0).notNull(),
+	level: int().default(1).notNull(),
+	totalLearningsCount: int().default(0).notNull(),
 },
 (table) => [
 	index("username_platform_idx").on(table.username, table.platform),
 ]);
+
+// Account relationships (intimacy/closeness between accounts)
+export const accountRelationships = mysqlTable("account_relationships", {
+	id: int().autoincrement().notNull().primaryKey(),
+	projectId: int().notNull(), // Relationships are project-specific
+	fromAccountId: int().notNull(), // The account that has the relationship
+	toAccountId: int().notNull(), // The target account
+	intimacyLevel: int().default(50).notNull(), // 0-100, higher = closer relationship
+	relationshipType: mysqlEnum(['friend', 'acquaintance', 'follower', 'colleague', 'rival', 'stranger']).default('acquaintance').notNull(),
+	interactionProbability: int().default(70).notNull(), // 0-100, probability of interacting
+	preferredReactionTypes: text(), // JSON array: ['like', 'comment', 'retweet']
+	commentStyle: mysqlEnum(['supportive', 'curious', 'playful', 'professional', 'neutral']).default('neutral'),
+	notes: text(), // Optional notes about the relationship
+	isActive: tinyint().default(1).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+});
 
 export const agentAccounts = mysqlTable("agent_accounts", {
 	id: int().autoincrement().notNull(),
@@ -162,6 +190,7 @@ export const agents = mysqlTable("agents", {
 	postingFrequency: mysqlEnum(['daily','twice_daily','three_times_daily','weekly','custom']).default('daily'),
 	postingTimeSlots: text(),
 	skipReview: tinyint().default(0).notNull(),
+	autoOptimizationSettings: text(), // JSON: { enabled, minEngagementRateThreshold, checkIntervalHours, etc. }
 });
 
 export const aiOptimizations = mysqlTable("ai_optimizations", {
@@ -309,6 +338,9 @@ export const coordinateLearningData = mysqlTable("coordinate_learning_data", {
 	deviceId: varchar({ length: 100 }).notNull(),
 	resolution: varchar({ length: 50 }).notNull(),
 	element: varchar({ length: 50 }).notNull(),
+	x: int().notNull(),
+	y: int().notNull(),
+	source: varchar({ length: 20 }).notNull(), // 'learned', 'dynamic', 'default'
 	success: int().notNull(),
 	screenshotUrl: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
@@ -414,6 +446,15 @@ export const interactionSettings = mysqlTable("interaction_settings", {
 	commentDelayMinMin: int().default(10),
 	commentDelayMinMax: int().default(60),
 	defaultPersona: varchar({ length: 200 }).default('フレンドリーなユーザー'),
+	retweetEnabled: tinyint().default(0),
+	retweetDelayMinMin: int().default(15),
+	retweetDelayMinMax: int().default(90),
+	followEnabled: tinyint().default(0),
+	followDelayMinMin: int().default(30),
+	followDelayMinMax: int().default(180),
+	followTargetUsers: text(), // JSON array: ["@user1", "@user2"] for external targets
+	reactionProbability: int().default(100), // 反応確率（0-100%）
+	maxReactingAccounts: int().default(0), // 最大反応アカウント数（0=無制限）
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
@@ -423,10 +464,11 @@ export const interactionSettings = mysqlTable("interaction_settings", {
 
 export const interactions = mysqlTable("interactions", {
 	id: int().autoincrement().notNull(),
-	postUrlId: int().notNull(),
+	postUrlId: int(), // Nullable for follow tasks
 	fromAccountId: int().notNull(),
 	fromDeviceId: varchar({ length: 50 }).notNull(),
 	interactionType: varchar({ length: 20 }).notNull(),
+	targetUsername: varchar({ length: 100 }), // For follow tasks
 	commentContent: text(),
 	status: varchar({ length: 20 }).default('pending'),
 	scheduledAt: timestamp({ mode: 'string' }),
@@ -437,6 +479,7 @@ export const interactions = mysqlTable("interactions", {
 	beforeScreenshotKey: text(),
 	afterScreenshotUrl: text(),
 	afterScreenshotKey: text(),
+	metadata: text(), // JSON: relationship data, comment style, etc.
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 });
 
@@ -534,6 +577,38 @@ export const projectAccounts = mysqlTable("project_accounts", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
+// Project-Model Account linkage - links projects to model accounts for learning
+// @deprecated Use accountModelAccounts instead for account-centric management
+export const projectModelAccounts = mysqlTable("project_model_accounts", {
+	id: int().autoincrement().notNull().primaryKey(),
+	projectId: int().notNull(), // FK to projects.id
+	modelAccountId: int().notNull(), // FK to model_accounts.id
+	autoApplyLearnings: tinyint().default(0).notNull(), // Auto-apply new learnings to accounts
+	targetAccountIds: text(), // JSON array: specific accounts to apply learnings to (null = all)
+	lastSyncedAt: timestamp({ mode: 'string' }), // Last time learnings were synced
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("project_model_accounts_project_idx").on(table.projectId),
+	index("project_model_accounts_model_idx").on(table.modelAccountId),
+]);
+
+// Account-Model Account linkage - links individual accounts to model accounts for learning
+export const accountModelAccounts = mysqlTable("account_model_accounts", {
+	id: int().autoincrement().notNull().primaryKey(),
+	accountId: int().notNull(), // FK to accounts.id
+	modelAccountId: int().notNull(), // FK to model_accounts.id
+	autoApplyLearnings: tinyint().default(0).notNull(), // Auto-apply new learnings
+	lastSyncedAt: timestamp({ mode: 'string' }), // Last time learnings were synced
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("account_model_accounts_account_idx").on(table.accountId),
+	index("account_model_accounts_model_idx").on(table.modelAccountId),
+]);
+
 export const projects = mysqlTable("projects", {
 	id: int().autoincrement().notNull(),
 	userId: int().notNull(),
@@ -613,7 +688,42 @@ export const strategies = mysqlTable("strategies", {
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	projectId: int(),
-});
+
+	// Basic strategy info
+	name: varchar({ length: 255 }),
+	description: text(),
+
+	// === New fields for goal-driven strategy ===
+
+	// Target linkage - snapshot of project targets at strategy creation
+	projectTargetsSnapshot: text(), // JSON: {"followers": 1000, "engagement": 5, ...}
+
+	// Source tracking - what data was used to generate this strategy
+	incorporatedBuzzLearnings: text(), // JSON array of buzzLearnings.id
+	incorporatedModelPatterns: text(), // JSON array of modelAccountBehaviorPatterns.id
+	basedOnModelAccounts: text(), // JSON array of modelAccounts.id
+	basedOnBuzzPosts: text(), // JSON array of buzzPosts.id
+
+	// Validity period
+	validFrom: timestamp({ mode: 'string' }),
+	validUntil: timestamp({ mode: 'string' }),
+	isActive: tinyint().default(1),
+
+	// Effectiveness tracking
+	effectivenessScore: int().default(0), // 0-100 based on generated posts' performance
+	postsGenerated: int().default(0), // Count of posts generated using this strategy
+	avgPostPerformance: int().default(0), // Average performance score of generated posts
+
+	// Detailed guidelines (JSON) - actionable guidance for content generation
+	contentGuidelines: text(), // JSON: specific content rules and patterns
+	timingGuidelines: text(), // JSON: {"bestHours": ["09", "19"], "frequency": "2x daily"}
+	hashtagGuidelines: text(), // JSON: {"primary": [...], "secondary": [...], "avoid": [...]}
+	toneGuidelines: text(), // JSON: {"primary": "casual", "avoid": ["formal"], "examples": [...]}
+},
+(table) => [
+	index("strategies_project_idx").on(table.projectId),
+	index("strategies_active_idx").on(table.projectId, table.isActive),
+]);
 
 export const tenantUsers = mysqlTable("tenant_users", {
 	id: int().autoincrement().notNull(),
@@ -711,6 +821,39 @@ export const xApiSettings = mysqlTable("x_api_settings", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
+// Account-specific learning data for consistent persona across posts and comments
+export const accountLearnings = mysqlTable("account_learnings", {
+	id: int().autoincrement().notNull(),
+	accountId: int().notNull(), // FK to accounts.id
+	projectId: int(), // Optional: project-specific learning
+	learningType: mysqlEnum([
+		'posting_style',     // Posting style (tone, emoji usage, etc.)
+		'comment_style',     // Comment style
+		'success_pattern',   // Success pattern (from high engagement posts)
+		'failure_pattern',   // Failure pattern (from low engagement posts)
+		'hashtag_strategy',  // Hashtag strategy
+		'timing_pattern',    // Posting timing
+		'topic_preference',  // Preferred topics
+		'audience_insight'   // Audience understanding
+	]).notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	content: text().notNull(), // JSON format for detailed data
+	sourceType: mysqlEnum(['post_performance', 'buzz_analysis', 'manual', 'ai_suggestion']).notNull(),
+	sourcePostId: int(), // Reference to source post if applicable
+	sourceLearningId: int(), // Reference to buzzLearnings if derived from there
+	confidence: int().default(50).notNull(), // 0-100
+	usageCount: int().default(0).notNull(),
+	successRate: int().default(0).notNull(), // 0-100
+	isActive: tinyint().default(1).notNull(),
+	expiresAt: timestamp({ mode: 'string' }), // Optional expiry for old learnings
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("account_learnings_account_idx").on(table.accountId),
+	index("account_learnings_type_idx").on(table.accountId, table.learningType),
+]);
+
 export const automationTasks = mysqlTable("automation_tasks", {
 	id: int().autoincrement().notNull(),
 	postUrl: text().notNull(),
@@ -723,3 +866,297 @@ export const automationTasks = mysqlTable("automation_tasks", {
 	executedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 });
+
+// ==========================================
+// AI Learning & Buzz Analysis Tables
+// ==========================================
+
+// Model accounts - accounts to learn from (successful influencers, competitors, etc.)
+export const modelAccounts = mysqlTable("model_accounts", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull(),
+	projectId: int(),
+	platform: mysqlEnum(['twitter', 'tiktok', 'instagram', 'facebook']).notNull(),
+	username: varchar({ length: 255 }).notNull(),
+	displayName: varchar({ length: 255 }),
+	profileUrl: text(),
+	avatarUrl: text(),
+	headerImageUrl: text(),
+	bio: text(),
+	followersCount: int().default(0),
+	followingCount: int().default(0),
+
+	// Category classification
+	industryCategory: mysqlEnum([
+		'it_tech', 'beauty_fashion', 'food_restaurant', 'finance_investment',
+		'health_fitness', 'education', 'entertainment', 'travel', 'business', 'other'
+	]),
+	postingStyle: mysqlEnum(['informative', 'entertaining', 'educational', 'inspirational', 'promotional']),
+	toneStyle: mysqlEnum(['casual', 'formal', 'humorous', 'professional']),
+
+	// Collection settings
+	isActive: tinyint().default(1).notNull(),
+	collectionFrequency: mysqlEnum(['hourly', 'daily', 'weekly']).default('daily'),
+	lastCollectedAt: timestamp({ mode: 'string' }),
+	nextCollectionAt: timestamp({ mode: 'string' }),
+	totalCollectedPosts: int().default(0),
+
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("model_accounts_user_platform_idx").on(table.userId, table.platform),
+	index("model_accounts_industry_idx").on(table.industryCategory),
+]);
+
+// Buzz posts - viral/successful posts from own accounts and model accounts
+export const buzzPosts = mysqlTable("buzz_posts", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull(),
+	projectId: int(),
+
+	// Source identification
+	sourceType: mysqlEnum(['own_account', 'model_account']).notNull(),
+	sourceAccountId: int(), // accounts.id if own_account
+	modelAccountId: int(), // model_accounts.id if model_account
+
+	// Post data
+	platform: mysqlEnum(['twitter', 'tiktok', 'instagram', 'facebook']).notNull(),
+	externalPostId: varchar({ length: 255 }),
+	postUrl: text(),
+	content: text().notNull(),
+	mediaUrls: text(), // JSON array
+	hashtags: text(), // JSON array
+	postedAt: timestamp({ mode: 'string' }),
+
+	// Engagement metrics
+	likesCount: int().default(0),
+	commentsCount: int().default(0),
+	sharesCount: int().default(0),
+	viewsCount: int().default(0),
+	engagementRate: int().default(0), // * 100 for precision
+	viralityScore: int().default(0), // 0-100
+
+	// Category classification (AI-determined)
+	industryCategory: mysqlEnum([
+		'it_tech', 'beauty_fashion', 'food_restaurant', 'finance_investment',
+		'health_fitness', 'education', 'entertainment', 'travel', 'business', 'other'
+	]),
+	postType: mysqlEnum(['announcement', 'empathy', 'educational', 'humor', 'promotional', 'question', 'other']),
+	toneStyle: mysqlEnum(['casual', 'formal', 'humorous', 'inspirational', 'professional']),
+	contentFormat: mysqlEnum(['text_only', 'with_image', 'with_video', 'with_poll', 'thread']),
+
+	// AI analysis results
+	successFactors: text(), // JSON: extracted success factors
+	contentStructure: text(), // JSON: content structure analysis
+	hookAnalysis: text(), // JSON: opening hook analysis
+	ctaAnalysis: text(), // JSON: call-to-action analysis
+
+	// Processing status
+	isAnalyzed: tinyint().default(0).notNull(),
+	analyzedAt: timestamp({ mode: 'string' }),
+	isUsedForLearning: tinyint().default(0).notNull(),
+
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("buzz_posts_source_idx").on(table.sourceType, table.sourceAccountId),
+	index("buzz_posts_model_idx").on(table.modelAccountId),
+	index("buzz_posts_category_idx").on(table.industryCategory, table.postType),
+	index("buzz_posts_virality_idx").on(table.viralityScore),
+]);
+
+// Buzz learnings - extracted patterns from successful posts
+export const buzzLearnings = mysqlTable("buzz_learnings", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull(),
+	projectId: int(),
+	agentId: int(),
+
+	// Category scope
+	industryCategory: mysqlEnum([
+		'it_tech', 'beauty_fashion', 'food_restaurant', 'finance_investment',
+		'health_fitness', 'education', 'entertainment', 'travel', 'business', 'other'
+	]),
+	postType: mysqlEnum(['announcement', 'empathy', 'educational', 'humor', 'promotional', 'question', 'other']),
+
+	// Learning content
+	learningType: mysqlEnum([
+		'hook_pattern', 'structure_pattern', 'hashtag_strategy', 'timing_pattern',
+		'cta_pattern', 'media_usage', 'tone_pattern', 'engagement_tactic'
+	]).notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	description: text().notNull(),
+
+	// Pattern data
+	patternData: text(), // JSON: specific pattern details
+	examplePostIds: text(), // JSON array of buzz_posts.id
+
+	// Confidence and usage tracking
+	confidence: int().default(50).notNull(), // 0-100
+	usageCount: int().default(0),
+	successRate: int().default(0), // 0-100
+	sampleSize: int().default(0), // number of posts analyzed
+
+	isActive: tinyint().default(1).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("buzz_learnings_agent_idx").on(table.agentId),
+	index("buzz_learnings_category_idx").on(table.industryCategory, table.learningType),
+]);
+
+// Profile analyses - analysis of account profiles for optimization
+export const profileAnalyses = mysqlTable("profile_analyses", {
+	id: int().autoincrement().notNull().primaryKey(),
+	userId: int().notNull(),
+
+	// Analysis target
+	targetType: mysqlEnum(['own_account', 'model_account']).notNull(),
+	accountId: int(), // accounts.id if own_account
+	modelAccountId: int(), // model_accounts.id if model_account
+
+	// Profile elements
+	bio: text(),
+	avatarUrl: text(),
+	headerImageUrl: text(),
+
+	// AI analysis results
+	bioAnalysis: text(), // JSON: structure, keywords, tone, cta
+	avatarAnalysis: text(), // JSON: style, colors, impression
+	headerAnalysis: text(), // JSON: theme, branding, message
+	overallScore: int().default(0), // 0-100
+
+	// Improvement suggestions
+	bioSuggestions: text(), // JSON array of suggestions
+	avatarSuggestions: text(),
+	headerSuggestions: text(),
+
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+},
+(table) => [
+	index("profile_analyses_target_idx").on(table.targetType, table.accountId),
+]);
+
+// ==========================================
+// Model Account Behavior Patterns - Analyzes posting patterns from model accounts
+// ==========================================
+export const modelAccountBehaviorPatterns = mysqlTable("model_account_behavior_patterns", {
+	id: int().autoincrement().notNull().primaryKey(),
+	modelAccountId: int().notNull(), // FK to model_accounts.id
+
+	// Posting frequency patterns
+	avgPostsPerDay: decimal({ precision: 5, scale: 2 }),
+	avgPostsPerWeek: decimal({ precision: 5, scale: 2 }),
+	postingFrequencyStdDev: decimal({ precision: 5, scale: 2 }),
+
+	// Time-of-day patterns (JSON)
+	postingHoursDistribution: text(), // {"00": 5, "01": 2, ...} count per hour
+	peakPostingHours: text(), // ["09", "12", "19"] array of peak hours
+
+	// Day-of-week patterns (JSON)
+	postingDaysDistribution: text(), // {"monday": 10, "tuesday": 8, ...}
+
+	// Engagement patterns
+	avgEngagementRate: decimal({ precision: 6, scale: 2 }),
+	engagementRateTrend: text(), // [{date, rate}, ...] historical trend
+	bestEngagementHours: text(), // Hours with highest engagement
+
+	// Growth patterns
+	followerGrowthRate: decimal({ precision: 8, scale: 2 }), // % growth per week
+	followerHistory: text(), // [{date, count}, ...] historical data
+
+	// Content patterns
+	avgContentLength: int(),
+	emojiUsageRate: decimal({ precision: 4, scale: 2 }), // 0-1 percentage
+	hashtagAvgCount: decimal({ precision: 4, scale: 2 }),
+	mediaUsageRate: decimal({ precision: 4, scale: 2 }), // 0-1 percentage
+
+	// Analysis metadata
+	analysisPeriodStart: timestamp({ mode: 'string' }),
+	analysisPeriodEnd: timestamp({ mode: 'string' }),
+	sampleSize: int(), // Number of posts analyzed
+	lastAnalyzedAt: timestamp({ mode: 'string' }),
+
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("model_account_behavior_patterns_model_idx").on(table.modelAccountId),
+]);
+
+// ==========================================
+// Project KPI Tracking - Tracks progress toward project goals
+// ==========================================
+export const projectKpiTracking = mysqlTable("project_kpi_tracking", {
+	id: int().autoincrement().notNull().primaryKey(),
+	projectId: int().notNull(), // FK to projects.id
+
+	// Metric type
+	metricType: mysqlEnum([
+		'followers', 'engagement_rate', 'impressions',
+		'clicks', 'conversions', 'posts_count', 'avg_likes'
+	]).notNull(),
+
+	// Target values
+	targetValue: decimal({ precision: 15, scale: 2 }),
+	targetDeadline: timestamp({ mode: 'string' }),
+
+	// Current progress
+	currentValue: decimal({ precision: 15, scale: 2 }).default('0'),
+	progressPercentage: decimal({ precision: 5, scale: 2 }).default('0'),
+
+	// Projections
+	projectedValue: decimal({ precision: 15, scale: 2 }), // Projected value by deadline
+	onTrack: tinyint().default(1), // Whether on track to meet target
+
+	// History (JSON array)
+	valueHistory: text(), // [{date, value}, ...] historical data
+
+	recordedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("project_kpi_tracking_project_idx").on(table.projectId),
+	index("project_kpi_tracking_metric_idx").on(table.projectId, table.metricType),
+]);
+
+// ==========================================
+// Engagement Tracking Jobs - Auto-track post performance
+// ==========================================
+export const engagementTrackingJobs = mysqlTable("engagement_tracking_jobs", {
+	id: int().autoincrement().notNull().primaryKey(),
+	postUrlId: int().notNull(), // FK to post_urls.id
+	tweetId: varchar({ length: 50 }).notNull(), // Extracted tweet ID from URL
+	accountId: int().notNull(), // FK to accounts.id
+	projectId: int(), // FK to projects.id
+
+	// Tracking type and timing
+	trackingType: mysqlEnum(['1h', '24h', '48h', '72h']).notNull(),
+	scheduledAt: timestamp({ mode: 'string' }).notNull(), // When to run this job
+
+	// Job status
+	status: mysqlEnum(['pending', 'processing', 'completed', 'failed', 'skipped']).default('pending').notNull(),
+	executedAt: timestamp({ mode: 'string' }), // When the job was actually executed
+
+	// Metrics result (stored as JSON)
+	metrics: text(), // JSON: {retweetCount, replyCount, likeCount, quoteCount, impressionCount}
+
+	// Error handling
+	errorMessage: text(),
+	retryCount: int().default(0).notNull(),
+
+	// Learning trigger flag
+	learningTriggered: tinyint().default(0).notNull(), // Whether auto-learning was triggered from this job
+
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+},
+(table) => [
+	index("engagement_tracking_jobs_status_idx").on(table.status, table.scheduledAt),
+	index("engagement_tracking_jobs_post_idx").on(table.postUrlId),
+	index("engagement_tracking_jobs_account_idx").on(table.accountId),
+]);

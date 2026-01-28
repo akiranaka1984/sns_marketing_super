@@ -7,6 +7,8 @@
 import { db } from "./db";
 import { freezeDetections, autoResponses, accounts, proxies } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { rotateDeviceForAccount, releaseDevice } from "./services/device-pool-service";
+import { scheduleRecovery } from "./services/account-recovery-scheduler";
 
 export interface FreezeDetectionResult {
   isFrozen: boolean;
@@ -262,6 +264,7 @@ async function changeProxyForAccount(accountId: number): Promise<{
 
 /**
  * Switch device for account
+ * Uses the device pool service to rotate to a new device
  */
 async function switchDeviceForAccount(accountId: number): Promise<{
   success: boolean;
@@ -281,23 +284,33 @@ async function switchDeviceForAccount(accountId: number): Promise<{
 
     const oldDeviceId = account.deviceId;
 
-    // For now, just clear the device ID
-    // In a full implementation, you would:
-    // 1. Find an available device from DuoPlus
-    // 2. Assign it to the account
-    // 3. Update device fingerprint
+    // Use device pool service to rotate device
+    const result = await rotateDeviceForAccount(accountId, oldDeviceId);
 
-    await db
-      .update(accounts)
-      .set({ deviceId: null })
-      .where(eq(accounts.id, accountId));
+    if (result.success) {
+      return {
+        success: true,
+        message: `Device switched from ${oldDeviceId || "none"} to ${result.deviceId}`,
+        oldValue: oldDeviceId || undefined,
+        newValue: result.deviceId || undefined,
+      };
+    } else {
+      // If no device available, just release the current one
+      if (oldDeviceId) {
+        await releaseDevice(oldDeviceId);
+      }
+      await db
+        .update(accounts)
+        .set({ deviceId: null })
+        .where(eq(accounts.id, accountId));
 
-    return {
-      success: true,
-      message: `Device switched from ${oldDeviceId || "none"} to unassigned (ready for reassignment)`,
-      oldValue: oldDeviceId || undefined,
-      newValue: "unassigned",
-    };
+      return {
+        success: true,
+        message: `Device ${oldDeviceId || "none"} released, account awaiting new device assignment`,
+        oldValue: oldDeviceId || undefined,
+        newValue: "unassigned",
+      };
+    }
   } catch (error: any) {
     return { success: false, message: error.message };
   }
@@ -305,6 +318,7 @@ async function switchDeviceForAccount(accountId: number): Promise<{
 
 /**
  * Pause account for 24-48 hours
+ * Schedules automatic recovery after cooldown period
  */
 async function pauseAccount(accountId: number): Promise<{
   success: boolean;
@@ -330,12 +344,15 @@ async function pauseAccount(accountId: number): Promise<{
       .set({ status: "suspended" })
       .where(eq(accounts.id, accountId));
 
-    // TODO: Schedule automatic reactivation after 24-48 hours
-    // This would require a background job system
+    // Schedule automatic reactivation after 24 hours
+    // The recovery scheduler will pick this up automatically
+    const recoverySchedule = await scheduleRecovery(accountId, 24);
+
+    console.log(`[FreezeDetection] Account ${accountId} paused. Recovery scheduled for ${recoverySchedule.scheduledAt.toISOString()}`);
 
     return {
       success: true,
-      message: `Account paused for 24-48 hours`,
+      message: `Account paused. Auto-recovery scheduled in 24 hours (${recoverySchedule.scheduledAt.toISOString()})`,
       oldValue: oldStatus,
       newValue: "suspended",
     };

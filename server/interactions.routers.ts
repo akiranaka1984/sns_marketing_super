@@ -3,7 +3,7 @@ import { router, protectedProcedure } from "./_core/trpc";
 import { db } from "./db";
 import { postUrls, interactions, accounts } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { executeLike, executeAiComment } from "./utils/python-runner";
+import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./utils/python-runner";
 import { getLatestTweets, buildTweetUrl } from "./x-api-service";
 
 export const interactionsRouter = router({
@@ -25,16 +25,23 @@ export const interactionsRouter = router({
       projectId: z.number(),
       accountId: z.number(),
       deviceId: z.string(),
-      username: z.string(),
+      username: z.string().optional(),  // Optional - will extract from URL if not provided
       postUrl: z.string(),
       postContent: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
+      // Extract X handle from URL (https://x.com/username/status/...)
+      let xHandle = input.username;
+      const urlMatch = input.postUrl.match(/x\.com\/([^\/]+)\/status/);
+      if (urlMatch) {
+        xHandle = urlMatch[1];
+      }
+
       const [result] = await db.insert(postUrls).values({
         projectId: input.projectId,
         accountId: input.accountId,
         deviceId: input.deviceId,
-        username: input.username,
+        username: xHandle || "unknown",
         postUrl: input.postUrl,
         postContent: input.postContent || "",
       });
@@ -84,7 +91,7 @@ export const interactionsRouter = router({
         for (const tweet of tweets) {
           const postUrl = buildTweetUrl(account.xHandle, tweet.id);
           console.log("[fetchLatestPosts] Processing tweet:", tweet.id, postUrl);
-          
+
           // 既に存在するかチェック
           const existing = await db.query.postUrls.findFirst({
             where: eq(postUrls.postUrl, postUrl),
@@ -96,7 +103,7 @@ export const interactionsRouter = router({
               projectId: input.projectId,
               accountId: input.accountId,
               deviceId: input.deviceId,
-              username: input.username,
+              username: account.xHandle,  // Use X handle instead of login username
               postUrl,
               postContent: tweet.text,
             });
@@ -143,7 +150,7 @@ export const interactionsRouter = router({
       // いいねを実行
       const apiKey = process.env.DUOPLUS_API_KEY;
       if (!apiKey) {
-        return { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
+        return { success: false, error: "DUOPLUS_API_KEYが設定されていません。設定画面で設定後、サーバーを再起動してください。" };
       }
       const result = await executeLike(apiKey, input.fromDeviceId, postUrl.postUrl);
 
@@ -190,7 +197,7 @@ export const interactionsRouter = router({
       const apiKey = process.env.DUOPLUS_API_KEY;
       const openaiApiKey = process.env.OPENAI_API_KEY;
       if (!apiKey || !openaiApiKey) {
-        return { success: false, error: "API KEYが設定されていません" };
+        return { success: false, error: "API KEYが設定されていません。設定画面で設定後、サーバーを再起動してください。" };
       }
       const result = await executeAiComment(
         apiKey,
@@ -206,6 +213,90 @@ export const interactionsRouter = router({
           status: result.success ? "completed" : "failed",
           executedAt: new Date(),
           commentContent: result.comment || null,
+          errorMessage: result.error || null,
+        })
+        .where(eq(interactions.id, task.insertId));
+
+      return result;
+    }),
+
+  // リツイートを実行
+  executeRetweet: protectedProcedure
+    .input(z.object({
+      postUrlId: z.number(),
+      fromAccountId: z.number(),
+      fromDeviceId: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      // 投稿URLを取得
+      const postUrl = await db.query.postUrls.findFirst({
+        where: eq(postUrls.id, input.postUrlId),
+      });
+
+      if (!postUrl) {
+        return { success: false, error: "投稿URLが見つかりません" };
+      }
+
+      // タスクを作成
+      const [task] = await db.insert(interactions).values({
+        postUrlId: input.postUrlId,
+        fromAccountId: input.fromAccountId,
+        fromDeviceId: input.fromDeviceId,
+        interactionType: "retweet",
+        status: "processing",
+      });
+
+      // リツイートを実行
+      const apiKey = process.env.DUOPLUS_API_KEY;
+      if (!apiKey) {
+        return { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
+      }
+      console.log(`[executeRetweet] PostUrlId: ${input.postUrlId}, URL: ${postUrl.postUrl}, Username: ${postUrl.username}`);
+      const result = await executeRetweet(apiKey, input.fromDeviceId, postUrl.postUrl);
+
+      // 結果を更新
+      await db.update(interactions)
+        .set({
+          status: result.success ? "completed" : "failed",
+          executedAt: new Date(),
+          errorMessage: result.error || null,
+        })
+        .where(eq(interactions.id, task.insertId));
+
+      // URLをレスポンスに追加（デバッグ用）
+      return { ...result, usedUrl: postUrl.postUrl };
+    }),
+
+  // フォローを実行
+  executeFollow: protectedProcedure
+    .input(z.object({
+      targetUsername: z.string(),
+      fromAccountId: z.number(),
+      fromDeviceId: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      // タスクを作成
+      const [task] = await db.insert(interactions).values({
+        postUrlId: null,
+        fromAccountId: input.fromAccountId,
+        fromDeviceId: input.fromDeviceId,
+        interactionType: "follow",
+        targetUsername: input.targetUsername,
+        status: "processing",
+      });
+
+      // フォローを実行
+      const apiKey = process.env.DUOPLUS_API_KEY;
+      if (!apiKey) {
+        return { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
+      }
+      const result = await executeFollow(apiKey, input.fromDeviceId, input.targetUsername);
+
+      // 結果を更新
+      await db.update(interactions)
+        .set({
+          status: result.success ? "completed" : "failed",
+          executedAt: new Date(),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));

@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Sparkles, Users, Percent, UserPlus } from "lucide-react";
 
 interface InteractionSettingsProps {
   projectId: number;
@@ -19,7 +21,16 @@ export default function InteractionSettings({ projectId }: InteractionSettingsPr
   const [commentEnabled, setCommentEnabled] = useState(true);
   const [commentDelayMin, setCommentDelayMin] = useState(10);
   const [commentDelayMax, setCommentDelayMax] = useState(60);
+  const [retweetEnabled, setRetweetEnabled] = useState(false);
+  const [retweetDelayMin, setRetweetDelayMin] = useState(15);
+  const [retweetDelayMax, setRetweetDelayMax] = useState(90);
+  const [followEnabled, setFollowEnabled] = useState(false);
+  const [followDelayMin, setFollowDelayMin] = useState(30);
+  const [followDelayMax, setFollowDelayMax] = useState(180);
+  const [followTargetUsers, setFollowTargetUsers] = useState("");
   const [defaultPersona, setDefaultPersona] = useState("フレンドリーなユーザー");
+  const [reactionProbability, setReactionProbability] = useState(100);
+  const [maxReactingAccounts, setMaxReactingAccounts] = useState(0);
 
   const { data: settings, refetch } = trpc.interactionSettings.get.useQuery({ projectId });
   const saveMutation = trpc.interactionSettings.save.useMutation();
@@ -27,14 +38,33 @@ export default function InteractionSettings({ projectId }: InteractionSettingsPr
 
   useEffect(() => {
     if (settings) {
-      setIsEnabled(settings.isEnabled ?? false);
-      setLikeEnabled(settings.likeEnabled ?? true);
+      setIsEnabled(Boolean(settings.isEnabled));
+      setLikeEnabled(Boolean(settings.likeEnabled ?? 1));
       setLikeDelayMin(settings.likeDelayMinMin ?? 5);
       setLikeDelayMax(settings.likeDelayMinMax ?? 30);
-      setCommentEnabled(settings.commentEnabled ?? true);
+      setCommentEnabled(Boolean(settings.commentEnabled ?? 1));
       setCommentDelayMin(settings.commentDelayMinMin ?? 10);
       setCommentDelayMax(settings.commentDelayMinMax ?? 60);
+      setRetweetEnabled(Boolean(settings.retweetEnabled));
+      setRetweetDelayMin(settings.retweetDelayMinMin ?? 15);
+      setRetweetDelayMax(settings.retweetDelayMinMax ?? 90);
+      setFollowEnabled(Boolean(settings.followEnabled));
+      setFollowDelayMin(settings.followDelayMinMin ?? 30);
+      setFollowDelayMax(settings.followDelayMinMax ?? 180);
+      // Parse followTargetUsers JSON array to newline-separated string
+      if (settings.followTargetUsers) {
+        try {
+          const users = JSON.parse(settings.followTargetUsers);
+          setFollowTargetUsers(Array.isArray(users) ? users.join("\n") : "");
+        } catch {
+          setFollowTargetUsers("");
+        }
+      } else {
+        setFollowTargetUsers("");
+      }
       setDefaultPersona(settings.defaultPersona || "フレンドリーなユーザー");
+      setReactionProbability(settings.reactionProbability ?? 100);
+      setMaxReactingAccounts(settings.maxReactingAccounts ?? 0);
     }
   }, [settings]);
 
@@ -49,7 +79,18 @@ export default function InteractionSettings({ projectId }: InteractionSettingsPr
         commentEnabled,
         commentDelayMinMin: commentDelayMin,
         commentDelayMinMax: commentDelayMax,
+        retweetEnabled,
+        retweetDelayMinMin: retweetDelayMin,
+        retweetDelayMinMax: retweetDelayMax,
+        followEnabled,
+        followDelayMinMin: followDelayMin,
+        followDelayMinMax: followDelayMax,
+        followTargetUsers: followTargetUsers.trim()
+          ? JSON.stringify(followTargetUsers.split("\n").map(u => u.trim()).filter(Boolean))
+          : null,
         defaultPersona,
+        reactionProbability,
+        maxReactingAccounts,
       });
       toast.success("設定を保存しました");
       refetch();
@@ -183,6 +224,142 @@ export default function InteractionSettings({ projectId }: InteractionSettingsPr
                   </div>
                 </>
               )}
+            </div>
+
+            {/* リツイート設定 */}
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-medium">リツイート（リポスト）</p>
+                <Switch checked={retweetEnabled} onCheckedChange={setRetweetEnabled} />
+              </div>
+              {retweetEnabled && (
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-sm text-gray-500">投稿後</span>
+                  <Input
+                    type="number"
+                    value={retweetDelayMin}
+                    onChange={(e) => setRetweetDelayMin(Number(e.target.value))}
+                    className="w-20"
+                    min={1}
+                    max={180}
+                  />
+                  <span className="text-sm text-gray-500">〜</span>
+                  <Input
+                    type="number"
+                    value={retweetDelayMax}
+                    onChange={(e) => setRetweetDelayMax(Number(e.target.value))}
+                    className="w-20"
+                    min={1}
+                    max={180}
+                  />
+                  <span className="text-sm text-gray-500">分後にランダム実行</span>
+                </div>
+              )}
+            </div>
+
+            {/* フォロー設定 */}
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-medium flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  フォロー
+                </p>
+                <Switch checked={followEnabled} onCheckedChange={setFollowEnabled} />
+              </div>
+              {followEnabled && (
+                <>
+                  <div className="flex items-center gap-2 ml-4 mb-3">
+                    <span className="text-sm text-gray-500">投稿後</span>
+                    <Input
+                      type="number"
+                      value={followDelayMin}
+                      onChange={(e) => setFollowDelayMin(Number(e.target.value))}
+                      className="w-20"
+                      min={1}
+                      max={360}
+                    />
+                    <span className="text-sm text-gray-500">〜</span>
+                    <Input
+                      type="number"
+                      value={followDelayMax}
+                      onChange={(e) => setFollowDelayMax(Number(e.target.value))}
+                      className="w-20"
+                      min={1}
+                      max={360}
+                    />
+                    <span className="text-sm text-gray-500">分後にランダム実行</span>
+                  </div>
+                  <div className="ml-4">
+                    <label className="text-sm text-gray-500 block mb-1">
+                      外部フォロー対象ユーザー（1行に1ユーザー）
+                    </label>
+                    <Textarea
+                      value={followTargetUsers}
+                      onChange={(e) => setFollowTargetUsers(e.target.value)}
+                      placeholder="@username1&#10;@username2&#10;@username3"
+                      rows={3}
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      投稿者への相互フォローに加え、ここに入力したユーザーもフォロー対象になります
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* 選択的反応設定 */}
+            <div className="border-t pt-4">
+              <p className="font-medium mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                選択的反応（自然な動作のため）
+              </p>
+              <div className="space-y-4 ml-4">
+                {/* 反応確率 */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm text-slate-600 flex items-center gap-1">
+                      <Percent className="w-3 h-3" />
+                      反応確率
+                    </label>
+                    <span className="text-sm font-medium text-slate-900">{reactionProbability}%</span>
+                  </div>
+                  <Slider
+                    value={[reactionProbability]}
+                    onValueChange={(values) => setReactionProbability(values[0])}
+                    min={0}
+                    max={100}
+                    step={10}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    各アカウントがこの確率で反応します
+                  </p>
+                </div>
+
+                {/* 最大反応アカウント数 */}
+                <div>
+                  <label className="text-sm text-slate-600 block mb-2">
+                    最大反応アカウント数
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={maxReactingAccounts}
+                      onChange={(e) => setMaxReactingAccounts(Number(e.target.value))}
+                      className="w-20"
+                      min={0}
+                      max={100}
+                    />
+                    <span className="text-sm text-slate-500">
+                      {maxReactingAccounts === 0 ? "（無制限）" : "アカウント"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    0 = 全アカウントが反応可能
+                  </p>
+                </div>
+              </div>
             </div>
           </>
         )}

@@ -210,8 +210,8 @@ export async function generateScheduledPosts(
       const targetAccount = targetAccounts[i % targetAccounts.length];
 
       try {
-        // コンテンツを生成
-        const content = await generateContent(context);
+        // コンテンツを生成（アカウント固有のペルソナ・学習を反映）
+        const content = await generateContent(context, undefined, targetAccount.id);
 
         // スケジュール投稿として登録
         const postId = await createAgentScheduledPost({

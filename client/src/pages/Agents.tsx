@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useI18n } from "@/contexts/I18nContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,6 +58,7 @@ const initialFormData: AgentFormData = {
 };
 
 export default function Agents() {
+  const { t } = useI18n();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAIGenerateDialogOpen, setIsAIGenerateDialogOpen] = useState(false);
@@ -177,10 +179,12 @@ export default function Agents() {
   };
 
   const handleAIGenerate = () => {
+    // Ensure count is a valid number between 1 and 20
+    const validCount = Math.max(1, Math.min(20, Number(aiGenCount) || 5));
     generateAgentsMutation.mutate({
-      count: aiGenCount,
+      count: validCount,
       industry: aiGenIndustry || undefined,
-      targetPlatforms: aiGenPlatforms.length > 0 
+      targetPlatforms: aiGenPlatforms.length > 0
         ? aiGenPlatforms as ("twitter" | "instagram" | "facebook" | "tiktok")[]
         : undefined,
     });
@@ -249,7 +253,7 @@ export default function Agents() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-muted-foreground">読み込み中...</div>
+        <div className="text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -258,9 +262,9 @@ export default function Agents() {
     <div className="container py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">SNSエージェント</h1>
+          <h1 className="text-3xl font-bold">{t('agents.title')}</h1>
           <p className="text-muted-foreground mt-2">
-            ブランドごとに異なる投稿スタイルを管理
+            {t('agents.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -726,7 +730,14 @@ export default function Agents() {
                 min="1"
                 max="20"
                 value={aiGenCount}
-                onChange={(e) => setAiGenCount(parseInt(e.target.value) || 5)}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val) && val >= 1 && val <= 20) {
+                    setAiGenCount(val);
+                  } else if (e.target.value === '') {
+                    setAiGenCount(1);
+                  }
+                }}
               />
             </div>
             <div className="grid gap-2">

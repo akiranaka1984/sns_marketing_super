@@ -183,11 +183,21 @@ function buildPromptFromAgent(agent: any): string {
  */
 async function generateContent(prompt: string, agent: any): Promise<string> {
   try {
+    // Get current date for context
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+    const currentDateStr = `${currentYear}年${currentMonth}月${currentDay}日`;
+
     // Use OpenAI API if configured, otherwise use Manus Forge API
     const apiKey = process.env.OPENAI_API_KEY;
       const response = await invokeLLM({
       messages: [
-        { role: "system", content: "あなたは優秀なSNSコンテンツクリエイターです。" },
+        { role: "system", content: `あなたは優秀なSNSコンテンツクリエイターです。
+
+【重要】現在の日付: ${currentDateStr}（${currentYear}年です）
+投稿内容は必ず現在の日付を基準に作成してください。過去の年（2024年など）について言及しないでください。` },
         { role: "user", content: prompt },
       ],
     });

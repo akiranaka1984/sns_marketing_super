@@ -1,15 +1,17 @@
 /**
  * Scheduled Posts System
- * 
- * Automatically publishes posts at scheduled times using DuoPlus API
+ *
+ * Automatically publishes posts at scheduled times using DuoPlus API.
+ * Uses Bull queue for reliable job processing with retry support.
  */
 
 import { db } from "./db";
 import { scheduledPosts, accounts, logs, freezeDetections, postUrls } from "../drizzle/schema";
-import { eq, and, lte, desc } from "drizzle-orm";
+import { eq, and, lte, desc, sql, inArray } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
 import { postToSNS, isDevicePoweredOn } from "./sns-posting";
 import { onPostSuccess } from "./post-success-hook";
+import { addScheduledPostJob, type ScheduledPostJob } from "./queue-manager";
 
 /**
  * Execute pending scheduled posts
@@ -17,10 +19,12 @@ import { onPostSuccess } from "./post-success-hook";
 export async function executeScheduledPosts() {
   const now = new Date();
 
-  // Get all pending posts that should be published now
+  // Get all posts ready to be published now
+  // Posts must be status="pending" (not yet processed) AND reviewStatus="approved" (approved for posting)
   const pendingPosts = await db.query.scheduledPosts.findMany({
     where: and(
       eq(scheduledPosts.status, "pending"),
+      eq(scheduledPosts.reviewStatus, "approved"),
       lte(scheduledPosts.scheduledTime, now)
     ),
   });
@@ -220,6 +224,21 @@ export async function publishPost(postId: number): Promise<{
         postId,
       };
     } else {
+      // Check current status before updating to failed
+      // (another process might have already succeeded)
+      const currentPost = await db.query.scheduledPosts.findFirst({
+        where: eq(scheduledPosts.id, postId),
+      });
+
+      if (currentPost?.status === "posted") {
+        console.log(`[ScheduledPosts] Post ${postId} was already successfully posted by another process, skipping failure update`);
+        return {
+          success: true,
+          message: "Post was already successfully published",
+          postId,
+        };
+      }
+
       // Detect if this is a freeze
       const freezeResult = await detectFreeze(
         account.id,
@@ -245,14 +264,31 @@ export async function publishPost(postId: number): Promise<{
         }
       }
 
-      // Update post status
+      // Re-check status after freeze detection (might have been updated)
+      const postAfterFreeze = await db.query.scheduledPosts.findFirst({
+        where: eq(scheduledPosts.id, postId),
+      });
+
+      if (postAfterFreeze?.status === "posted") {
+        console.log(`[ScheduledPosts] Post ${postId} was successfully posted during freeze detection, skipping failure update`);
+        return {
+          success: true,
+          message: "Post was successfully published",
+          postId,
+        };
+      }
+
+      // Update post status only if still pending
       await db
         .update(scheduledPosts)
         .set({
           status: "failed",
           errorMessage: postResult.error || postResult.message,
         })
-        .where(eq(scheduledPosts.id, postId));
+        .where(and(
+          eq(scheduledPosts.id, postId),
+          eq(scheduledPosts.status, "pending")  // Only update if still pending
+        ));
 
       // Log failure
       await db.insert(logs).values({
@@ -335,16 +371,90 @@ function calculateNextScheduledTime(
 }
 
 /**
- * Start scheduled posts executor (runs every minute)
+ * Enqueue pending scheduled posts to the Bull queue
  */
-export function startScheduledPostsExecutor() {
-  console.log("[ScheduledPosts] Starting executor...");
+export async function enqueuePendingPosts(): Promise<number> {
+  const now = new Date();
+
+  // Diagnostic logging: Check all pending posts and their reviewStatus breakdown
+  const allPending = await db.query.scheduledPosts.findMany({
+    where: eq(scheduledPosts.status, "pending"),
+  });
+
+  if (allPending.length > 0) {
+    const byReviewStatus = {
+      draft: allPending.filter(p => p.reviewStatus === 'draft').length,
+      pending_review: allPending.filter(p => p.reviewStatus === 'pending_review').length,
+      approved: allPending.filter(p => p.reviewStatus === 'approved').length,
+      rejected: allPending.filter(p => p.reviewStatus === 'rejected').length,
+      other: allPending.filter(p => !['draft', 'pending_review', 'approved', 'rejected'].includes(p.reviewStatus || '')).length,
+    };
+    console.log(`[ScheduledPosts] Pending posts breakdown: ${JSON.stringify(byReviewStatus)}`);
+  }
+
+  // Get all posts ready to be published now
+  // Posts must be status="pending" (not yet processed) AND reviewStatus="approved" (approved for posting)
+  const pendingPosts = await db.query.scheduledPosts.findMany({
+    where: and(
+      eq(scheduledPosts.status, "pending"),
+      eq(scheduledPosts.reviewStatus, "approved"),
+      lte(scheduledPosts.scheduledTime, now)
+    ),
+  });
+
+  if (pendingPosts.length === 0) {
+    return 0;
+  }
+
+  console.log(`[ScheduledPosts] Enqueueing ${pendingPosts.length} posts to queue`);
+
+  let enqueued = 0;
+  for (const post of pendingPosts) {
+    try {
+      const jobData: ScheduledPostJob = {
+        postId: post.id,
+        accountId: post.accountId,
+        scheduledTime: post.scheduledTime.toISOString(),
+      };
+
+      await addScheduledPostJob(jobData);
+      enqueued++;
+    } catch (error) {
+      console.error(`[ScheduledPosts] Failed to enqueue post ${post.id}:`, error);
+    }
+  }
+
+  return enqueued;
+}
+
+/**
+ * Start scheduled posts enqueuer (runs every minute)
+ * This function periodically checks for pending posts and adds them to the queue
+ */
+export function startScheduledPostsEnqueuer() {
+  console.log("[ScheduledPosts] Starting enqueuer...");
 
   // Run immediately
-  executeScheduledPosts();
+  enqueuePendingPosts().catch(console.error);
 
   // Run every minute
-  setInterval(() => {
-    executeScheduledPosts();
+  setInterval(async () => {
+    try {
+      const count = await enqueuePendingPosts();
+      if (count > 0) {
+        console.log(`[ScheduledPosts] Enqueued ${count} posts`);
+      }
+    } catch (error) {
+      console.error("[ScheduledPosts] Enqueuer error:", error);
+    }
   }, 60 * 1000); // 60 seconds
+}
+
+/**
+ * @deprecated Use startScheduledPostsEnqueuer instead
+ * Legacy function for backward compatibility
+ */
+export function startScheduledPostsExecutor() {
+  console.log("[ScheduledPosts] Warning: startScheduledPostsExecutor is deprecated, use startScheduledPostsEnqueuer");
+  startScheduledPostsEnqueuer();
 }

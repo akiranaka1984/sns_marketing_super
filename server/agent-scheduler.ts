@@ -6,8 +6,8 @@
  */
 
 import { db } from "./db";
-import { agents, agentAccounts, agentSchedules, accounts } from "../drizzle/schema";
-import { eq, and, lte, sql } from "drizzle-orm";
+import { agents, agentAccounts, agentSchedules, accounts, posts, scheduledPosts } from "../drizzle/schema";
+import { eq, and, lte, sql, desc, gte } from "drizzle-orm";
 import { runAgent } from "./agent-engine";
 
 // ============================================
@@ -81,7 +81,7 @@ export async function getAgentScheduledTimes(agentId: number): Promise<Scheduled
     .leftJoin(accounts, eq(agentAccounts.accountId, accounts.id))
     .where(and(
       eq(agentAccounts.agentId, agentId),
-      eq(agentAccounts.isActive, true)
+      eq(agentAccounts.isActive, 1)
     ));
 
   if (linkedAccounts.length === 0) {
@@ -139,13 +139,15 @@ export async function checkAndRunScheduledAgents(): Promise<{
     errors: [] as string[],
   };
 
-  console.log(`[AgentScheduler] Checking scheduled agents at ${now.toISOString()}`);
+  // JST時刻も表示
+  const jstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  console.log(`[AgentScheduler] Checking scheduled agents at ${now.toISOString()} (JST: ${jstTime.toISOString().replace('Z', '+09:00')})`);
 
   // アクティブなエージェントを取得
   const activeAgents = await db
     .select()
     .from(agents)
-    .where(eq(agents.isActive, true));
+    .where(eq(agents.isActive, 1));
 
   for (const agent of activeAgents) {
     try {
@@ -159,20 +161,22 @@ export async function checkAndRunScheduledAgents(): Promise<{
         // デフォルトを使用
       }
 
-      // 現在時刻がスロットに該当するかチェック
-      const currentHour = now.getHours().toString().padStart(2, "0");
-      const currentMinute = now.getMinutes().toString().padStart(2, "0");
+      // 現在時刻がスロットに該当するかチェック（日本時間 JST = UTC+9）
+      const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const currentHour = jstNow.getUTCHours().toString().padStart(2, "0");
+      const currentMinute = jstNow.getUTCMinutes().toString().padStart(2, "0");
       const currentTime = `${currentHour}:${currentMinute}`;
 
-      // 5分の誤差を許容
+      // 5分の誤差を許容（時間スロットは日本時間で指定）
       const shouldExecute = timeSlots.some(slot => {
         const [slotHour, slotMinute] = slot.split(":").map(Number);
-        const slotDate = new Date();
-        slotDate.setHours(slotHour, slotMinute, 0, 0);
-        
-        const diffMs = Math.abs(now.getTime() - slotDate.getTime());
+        // Create a JST date for the slot time
+        const slotDate = new Date(jstNow);
+        slotDate.setUTCHours(slotHour, slotMinute, 0, 0);
+
+        const diffMs = Math.abs(jstNow.getTime() - slotDate.getTime());
         const diffMinutes = diffMs / (1000 * 60);
-        
+
         return diffMinutes <= 5;
       });
 
@@ -180,11 +184,11 @@ export async function checkAndRunScheduledAgents(): Promise<{
         continue;
       }
 
-      // 頻度チェック（週次の場合は曜日も確認）
+      // 頻度チェック（週次の場合は曜日も確認）- 日本時間基準
       if (agent.postingFrequency === "weekly") {
         // 週次の場合、特定の曜日のみ実行（デフォルトは月曜日）
         const targetDay = 1; // 月曜日
-        if (now.getDay() !== targetDay) {
+        if (jstNow.getUTCDay() !== targetDay) {
           continue;
         }
       }
@@ -242,42 +246,73 @@ export async function getAllScheduledExecutions(): Promise<{
   agentId: number;
   agentName: string;
   accountId: number;
+  accountUsername: string;
   platform: string;
   scheduledTime: Date;
+  agentTheme: string;
+  agentTone: string;
+  agentStyle: string;
+  recentPostContent?: string;
+  scheduledPostContent?: string;
+  scheduledPostId?: number;
 }[]> {
-  const activeAgents = await db
-    .select()
-    .from(agents)
-    .where(eq(agents.isActive, true));
+  const now = new Date();
+
+  // Get pending scheduled posts directly from scheduled_posts table
+  const pendingPosts = await db.query.scheduledPosts.findMany({
+    where: and(
+      eq(scheduledPosts.status, "pending"),
+      gte(scheduledPosts.scheduledTime, now)
+    ),
+    orderBy: [desc(scheduledPosts.scheduledTime)],
+  });
 
   const allExecutions: {
     agentId: number;
     agentName: string;
     accountId: number;
+    accountUsername: string;
     platform: string;
     scheduledTime: Date;
+    agentTheme: string;
+    agentTone: string;
+    agentStyle: string;
+    recentPostContent?: string;
+    scheduledPostContent?: string;
+    scheduledPostId?: number;
   }[] = [];
 
-  for (const agent of activeAgents) {
-    const executions = await getAgentScheduledTimes(agent.id);
-    
-    for (const exec of executions) {
-      const account = await db.query.accounts.findFirst({
-        where: eq(accounts.id, exec.accountId),
-      });
+  for (const post of pendingPosts) {
+    const agent = post.agentId
+      ? await db.query.agents.findFirst({ where: eq(agents.id, post.agentId) })
+      : null;
 
-      allExecutions.push({
-        agentId: exec.agentId,
-        agentName: agent.name,
-        accountId: exec.accountId,
-        platform: account?.platform || "unknown",
-        scheduledTime: exec.scheduledTime,
-      });
-    }
+    const account = await db.query.accounts.findFirst({
+      where: eq(accounts.id, post.accountId),
+    });
+
+    allExecutions.push({
+      agentId: post.agentId || 0,
+      agentName: agent?.name || "Manual",
+      accountId: post.accountId,
+      accountUsername: account?.username || "unknown",
+      platform: account?.platform || "unknown",
+      scheduledTime: post.scheduledTime,
+      agentTheme: agent?.theme || "",
+      agentTone: agent?.tone || "",
+      agentStyle: agent?.style || "",
+      recentPostContent: undefined,
+      scheduledPostContent: post.content,
+      scheduledPostId: post.id,
+    });
   }
 
   // 時間順にソート
-  allExecutions.sort((a, b) => a.scheduledTime.getTime() - b.scheduledTime.getTime());
+  allExecutions.sort((a, b) => {
+    const timeA = a.scheduledTime instanceof Date ? a.scheduledTime.getTime() : new Date(a.scheduledTime).getTime();
+    const timeB = b.scheduledTime instanceof Date ? b.scheduledTime.getTime() : new Date(b.scheduledTime).getTime();
+    return timeA - timeB;
+  });
 
   return allExecutions;
 }

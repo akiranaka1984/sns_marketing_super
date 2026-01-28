@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -25,15 +26,44 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Sparkles, FileText, Settings, FolderKanban, Network, Zap, Calendar, AlertTriangle, Heart, Smartphone, BarChart3, Bot, Download, Wand2, CheckSquare, TrendingUp, Sparkles as SparklesIcon, ChevronDown, FolderOpen, UserCircle, CalendarClock, TrendingUpIcon, Shield, MoreHorizontal, FlaskConical } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Users,
+  Sparkles,
+  FileText,
+  Settings,
+  FolderKanban,
+  Network,
+  Zap,
+  AlertTriangle,
+  Heart,
+  Smartphone,
+  BarChart3,
+  Bot,
+  Download,
+  Wand2,
+  CheckSquare,
+  TrendingUp,
+  ChevronDown,
+  FolderOpen,
+  UserCircle,
+  CalendarClock,
+  Shield,
+  MoreHorizontal,
+  FlaskConical,
+  Gauge,
+  ChevronRight,
+  Brain,
+  GraduationCap
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useI18n } from '@/contexts/I18nContext';
-
-// Menu items will be translated dynamically
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
@@ -61,25 +91,40 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="flex flex-col items-center gap-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
+      <div className="flex items-center justify-center min-h-screen relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 animated-gradient" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(10,10,15,0.8)_100%)]" />
+
+        {/* Floating orbs */}
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#3db9cf]/15 rounded-full blur-3xl float" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#8b5cf6]/15 rounded-full blur-3xl float animation-delay-300" />
+
+        <div className="relative z-10 flex flex-col items-center gap-8 p-8 max-w-md w-full">
+          <div className="glass-card rounded-2xl p-8 w-full text-center">
+            {/* Logo */}
+            <div className="mb-6 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#3db9cf] to-[#8b5cf6] glow-cyan">
+              <Gauge className="w-8 h-8 text-white" />
+            </div>
+
+            <h1 className="text-2xl font-bold mb-2">
+              <span className="gradient-text">SNS Marketing</span>
             </h1>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+            <p className="text-muted-foreground mb-8">
+              Sign in to access the automation dashboard
             </p>
+
+            <Button
+              onClick={() => {
+                window.location.href = getLoginUrl();
+              }}
+              size="lg"
+              className="w-full bg-gradient-to-r from-[#3db9cf] to-[#8b5cf6] hover:from-[#4bc5db] hover:to-[#9d6ff8] text-white border-0 shadow-lg shadow-[#3db9cf]/20 transition-all duration-300 hover:shadow-[#3db9cf]/30 hover:scale-[1.01]"
+            >
+              Sign in
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
           </div>
-          <Button
-            onClick={() => {
-              window.location.href = getLoginUrl();
-            }}
-            size="lg"
-            className="w-full shadow-lg hover:shadow-xl transition-all"
-          >
-            Sign in
-          </Button>
         </div>
       </div>
     );
@@ -122,25 +167,14 @@ function DashboardLayoutContent({
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const { t } = useI18n();
-  
+
   const menuGroups: MenuGroup[] = [
-    {
-      label: "コンテンツ管理",
-      icon: FolderOpen,
-      defaultOpen: true,
-      items: [
-        { icon: Download, label: "コンテンツ収集", path: "/content-collection" },
-        { icon: Wand2, label: "AIリライト", path: "/content-rewrite" },
-        { icon: CheckSquare, label: "コンテンツ審査", path: "/content-review" },
-      ],
-    },
     {
       label: "アカウント管理",
       icon: UserCircle,
       defaultOpen: true,
       items: [
         { icon: Users, label: t('nav.accounts'), path: "/accounts" },
-        { icon: Bot, label: "SNSエージェント", path: "/agents" },
         { icon: Network, label: t('nav.proxies'), path: "/proxies" },
       ],
     },
@@ -151,19 +185,21 @@ function DashboardLayoutContent({
       items: [
         { icon: FolderKanban, label: t('nav.projects'), path: "/projects" },
         { icon: Zap, label: "自動化", path: "/automation" },
-        { icon: Calendar, label: "スケジュール投稿", path: "/scheduled-posts" },
         { icon: CheckSquare, label: "投稿レビュー", path: "/post-review" },
       ],
     },
     {
       label: "分析・最適化",
-      icon: TrendingUpIcon,
+      icon: TrendingUp,
       defaultOpen: true,
       items: [
         { icon: BarChart3, label: "パフォーマンス分析", path: "/analytics" },
         { icon: TrendingUp, label: "週次レビュー", path: "/weekly-review" },
-        { icon: SparklesIcon, label: "AI最適化", path: "/ai-optimization" },
+        { icon: Sparkles, label: "AI最適化", path: "/ai-optimization" },
+        { icon: Bot, label: "SNSエージェント", path: "/agents" },
         { icon: FlaskConical, label: "A/Bテスト", path: "/ab-testing" },
+        { icon: GraduationCap, label: "モデルアカウント", path: "/model-accounts" },
+        { icon: Brain, label: "バズ分析", path: "/buzz-analysis" },
       ],
     },
     {
@@ -192,19 +228,17 @@ function DashboardLayoutContent({
   ];
 
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Track which groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('sidebar-open-groups');
     if (saved) {
       return JSON.parse(saved);
     }
-    // Default: open groups based on defaultOpen
     const defaults: Record<string, boolean> = {};
     menuGroups.forEach(group => {
       defaults[group.label] = group.defaultOpen ?? false;
@@ -258,34 +292,49 @@ function DashboardLayoutContent({
 
   return (
     <>
-      <Sidebar ref={sidebarRef} collapsible="icon">
-        <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <LayoutDashboard className="size-4" />
+      <Sidebar ref={sidebarRef} collapsible="icon" className="border-r-0">
+        {/* Glass sidebar background */}
+        <div className="absolute inset-0 glass-card rounded-none border-0 border-r border-white/[0.06]" />
+
+        <SidebarHeader className="relative border-b border-white/[0.06] z-10">
+          <div className="flex items-center gap-3 px-2 py-3">
+            {/* Animated logo */}
+            <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3db9cf] to-[#8b5cf6] shadow-lg shadow-[#3db9cf]/15 transition-transform duration-300 hover:scale-105">
+              <Gauge className="size-5 text-white" />
             </div>
             {!isCollapsed && (
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">SNS Marketing</span>
+              <div className="grid flex-1 text-left leading-tight">
+                <span className="truncate font-bold text-base gradient-text">
+                  SNS Marketing
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Automation System
+                  Automation Platform
                 </span>
               </div>
             )}
           </div>
         </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarGroup>
+        <SidebarContent className="relative z-10">
+          {/* Dashboard link with special styling */}
+          <SidebarGroup className="pt-4">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setLocation("/")}
                   isActive={location === "/"}
                   tooltip={t('nav.dashboard')}
+                  className={`relative transition-all duration-200 ${
+                    location === "/"
+                      ? "bg-gradient-to-r from-[#3db9cf]/15 to-[#8b5cf6]/08 text-[#3db9cf] border border-[#3db9cf]/15"
+                      : "hover:bg-white/5"
+                  }`}
                 >
-                  <LayoutDashboard />
-                  <span>{t('nav.dashboard')}</span>
+                  <LayoutDashboard className={location === "/" ? "text-[#3db9cf]" : ""} />
+                  <span className="font-medium">{t('nav.dashboard')}</span>
+                  {location === "/" && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-6 bg-gradient-to-b from-[#3db9cf] to-[#8b5cf6] rounded-r-full" />
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -299,31 +348,48 @@ function DashboardLayoutContent({
             >
               <SidebarGroup>
                 <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md transition-colors">
-                    <group.icon className="mr-2 size-4" />
-                    <span className="flex-1">{group.label}</span>
+                  <SidebarGroupLabel className="cursor-pointer hover:bg-white/5 rounded-lg transition-colors px-2 py-1.5 mx-2 group">
+                    <group.icon className="mr-2 size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <span className="flex-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
+                      {group.label}
+                    </span>
                     <ChevronDown
-                      className={`size-4 transition-transform ${
+                      className={`size-4 text-muted-foreground transition-transform duration-200 ${
                         openGroups[group.label] ? "rotate-180" : ""
                       }`}
                     />
                   </SidebarGroupLabel>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
+                <CollapsibleContent className="animate-in slide-in-from-top-2 duration-200">
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {group.items.map((item) => (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            onClick={() => setLocation(item.path)}
-                            isActive={location === item.path}
-                            tooltip={item.label}
+                      {group.items.map((item, itemIndex) => {
+                        const isActive = location === item.path;
+                        return (
+                          <SidebarMenuItem
+                            key={item.path}
+                            className="fade-in-up"
+                            style={{ animationDelay: `${itemIndex * 50}ms` }}
                           >
-                            <item.icon />
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                            <SidebarMenuButton
+                              onClick={() => setLocation(item.path)}
+                              isActive={isActive}
+                              tooltip={item.label}
+                              className={`relative transition-all duration-200 ${
+                                isActive
+                                  ? "bg-white/8 text-foreground"
+                                  : "hover:bg-white/5 text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              <item.icon className={`size-4 ${isActive ? "text-[#3db9cf]" : ""}`} />
+                              <span>{item.label}</span>
+                              {isActive && (
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 bg-gradient-to-b from-[#3db9cf] to-[#8b5cf6] rounded-r-full" />
+                              )}
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </CollapsibleContent>
@@ -332,20 +398,24 @@ function DashboardLayoutContent({
           ))}
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarFooter className="relative border-t border-white/[0.06] z-10">
           <SidebarMenu>
             <SidebarMenuItem>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     size="lg"
-                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="data-[state=open]:bg-white/10 hover:bg-white/5 transition-colors"
                   >
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg">
-                        {user?.name?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
+                    {/* Avatar with gradient ring */}
+                    <div className="relative">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-[#3db9cf] to-[#8b5cf6] rounded-lg opacity-60" />
+                      <Avatar className="h-8 w-8 rounded-lg relative">
+                        <AvatarFallback className="rounded-lg bg-background text-foreground font-semibold">
+                          {user?.name?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-semibold">{user?.name}</span>
                       <span className="truncate text-xs text-muted-foreground">
@@ -355,12 +425,20 @@ function DashboardLayoutContent({
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl glass-card border-white/10"
                   side={isMobile ? "bottom" : "right"}
                   align="end"
                   sideOffset={4}
                 >
-                  <DropdownMenuItem onClick={() => logout()}>
+                  <div className="px-2 py-2 border-b border-white/10">
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem
+                    onClick={() => logout()}
+                    className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>{t('nav.logout')}</span>
                   </DropdownMenuItem>
@@ -373,22 +451,38 @@ function DashboardLayoutContent({
           </div>
         </SidebarFooter>
 
+        {/* Resize handle */}
         {!isCollapsed && (
           <div
-            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors"
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#3db9cf]/40 transition-colors z-20"
             onMouseDown={() => setIsResizing(true)}
           />
         )}
       </Sidebar>
 
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1">
-            <PanelLeft />
+      <SidebarInset className="bg-[#f8f9fb] content-light">
+        {/* Header */}
+        <header className="flex h-14 shrink-0 items-center gap-2 px-4 bg-white border-b border-gray-200/80 sticky top-0 z-40">
+          <SidebarTrigger className="-ml-1 hover:bg-gray-100 transition-colors rounded-lg p-2 text-gray-600">
+            <Menu className="size-5" />
             <span className="sr-only">Toggle Sidebar</span>
           </SidebarTrigger>
+
+          {/* Breadcrumb area - can be expanded */}
+          <div className="flex-1" />
+
+          {/* Optional: Add header actions here */}
+          <div className="flex items-center gap-2">
+            {/* Live indicator */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 pulse-live" />
+              <span className="text-xs font-medium text-emerald-600">System Online</span>
+            </div>
+          </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+
+        {/* Main content area */}
+        <div className="flex flex-1 flex-col gap-4 p-6">
           {children}
         </div>
       </SidebarInset>

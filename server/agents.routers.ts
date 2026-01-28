@@ -1,10 +1,18 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
-import { agents, agentKnowledge, agentRules, agentAccounts, agentSchedules, agentExecutionLogs, accounts } from "../drizzle/schema";
+import { agents, agentKnowledge, agentRules, agentAccounts, agentSchedules, agentExecutionLogs, accounts, aiOptimizations } from "../drizzle/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { runAgent, analyzePostPerformance, consolidateKnowledge } from "./agent-engine";
+import {
+  DEFAULT_AUTO_OPTIMIZATION_SETTINGS,
+  AutoOptimizationSettings,
+  triggerOptimizationCheck,
+  getPendingOptimizations,
+  approveOptimization,
+  rejectOptimization,
+} from "./services/auto-optimization-scheduler";
 
 export const agentsRouter = router({
   // Get all agents
@@ -780,7 +788,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .from(agents)
         .where(eq(agents.id, input.id))
         .limit(1);
-      
+
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
         throw new Error("Agent not found");
       }
@@ -801,5 +809,207 @@ Make each persona unique and engaging. Consider different niches, demographics, 
       }
 
       return { success: true };
+    }),
+
+  // ============================================
+  // Auto-Optimization Settings
+  // ============================================
+
+  // Get auto-optimization settings for an agent
+  getAutoOptimizationSettings: protectedProcedure
+    .input(z.object({ agentId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, input.agentId))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      const agentData = agent[0] as any;
+      if (agentData.autoOptimizationSettings) {
+        try {
+          const parsed = JSON.parse(agentData.autoOptimizationSettings);
+          return { ...DEFAULT_AUTO_OPTIMIZATION_SETTINGS, ...parsed };
+        } catch (e) {
+          return DEFAULT_AUTO_OPTIMIZATION_SETTINGS;
+        }
+      }
+
+      return DEFAULT_AUTO_OPTIMIZATION_SETTINGS;
+    }),
+
+  // Update auto-optimization settings
+  updateAutoOptimizationSettings: protectedProcedure
+    .input(z.object({
+      agentId: z.number(),
+      settings: z.object({
+        enabled: z.boolean().optional(),
+        minEngagementRateThreshold: z.number().min(0).max(100).optional(),
+        checkIntervalHours: z.number().min(1).max(168).optional(),
+        maxAutoOptimizationsPerWeek: z.number().min(0).max(20).optional(),
+        requireConfirmation: z.boolean().optional(),
+        optimizationTypes: z.array(z.enum([
+          'tone_adjustment',
+          'style_adjustment',
+          'content_strategy',
+          'timing_optimization'
+        ])).optional(),
+      }),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, input.agentId))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      // Get current settings and merge with new ones
+      const agentData = agent[0] as any;
+      let currentSettings: AutoOptimizationSettings = DEFAULT_AUTO_OPTIMIZATION_SETTINGS;
+      if (agentData.autoOptimizationSettings) {
+        try {
+          currentSettings = {
+            ...DEFAULT_AUTO_OPTIMIZATION_SETTINGS,
+            ...JSON.parse(agentData.autoOptimizationSettings),
+          };
+        } catch (e) {}
+      }
+
+      const newSettings: AutoOptimizationSettings = {
+        ...currentSettings,
+        ...input.settings,
+      };
+
+      await db.update(agents)
+        .set({
+          autoOptimizationSettings: JSON.stringify(newSettings),
+          updatedAt: new Date().toISOString(),
+        } as any)
+        .where(eq(agents.id, input.agentId));
+
+      return { success: true, settings: newSettings };
+    }),
+
+  // Manually trigger optimization check
+  triggerOptimization: protectedProcedure
+    .input(z.object({ agentId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, input.agentId))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      const result = await triggerOptimizationCheck(input.agentId);
+      return result;
+    }),
+
+  // Get pending optimizations for an agent
+  getPendingOptimizations: protectedProcedure
+    .input(z.object({ agentId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, input.agentId))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      return await getPendingOptimizations(input.agentId);
+    }),
+
+  // Approve a pending optimization
+  approveOptimization: protectedProcedure
+    .input(z.object({ optimizationId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify ownership via the optimization record
+      const optimization = await db.query.aiOptimizations.findFirst({
+        where: eq(aiOptimizations.id, input.optimizationId),
+      });
+
+      if (!optimization) {
+        throw new Error("Optimization not found");
+      }
+
+      // Verify agent ownership
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, optimization.agentId!))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      await approveOptimization(input.optimizationId);
+      return { success: true };
+    }),
+
+  // Reject a pending optimization
+  rejectOptimization: protectedProcedure
+    .input(z.object({ optimizationId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify ownership via the optimization record
+      const optimization = await db.query.aiOptimizations.findFirst({
+        where: eq(aiOptimizations.id, input.optimizationId),
+      });
+
+      if (!optimization) {
+        throw new Error("Optimization not found");
+      }
+
+      // Verify agent ownership
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, optimization.agentId!))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      await rejectOptimization(input.optimizationId);
+      return { success: true };
+    }),
+
+  // Get optimization history for an agent
+  getOptimizationHistory: protectedProcedure
+    .input(z.object({
+      agentId: z.number(),
+      limit: z.number().optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      const agent = await db
+        .select()
+        .from(agents)
+        .where(eq(agents.id, input.agentId))
+        .limit(1);
+
+      if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
+        throw new Error("Agent not found");
+      }
+
+      return await db.query.aiOptimizations.findMany({
+        where: eq(aiOptimizations.agentId, input.agentId),
+        orderBy: [desc(aiOptimizations.createdAt)],
+        limit: input.limit || 20,
+      });
     }),
 });

@@ -9,6 +9,16 @@ import { freezeDetections, autoResponses } from "../drizzle/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
 import { TRPCError } from "@trpc/server";
+import {
+  findRecoveryCandidates,
+  recoverAccount,
+  scheduleRecovery,
+  runRecoveryCycle,
+  getRecoveryQueueStatus,
+  startRecoveryScheduler,
+  stopRecoveryScheduler,
+  isSchedulerRunning
+} from "./services/account-recovery-scheduler";
 
 export const freezeRouter = router({
   /**
@@ -199,4 +209,92 @@ export const freezeRouter = router({
         successRate,
       };
     }),
+
+  // ============================================
+  // Recovery Scheduler Endpoints
+  // ============================================
+
+  /**
+   * Get recovery queue status
+   */
+  getRecoveryQueue: protectedProcedure.query(async () => {
+    return await getRecoveryQueueStatus();
+  }),
+
+  /**
+   * Get accounts eligible for recovery
+   */
+  getRecoveryCandidates: protectedProcedure
+    .input(
+      z.object({
+        minHours: z.number().default(24),
+      })
+    )
+    .query(async ({ input }) => {
+      return await findRecoveryCandidates(input.minHours);
+    }),
+
+  /**
+   * Schedule recovery for a specific account
+   */
+  scheduleRecovery: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number(),
+        hoursFromNow: z.number().default(24),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await scheduleRecovery(input.accountId, input.hoursFromNow);
+    }),
+
+  /**
+   * Manually recover an account
+   */
+  recoverAccount: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await recoverAccount(input.accountId);
+    }),
+
+  /**
+   * Run recovery cycle manually
+   */
+  runRecoveryCycle: protectedProcedure.mutation(async () => {
+    const results = await runRecoveryCycle();
+    return {
+      processed: results.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      results,
+    };
+  }),
+
+  /**
+   * Start the recovery scheduler
+   */
+  startRecoveryScheduler: protectedProcedure.mutation(async () => {
+    startRecoveryScheduler();
+    return {
+      success: true,
+      message: "Recovery scheduler started",
+      isRunning: isSchedulerRunning(),
+    };
+  }),
+
+  /**
+   * Stop the recovery scheduler
+   */
+  stopRecoveryScheduler: protectedProcedure.mutation(async () => {
+    stopRecoveryScheduler();
+    return {
+      success: true,
+      message: "Recovery scheduler stopped",
+      isRunning: isSchedulerRunning(),
+    };
+  }),
 });

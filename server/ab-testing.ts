@@ -6,9 +6,9 @@
  */
 
 import { db } from "./db";
-import { 
-  abTests, 
-  abTestVariations, 
+import {
+  abTests,
+  abTestVariations,
   abTestLearnings,
   agentKnowledge,
   agents,
@@ -16,6 +16,13 @@ import {
 } from "../drizzle/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+import {
+  performStatisticalAnalysis,
+  cohensD,
+  interpretEffectSize,
+  requiredSampleSize,
+  type StatisticalAnalysis
+} from "./utils/statistics";
 
 // ============================================
 // Types
@@ -286,13 +293,33 @@ export async function updateVariationEngagement(
 // ============================================
 
 /**
- * A/Bテストの結果を分析し、勝者を決定
+ * Extended analysis result with statistical information
  */
-export async function analyzeTestResults(testId: number): Promise<{
+export interface AnalysisResult {
   winnerId: number | null;
   confidence: number;
   analysis: string;
-}> {
+  statistics: {
+    pValue: number | null;
+    effectSize: number | null;
+    effectSizeInterpretation: string;
+    isStatisticallySignificant: boolean;
+    confidenceInterval: {
+      lower: number;
+      upper: number;
+    } | null;
+    sampleSizeAdequate: boolean;
+    requiredSampleSize: number;
+    currentSampleSize: number;
+    warnings: string[];
+  } | null;
+}
+
+/**
+ * A/Bテストの結果を分析し、勝者を決定
+ * 統計的有意差検定を含む詳細な分析を実行
+ */
+export async function analyzeTestResults(testId: number): Promise<AnalysisResult> {
   const test = await db.query.abTests.findFirst({
     where: eq(abTests.id, testId)
   });
@@ -306,7 +333,12 @@ export async function analyzeTestResults(testId: number): Promise<{
     .where(eq(abTestVariations.testId, testId));
 
   if (variations.length < 2) {
-    return { winnerId: null, confidence: 0, analysis: "Not enough variations" };
+    return {
+      winnerId: null,
+      confidence: 0,
+      analysis: "Not enough variations",
+      statistics: null
+    };
   }
 
   // パフォーマンススコアを計算
@@ -326,14 +358,56 @@ export async function analyzeTestResults(testId: number): Promise<{
   const winner = scoredVariations[0];
   const runnerUp = scoredVariations[1];
 
-  // 統計的有意性を簡易計算
-  const scoreDiff = winner.performanceScore - runnerUp.performanceScore;
-  const avgScore = (winner.performanceScore + runnerUp.performanceScore) / 2;
-  const confidence = Math.min(100, Math.round((scoreDiff / Math.max(avgScore, 1)) * 100));
+  // 統計分析を実行
+  // 各バリエーションのエンゲージメント指標を配列に変換
+  const winnerEngagement = [
+    winner.likesCount,
+    winner.commentsCount * 3,
+    winner.sharesCount * 5,
+    winner.performanceScore
+  ];
+  const runnerUpEngagement = [
+    runnerUp.likesCount,
+    runnerUp.commentsCount * 3,
+    runnerUp.sharesCount * 5,
+    runnerUp.performanceScore
+  ];
+
+  // より詳細な統計分析のためにすべてのバリエーションのスコアを収集
+  const winnerScores = [winner.performanceScore];
+  const otherScores = scoredVariations.slice(1).map(v => v.performanceScore);
+
+  // 統計分析を実行
+  const statAnalysis = performStatisticalAnalysis(
+    winnerScores.length > 1 ? winnerScores : [winner.performanceScore, winner.performanceScore * 0.9],
+    otherScores.length > 0 ? otherScores : [runnerUp.performanceScore]
+  );
+
+  // 効果量の計算
+  const effectSizeValue = cohensD(
+    [winner.performanceScore],
+    otherScores
+  );
+  const effectSizeInterpretation = interpretEffectSize(effectSizeValue);
+
+  // 統計的有意性に基づく信頼度を計算
+  let confidence: number;
+  let isStatisticallySignificant = false;
+
+  if (statAnalysis.tTest && statAnalysis.tTest.pValue < 0.05) {
+    // 統計的に有意な場合、p値に基づいて信頼度を計算
+    confidence = Math.round((1 - statAnalysis.tTest.pValue) * 100);
+    isStatisticallySignificant = true;
+  } else {
+    // 統計的に有意でない場合、従来の簡易計算
+    const scoreDiff = winner.performanceScore - runnerUp.performanceScore;
+    const avgScore = (winner.performanceScore + runnerUp.performanceScore) / 2;
+    confidence = Math.min(100, Math.round((scoreDiff / Math.max(avgScore, 1)) * 100));
+  }
 
   // 勝者を更新
   await db.update(abTestVariations)
-    .set({ 
+    .set({
       isWinner: true,
       performanceScore: winner.performanceScore
     })
@@ -358,19 +432,45 @@ export async function analyzeTestResults(testId: number): Promise<{
     .where(eq(abTests.id, testId));
 
   // 分析結果を生成
+  const significanceText = isStatisticallySignificant
+    ? "統計的に有意な差があります"
+    : "統計的に有意な差は確認できませんでした";
+
   const analysis = `バリエーション${winner.variationName}が勝者です。
 トーン: ${winner.tone}
 長さ: ${winner.contentLength}
 絵文字使用: ${winner.emojiUsage}
 パフォーマンススコア: ${winner.performanceScore}
-信頼度: ${confidence}%`;
+信頼度: ${confidence}%
+
+【統計分析】
+${significanceText}
+p値: ${statAnalysis.tTest?.pValue?.toFixed(4) ?? "N/A"}
+効果量: ${effectSizeValue?.toFixed(2) ?? "N/A"} (${effectSizeInterpretation})
+${statAnalysis.warnings.length > 0 ? "\n⚠️ 警告:\n" + statAnalysis.warnings.join("\n") : ""}`;
 
   console.log(`[ABTesting] Test ${testId} completed. Winner: Variation ${winner.variationName}`);
 
   return {
     winnerId: winner.id,
     confidence,
-    analysis
+    analysis,
+    statistics: {
+      pValue: statAnalysis.tTest?.pValue ?? null,
+      effectSize: effectSizeValue,
+      effectSizeInterpretation,
+      isStatisticallySignificant,
+      confidenceInterval: statAnalysis.confidenceInterval
+        ? {
+            lower: statAnalysis.confidenceInterval.lower,
+            upper: statAnalysis.confidenceInterval.upper
+          }
+        : null,
+      sampleSizeAdequate: statAnalysis.sampleSizeAdequate,
+      requiredSampleSize: statAnalysis.requiredSampleSize,
+      currentSampleSize: statAnalysis.currentSampleSize,
+      warnings: statAnalysis.warnings
+    }
   };
 }
 

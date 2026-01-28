@@ -10,6 +10,42 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  // Development mode: auto-login endpoint
+  if (process.env.NODE_ENV === "development") {
+    app.get("/api/dev-login", async (req: Request, res: Response) => {
+      try {
+        const testOpenId = "dev-test-user";
+        const testName = "Dev User";
+
+        // Create or update test user
+        await db.upsertUser({
+          openId: testOpenId,
+          name: testName,
+          email: "dev@test.local",
+          loginMethod: "dev",
+          lastSignedIn: new Date(),
+        });
+
+        // Create session token
+        const sessionToken = await sdk.createSessionToken(testOpenId, {
+          name: testName,
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        // Set cookie and redirect
+        const cookieOptions = getSessionCookieOptions(req);
+        res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        console.log("[Dev Login] Test user logged in successfully");
+        res.redirect(302, "/");
+      } catch (error) {
+        console.error("[Dev Login] Failed:", error);
+        res.status(500).json({ error: "Dev login failed" });
+      }
+    });
+
+    console.log("[Dev] Development login enabled at /api/dev-login");
+  }
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");

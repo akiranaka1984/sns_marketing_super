@@ -1,5 +1,5 @@
 import { useRoute, useLocation, Link } from "wouter";
-import { ArrowLeft, Calendar, Target, Users, FileText, Plus, Play, Pause, CheckCircle, Edit, Bot, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Target, Users, FileText, Plus, Play, Pause, CheckCircle, Edit, Bot, Sparkles, Loader2, Trash2, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 import { toast } from "sonner";
 import ProjectInteractions from "@/components/ProjectInteractions";
+// ProjectModelAccounts removed - now managed at account level
 import { Settings, Zap, Eye, Hand } from "lucide-react";
 import ExecutionModeSelector from "@/components/ExecutionModeSelector";
+import KPIProgressCard from "@/components/KPIProgressCard";
 
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
@@ -25,6 +27,7 @@ export default function ProjectDetail() {
   const [selectedAgent, setSelectedAgent] = useState<number | undefined>();
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPostAccountId, setSelectedPostAccountId] = useState<number | null>(null);
+  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
 
   const { data: project, isLoading } = trpc.projects.byId.useQuery({ id: projectId });
   const { data: allAccounts } = trpc.accounts.list.useQuery();
@@ -81,6 +84,65 @@ export default function ProjectDetail() {
       toast.error(`エラー: ${error.message}`);
     },
   });
+
+  const deletePostMutation = trpc.scheduledPosts.delete.useMutation({
+    onSuccess: () => {
+      toast.success("投稿を削除しました");
+      utils.projects.byId.invalidate({ id: projectId });
+    },
+    onError: (error) => {
+      toast.error(`削除エラー: ${error.message}`);
+    },
+  });
+
+  const handleDeletePost = (postId: number) => {
+    if (window.confirm("この投稿を削除しますか？")) {
+      deletePostMutation.mutate({ id: postId });
+    }
+  };
+
+  const publishNowMutation = trpc.scheduledPosts.publishNow.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success("投稿を公開しました");
+      } else {
+        toast.error(`公開失敗: ${result.message}`);
+      }
+      utils.projects.byId.invalidate({ id: projectId });
+    },
+    onError: (error) => {
+      toast.error(`エラー: ${error.message}`);
+    },
+  });
+
+  const handlePublishNow = (postId: number) => {
+    if (window.confirm("この投稿を今すぐ公開しますか？")) {
+      publishNowMutation.mutate({ id: postId });
+    }
+  };
+
+  // Data-integrated strategy generation mutation
+  const generateStrategyMutation = trpc.projects.generateStrategyWithContext.useMutation({
+    onSuccess: (result) => {
+      toast.success(`データ統合戦略を生成しました（ID: ${result.strategyId}）`);
+      setIsGeneratingStrategy(false);
+      utils.projects.byId.invalidate({ id: projectId });
+    },
+    onError: (error) => {
+      toast.error(`戦略生成エラー: ${error.message}`);
+      setIsGeneratingStrategy(false);
+    },
+  });
+
+  const handleGenerateStrategy = () => {
+    setIsGeneratingStrategy(true);
+    generateStrategyMutation.mutate({
+      projectId,
+      minBuzzConfidence: 50,
+      maxBuzzLearnings: 10,
+      maxModelPatterns: 5,
+    });
+  };
 
   const handleGenerateContent = () => {
     if (!selectedAgent) {
@@ -307,6 +369,27 @@ export default function ProjectDetail() {
         </Card>
       </div>
 
+      {/* KPI Progress */}
+      {project.targets && (
+        <div className="mb-8">
+          <KPIProgressCard
+            targets={(() => {
+              try {
+                return JSON.parse(project.targets);
+              } catch {
+                return null;
+              }
+            })()}
+            currentMetrics={{
+              followers: 0,
+              engagement: 0,
+              clicks: 0,
+              conversions: 0,
+            }}
+          />
+        </div>
+      )}
+
       {/* Tabs */}
       <Tabs defaultValue="accounts" className="space-y-6">
         <TabsList>
@@ -471,16 +554,27 @@ export default function ProjectDetail() {
               ) : (
                 <div className="space-y-4">
                   {project.accounts.map((pa) => (
-                    <div key={pa.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium text-slate-900">{pa.account?.username}</p>
-                        <p className="text-sm text-slate-600">
-                          {pa.personaRole && `役割: ${pa.personaRole}`}
-                          {pa.personaRole && pa.personaTone && " • "}
-                          {pa.personaTone && `トーン: ${pa.personaTone}`}
-                        </p>
+                    <div key={pa.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                          {pa.account?.username?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">{pa.account?.username}</p>
+                          <p className="text-sm text-slate-500">
+                            Lv.{pa.account?.level || 1} • {pa.account?.experiencePoints || 0} XP
+                          </p>
+                        </div>
                       </div>
-                      <Badge variant="outline">{pa.account?.platform}</Badge>
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline">{pa.account?.platform}</Badge>
+                        <Link href={`/accounts/${pa.accountId}`}>
+                          <Button variant="outline" size="sm" className="gap-1">
+                            詳細・設定
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -498,12 +592,27 @@ export default function ProjectDetail() {
                   <CardTitle>マーケティング戦略</CardTitle>
                   <CardDescription>このプロジェクトに紐づく戦略</CardDescription>
                 </div>
-                <Link href="/strategies/new">
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    戦略を生成
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    className="gap-2"
+                    onClick={handleGenerateStrategy}
+                    disabled={isGeneratingStrategy}
+                  >
+                    {isGeneratingStrategy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {isGeneratingStrategy ? "生成中..." : "データ統合戦略を生成"}
                   </Button>
-                </Link>
+                  <Link href="/strategies/new">
+                    <Button variant="outline" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      基本戦略を生成
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -511,16 +620,51 @@ export default function ProjectDetail() {
                 <div className="text-center py-12">
                   <Target className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                   <p className="text-slate-600 mb-4">まだ戦略が生成されていません</p>
-                  <Link href="/strategies/new">
-                    <Button variant="outline">戦略を生成</Button>
-                  </Link>
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={handleGenerateStrategy} disabled={isGeneratingStrategy}>
+                      {isGeneratingStrategy ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 mr-2" />
+                      )}
+                      {isGeneratingStrategy ? "生成中..." : "データ統合戦略を生成"}
+                    </Button>
+                    <Link href="/strategies/new">
+                      <Button variant="outline">基本戦略を生成</Button>
+                    </Link>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-4">
+                    ※データ統合戦略：バズ分析データとモデルアカウントの学習を活用して戦略を生成します
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {project.strategies.map((strategy) => (
+                  {project.strategies.map((strategy: any) => (
                     <div key={strategy.id} className="p-4 border rounded-lg">
-                      <p className="font-medium text-slate-900 mb-2">{strategy.objective}</p>
-                      <p className="text-sm text-slate-600">{strategy.contentType}</p>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900 mb-1">{strategy.objective}</p>
+                          <p className="text-sm text-slate-600">{strategy.contentType}</p>
+                        </div>
+                        {(strategy.incorporatedBuzzLearnings || strategy.incorporatedModelPatterns) && (
+                          <Badge variant="secondary" className="gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            データ統合
+                          </Badge>
+                        )}
+                      </div>
+                      {strategy.timingGuidelines && (
+                        <div className="mt-2 text-xs text-slate-500">
+                          {(() => {
+                            try {
+                              const timing = JSON.parse(strategy.timingGuidelines);
+                              return `推奨時間帯: ${timing.bestHours?.join(', ')}時 / ${timing.frequency}`;
+                            } catch {
+                              return null;
+                            }
+                          })()}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -765,11 +909,47 @@ export default function ProjectDetail() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {project.posts.map((post) => (
+                  {project.posts.map((post) => {
+                    const postAccount = project.accounts?.find(pa => pa.accountId === post.accountId);
+                    return (
                     <div key={post.id} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between mb-2">
-                        <p className="font-medium text-slate-900">{post.content.substring(0, 100)}...</p>
-                        <Badge variant="outline">{post.status}</Badge>
+                        <div className="flex-1">
+                          {postAccount && (
+                            <p className="text-xs text-muted-foreground mb-1">
+                              @{postAccount.account?.xHandle || postAccount.account?.username}
+                            </p>
+                          )}
+                          <p className="font-medium text-slate-900">{post.content.substring(0, 100)}...</p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2">
+                          <Badge variant="outline">{post.status}</Badge>
+                          {post.status === "pending" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs"
+                              onClick={() => handlePublishNow(post.id)}
+                              disabled={publishNowMutation.isPending}
+                            >
+                              {publishNowMutation.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Play className="h-3 w-3 mr-1" />
+                              )}
+                              今すぐ投稿
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-500"
+                            onClick={() => handleDeletePost(post.id)}
+                            disabled={deletePostMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       {post.scheduledTime && (
                         <p className="text-sm text-slate-600">
@@ -777,7 +957,8 @@ export default function ProjectDetail() {
                         </p>
                       )}
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </CardContent>

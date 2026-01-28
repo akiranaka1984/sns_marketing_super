@@ -211,6 +211,27 @@
       "when": 1767008598714,
       "tag": "0029_futuristic_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1767366505635,
+      "tag": "0030_nebulous_mad_thinker",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1767367596457,
+      "tag": "0031_purple_hardball",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1767432013209,
+      "tag": "0033_mysterious_shen",
+      "breakpoints": true
     }
   ]
 }

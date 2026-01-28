@@ -1,7 +1,86 @@
 import { db } from "./db";
-import { interactions, postUrls, accounts } from "../drizzle/schema";
+import { interactions, postUrls, accounts, projectAccounts } from "../drizzle/schema";
 import { eq, and, lte } from "drizzle-orm";
-import { executeLike, executeAiComment } from "./utils/python-runner";
+import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./utils/python-runner";
+import { getAccountLearnings } from "./services/account-learning-service";
+import { addInteractionJob, type InteractionJob } from "./queue-manager";
+
+/**
+ * Build persona string from project account settings
+ */
+function buildPersonaString(
+  projectAccount: { personaRole: string | null; personaTone: string | null; personaCharacteristics: string | null } | null,
+  defaultPersona: string
+): string {
+  if (!projectAccount || (!projectAccount.personaRole && !projectAccount.personaCharacteristics)) {
+    return defaultPersona;
+  }
+
+  const parts: string[] = [];
+  if (projectAccount.personaRole) {
+    parts.push(projectAccount.personaRole);
+  }
+  if (projectAccount.personaTone) {
+    parts.push(`トーン: ${projectAccount.personaTone}`);
+  }
+  if (projectAccount.personaCharacteristics) {
+    parts.push(projectAccount.personaCharacteristics);
+  }
+
+  return parts.join("。") || defaultPersona;
+}
+
+/**
+ * Build persona string with account learnings
+ */
+async function buildPersonaWithLearnings(
+  accountId: number,
+  projectId: number,
+  projectAccount: { personaRole: string | null; personaTone: string | null; personaCharacteristics: string | null } | null,
+  defaultPersona: string
+): Promise<string> {
+  // Get base persona
+  const basePersona = buildPersonaString(projectAccount, defaultPersona);
+
+  // Get account learnings for comment style
+  try {
+    const learnings = await getAccountLearnings(accountId, {
+      projectId,
+      learningTypes: ['comment_style', 'audience_insight'],
+      minConfidence: 40,
+      limit: 5,
+    });
+
+    if (learnings.length === 0) {
+      return basePersona;
+    }
+
+    // Extract comment style hints from learnings
+    const styleHints: string[] = [];
+    for (const learning of learnings) {
+      try {
+        const content = JSON.parse(learning.content);
+        if (content.description) {
+          styleHints.push(content.description);
+        } else if (content.styleNote) {
+          styleHints.push(content.styleNote);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
+    if (styleHints.length === 0) {
+      return basePersona;
+    }
+
+    // Combine base persona with learned styles
+    return `${basePersona}。追加のスタイル指針: ${styleHints.slice(0, 2).join('。')}`;
+  } catch (error) {
+    console.error(`[InteractionScheduler] Failed to get account learnings:`, error);
+    return basePersona;
+  }
+}
 
 let isRunning = false;
 let schedulerInterval: NodeJS.Timeout | null = null;
@@ -37,7 +116,9 @@ async function processScheduledInteractions(): Promise<{
     .limit(5);
 
   for (const task of tasks) {
-    if (!task.postUrl || !task.account) continue;
+    // Follow tasks don't need postUrl, other tasks do
+    const isFollowTask = task.interaction.interactionType === "follow";
+    if (!task.account || (!isFollowTask && !task.postUrl)) continue;
 
     result.processed++;
     console.log(`[InteractionScheduler] Processing ${task.interaction.interactionType} task ${task.interaction.id}`);
@@ -54,21 +135,44 @@ async function processScheduledInteractions(): Promise<{
       if (!apiKey) {
         execResult = { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
       } else if (task.interaction.interactionType === "like") {
-        execResult = await executeLike(apiKey, task.interaction.fromDeviceId, task.postUrl.postUrl);
+        execResult = await executeLike(apiKey, task.interaction.fromDeviceId, task.postUrl!.postUrl);
       } else if (task.interaction.interactionType === "comment") {
         const openaiApiKey = process.env.OPENAI_API_KEY;
         if (!openaiApiKey) {
           execResult = { success: false, error: "OPENAI_API_KEYが設定されていません" };
         } else {
-          // アカウントのペルソナを取得（なければデフォルト）
-          const persona = task.account.persona || "フレンドリーなユーザー";
+          // プロジェクト固有のペルソナを取得（なければアカウントのペルソナ、さらになければデフォルト）
+          const projectAccount = await db.query.projectAccounts.findFirst({
+            where: and(
+              eq(projectAccounts.projectId, task.postUrl!.projectId),
+              eq(projectAccounts.accountId, task.account.id)
+            ),
+          });
+          const defaultPersona = task.account.persona || "フレンドリーなユーザー";
+          // アカウント学習を含めたペルソナを構築
+          const persona = await buildPersonaWithLearnings(
+            task.account.id,
+            task.postUrl!.projectId,
+            projectAccount || null,
+            defaultPersona
+          );
+
           execResult = await executeAiComment(
             apiKey,
             task.interaction.fromDeviceId,
-            task.postUrl.postUrl,
+            task.postUrl!.postUrl,
             openaiApiKey,
             persona
           );
+        }
+      } else if (task.interaction.interactionType === "retweet") {
+        execResult = await executeRetweet(apiKey, task.interaction.fromDeviceId, task.postUrl!.postUrl);
+      } else if (task.interaction.interactionType === "follow") {
+        const targetUsername = task.interaction.targetUsername;
+        if (!targetUsername) {
+          execResult = { success: false, error: "フォロー対象のユーザー名が設定されていません" };
+        } else {
+          execResult = await executeFollow(apiKey, task.interaction.fromDeviceId, targetUsername);
         }
       } else {
         execResult = { success: false, error: "Unknown interaction type" };
@@ -124,31 +228,105 @@ async function processScheduledInteractions(): Promise<{
 }
 
 /**
- * スケジューラーを開始（1分ごとに実行）
+ * Enqueue pending interactions to the Bull queue
  */
-export function startInteractionScheduler(): void {
+export async function enqueuePendingInteractions(): Promise<number> {
+  const now = new Date();
+
+  // Get pending interactions that should be executed now (limit for batching)
+  const tasks = await db
+    .select({
+      interaction: interactions,
+      postUrl: postUrls,
+      account: accounts,
+    })
+    .from(interactions)
+    .leftJoin(postUrls, eq(interactions.postUrlId, postUrls.id))
+    .leftJoin(accounts, eq(interactions.fromAccountId, accounts.id))
+    .where(
+      and(
+        eq(interactions.status, "pending"),
+        lte(interactions.scheduledAt, now)
+      )
+    )
+    .orderBy(interactions.scheduledAt)
+    .limit(20); // Enqueue up to 20 at a time
+
+  if (tasks.length === 0) {
+    return 0;
+  }
+
+  console.log(`[InteractionScheduler] Enqueueing ${tasks.length} interactions to queue`);
+
+  let enqueued = 0;
+  for (const task of tasks) {
+    const isFollowTask = task.interaction.interactionType === "follow";
+    if (!task.account || (!isFollowTask && !task.postUrl)) continue;
+
+    try {
+      const jobData: InteractionJob = {
+        interactionId: task.interaction.id,
+        type: task.interaction.interactionType as InteractionJob['type'],
+        fromDeviceId: task.interaction.fromDeviceId,
+        fromAccountId: task.account.id,
+        targetUrl: task.postUrl?.postUrl,
+        targetUsername: task.interaction.targetUsername || undefined,
+        projectId: task.postUrl?.projectId,
+      };
+
+      // Add to queue (delay is calculated inside addInteractionJob based on type)
+      await addInteractionJob(jobData, { delay: 0 }); // Execute immediately since scheduledAt is already past
+
+      // Update status to 'queued' to prevent re-enqueueing
+      await db.update(interactions)
+        .set({ status: "processing" }) // Use 'processing' to indicate it's in the queue
+        .where(eq(interactions.id, task.interaction.id));
+
+      enqueued++;
+    } catch (error) {
+      console.error(`[InteractionScheduler] Failed to enqueue interaction ${task.interaction.id}:`, error);
+    }
+  }
+
+  return enqueued;
+}
+
+/**
+ * Start interaction enqueuer (runs every minute)
+ * This function periodically checks for pending interactions and adds them to the queue
+ */
+export function startInteractionEnqueuer(): void {
   if (isRunning) {
     console.log("[InteractionScheduler] Already running");
     return;
   }
 
   isRunning = true;
-  console.log("[InteractionScheduler] Started");
+  console.log("[InteractionScheduler] Started enqueuer");
 
-  // 初回実行
-  processScheduledInteractions().catch(console.error);
+  // Run immediately
+  enqueuePendingInteractions().catch(console.error);
 
-  // 1分ごとに実行
+  // Run every minute
   schedulerInterval = setInterval(async () => {
     try {
-      const result = await processScheduledInteractions();
-      if (result.processed > 0) {
-        console.log(`[InteractionScheduler] Processed: ${result.processed}, Succeeded: ${result.succeeded}, Failed: ${result.failed}`);
+      const count = await enqueuePendingInteractions();
+      if (count > 0) {
+        console.log(`[InteractionScheduler] Enqueued ${count} interactions`);
       }
     } catch (error) {
-      console.error("[InteractionScheduler] Error:", error);
+      console.error("[InteractionScheduler] Enqueuer error:", error);
     }
   }, 60 * 1000);
+}
+
+/**
+ * @deprecated Use startInteractionEnqueuer instead
+ * Legacy function for backward compatibility - now uses queue-based processing
+ */
+export function startInteractionScheduler(): void {
+  console.log("[InteractionScheduler] Warning: startInteractionScheduler is deprecated, use startInteractionEnqueuer");
+  startInteractionEnqueuer();
 }
 
 /**

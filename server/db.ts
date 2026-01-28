@@ -1,7 +1,8 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, inArray, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema";
+import type { BuzzLearningInput, ModelPatternInput } from "./aiEngine";
 
 const connection = mysql.createPool(process.env.DATABASE_URL!);
 export const db = drizzle(connection, { schema, mode: "default" });
@@ -62,6 +63,35 @@ export async function updateProject(projectId: number, userId: number, data: Par
     .update(schema.projects)
     .set(data)
     .where(and(eq(schema.projects.id, projectId), eq(schema.projects.userId, userId)));
+}
+
+/**
+ * Update skipReview flag for all agents in a project
+ * Called when project execution mode changes
+ */
+export async function updateAgentsSkipReview(projectId: number, skipReview: number) {
+  await db
+    .update(schema.agents)
+    .set({ skipReview })
+    .where(eq(schema.agents.projectId, projectId));
+}
+
+/**
+ * Update reviewStatus for pending scheduled posts in a project
+ * Called when project execution mode changes to fullAuto to auto-approve existing posts
+ */
+export async function updatePendingPostsReviewStatus(
+  projectId: number,
+  reviewStatus: 'approved' | 'pending_review'
+) {
+  await db
+    .update(schema.scheduledPosts)
+    .set({ reviewStatus, updatedAt: new Date() })
+    .where(and(
+      eq(schema.scheduledPosts.projectId, projectId),
+      eq(schema.scheduledPosts.status, 'pending'),
+      inArray(schema.scheduledPosts.reviewStatus, ['draft', 'pending_review'])
+    ));
 }
 
 export async function deleteProject(projectId: number, userId: number) {
@@ -732,4 +762,225 @@ export async function getUnprocessedFeedback(limit: number = 100) {
     .where(eq(schema.postPerformanceFeedback.isProcessed, false))
     .orderBy(schema.postPerformanceFeedback.createdAt)
     .limit(limit);
+}
+
+/**
+ * Account Persona operations
+ */
+export async function updateAccountPersona(
+  accountId: number,
+  data: {
+    personaRole?: string | null;
+    personaTone?: 'formal' | 'casual' | 'friendly' | 'professional' | 'humorous' | null;
+    personaCharacteristics?: string | null;
+  }
+) {
+  await db
+    .update(schema.accounts)
+    .set({
+      personaRole: data.personaRole,
+      personaTone: data.personaTone,
+      personaCharacteristics: data.personaCharacteristics,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.accounts.id, accountId));
+}
+
+/**
+ * Account-Model Account Link operations
+ */
+export async function getLinkedModelAccountsForAccount(accountId: number) {
+  const links = await db
+    .select({
+      link: schema.accountModelAccounts,
+      modelAccount: schema.modelAccounts,
+    })
+    .from(schema.accountModelAccounts)
+    .innerJoin(
+      schema.modelAccounts,
+      eq(schema.accountModelAccounts.modelAccountId, schema.modelAccounts.id)
+    )
+    .where(eq(schema.accountModelAccounts.accountId, accountId));
+
+  return links.map(row => ({
+    ...row.link,
+    modelAccount: row.modelAccount,
+  }));
+}
+
+export async function linkModelAccountToAccount(
+  accountId: number,
+  modelAccountId: number,
+  autoApplyLearnings: boolean = false
+) {
+  // Check if link already exists
+  const [existing] = await db
+    .select()
+    .from(schema.accountModelAccounts)
+    .where(
+      and(
+        eq(schema.accountModelAccounts.accountId, accountId),
+        eq(schema.accountModelAccounts.modelAccountId, modelAccountId)
+      )
+    );
+
+  if (existing) {
+    // Update existing link
+    await db
+      .update(schema.accountModelAccounts)
+      .set({
+        autoApplyLearnings: autoApplyLearnings ? 1 : 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.accountModelAccounts.id, existing.id));
+  } else {
+    // Create new link
+    await db.insert(schema.accountModelAccounts).values({
+      accountId,
+      modelAccountId,
+      autoApplyLearnings: autoApplyLearnings ? 1 : 0,
+    });
+  }
+}
+
+export async function unlinkModelAccountFromAccount(
+  accountId: number,
+  modelAccountId: number
+) {
+  await db
+    .delete(schema.accountModelAccounts)
+    .where(
+      and(
+        eq(schema.accountModelAccounts.accountId, accountId),
+        eq(schema.accountModelAccounts.modelAccountId, modelAccountId)
+      )
+    );
+}
+
+export async function updateAccountModelAccountLink(
+  accountId: number,
+  modelAccountId: number,
+  data: { autoApplyLearnings: boolean }
+) {
+  await db
+    .update(schema.accountModelAccounts)
+    .set({
+      autoApplyLearnings: data.autoApplyLearnings ? 1 : 0,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(schema.accountModelAccounts.accountId, accountId),
+        eq(schema.accountModelAccounts.modelAccountId, modelAccountId)
+      )
+    );
+}
+
+/**
+ * Buzz Learning operations for strategy generation
+ * First tries to get project-specific learnings, falls back to user-level learnings
+ */
+export async function getBuzzLearningsForProject(
+  projectId: number,
+  userId: number,
+  options: { minConfidence?: number; limit?: number } = {}
+): Promise<BuzzLearningInput[]> {
+  const { minConfidence = 50, limit = 10 } = options;
+
+  // First try project-specific learnings
+  const projectConditions = [
+    eq(schema.buzzLearnings.userId, userId),
+    eq(schema.buzzLearnings.projectId, projectId),
+    eq(schema.buzzLearnings.isActive, 1),
+    gte(schema.buzzLearnings.confidence, minConfidence),
+  ];
+
+  let learnings = await db
+    .select({
+      id: schema.buzzLearnings.id,
+      learningType: schema.buzzLearnings.learningType,
+      title: schema.buzzLearnings.title,
+      description: schema.buzzLearnings.description,
+      patternData: schema.buzzLearnings.patternData,
+      confidence: schema.buzzLearnings.confidence,
+    })
+    .from(schema.buzzLearnings)
+    .where(and(...projectConditions))
+    .orderBy(desc(schema.buzzLearnings.confidence))
+    .limit(limit);
+
+  // If no project-specific learnings, fall back to user-level learnings (projectId is NULL)
+  if (learnings.length === 0) {
+    const userConditions = [
+      eq(schema.buzzLearnings.userId, userId),
+      sql`${schema.buzzLearnings.projectId} IS NULL`,
+      eq(schema.buzzLearnings.isActive, 1),
+      gte(schema.buzzLearnings.confidence, minConfidence),
+    ];
+
+    learnings = await db
+      .select({
+        id: schema.buzzLearnings.id,
+        learningType: schema.buzzLearnings.learningType,
+        title: schema.buzzLearnings.title,
+        description: schema.buzzLearnings.description,
+        patternData: schema.buzzLearnings.patternData,
+        confidence: schema.buzzLearnings.confidence,
+      })
+      .from(schema.buzzLearnings)
+      .where(and(...userConditions))
+      .orderBy(desc(schema.buzzLearnings.confidence))
+      .limit(limit);
+  }
+
+  return learnings.map(l => ({
+    id: l.id,
+    learningType: l.learningType || 'general',
+    title: l.title,
+    description: l.description,
+    patternData: l.patternData ? JSON.parse(l.patternData) : undefined,
+    confidence: l.confidence,
+  }));
+}
+
+/**
+ * Model Pattern operations for strategy generation
+ */
+export async function getModelPatternsForProject(
+  projectId: number,
+  options: { limit?: number } = {}
+): Promise<ModelPatternInput[]> {
+  const { limit: maxLimit = 5 } = options;
+
+  // Get model account IDs linked to this project via projectModelAccounts
+  const projectModelLinks = await db
+    .select({
+      modelAccountId: schema.projectModelAccounts.modelAccountId,
+    })
+    .from(schema.projectModelAccounts)
+    .where(eq(schema.projectModelAccounts.projectId, projectId))
+    .limit(maxLimit);
+
+  if (projectModelLinks.length === 0) {
+    return [];
+  }
+
+  const modelAccountIds = projectModelLinks.map(l => l.modelAccountId);
+
+  // Get behavior patterns for those model accounts
+  const patterns = await db
+    .select()
+    .from(schema.modelAccountBehaviorPatterns)
+    .where(inArray(schema.modelAccountBehaviorPatterns.modelAccountId, modelAccountIds));
+
+  return patterns.map(p => ({
+    modelAccountId: p.modelAccountId,
+    avgPostsPerDay: Number(p.avgPostsPerDay) || 0,
+    peakPostingHours: p.peakPostingHours ? JSON.parse(p.peakPostingHours) : [],
+    avgEngagementRate: Number(p.avgEngagementRate) || 0,
+    bestEngagementHours: p.bestEngagementHours ? JSON.parse(p.bestEngagementHours) : [],
+    avgContentLength: p.avgContentLength || 0,
+    emojiUsageRate: Number(p.emojiUsageRate) || 0,
+    hashtagAvgCount: Number(p.hashtagAvgCount) || 0,
+  }));
 }

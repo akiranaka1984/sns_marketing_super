@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import AutoOptimizationSettings from "@/components/AutoOptimizationSettings";
 
 // Knowledge types with Japanese labels
 const knowledgeTypes = [
@@ -429,6 +430,10 @@ export default function AgentDetail() {
             <BarChart3 className="mr-2 h-4 w-4" />
             エンゲージメント
           </TabsTrigger>
+          <TabsTrigger value="optimization">
+            <Zap className="mr-2 h-4 w-4" />
+            AI最適化
+          </TabsTrigger>
         </TabsList>
 
         {/* Knowledge Tab */}
@@ -779,6 +784,11 @@ export default function AgentDetail() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Optimization Tab */}
+        <TabsContent value="optimization">
+          <AutoOptimizationSettings agentId={agentId} />
         </TabsContent>
       </Tabs>
 

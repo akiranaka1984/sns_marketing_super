@@ -14,7 +14,7 @@ from typing import Optional, Tuple, Dict, List
 # 設定
 TEMPLATE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_PATH = os.path.join(TEMPLATE_DIR, 'templates')
-THRESHOLD = 0.8  # 一致度の閾値（変更禁止）
+THRESHOLD = 0.65  # 一致度の閾値（リツイートボタン検出のため0.7から下げた）
 
 
 def find_button(
@@ -113,6 +113,24 @@ def find_like_button(screenshot_path: str) -> Dict:
 def find_comment_button(screenshot_path: str) -> Dict:
     """コメントボタンの座標を検出"""
     template_path = os.path.join(TEMPLATES_PATH, 'template_comment_button.png')
+    return find_button(screenshot_path, template_path, select_topmost=True)
+
+
+def find_retweet_button(screenshot_path: str) -> Dict:
+    """リツイート（リポスト）ボタンの座標を検出"""
+    template_path = os.path.join(TEMPLATES_PATH, 'template_retweet_button.png')
+    return find_button(screenshot_path, template_path, select_topmost=True)
+
+
+def find_repost_option(screenshot_path: str) -> Dict:
+    """リポストメニューの「リポスト」オプションの座標を検出"""
+    template_path = os.path.join(TEMPLATES_PATH, 'template_repost_option.png')
+    return find_button(screenshot_path, template_path, select_topmost=False)
+
+
+def find_follow_button(screenshot_path: str) -> Dict:
+    """フォローボタンの座標を検出"""
+    template_path = os.path.join(TEMPLATES_PATH, 'template_follow_button.png')
     return find_button(screenshot_path, template_path, select_topmost=True)
 
 

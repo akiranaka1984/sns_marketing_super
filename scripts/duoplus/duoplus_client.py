@@ -71,8 +71,27 @@ class DuoPlusClient:
         result = self._execute_command(command)
         return result.get("code") == 200
     
+    def enable_adb_keyboard(self) -> bool:
+        """ADBKeyboardを有効化"""
+        commands = [
+            "pm enable com.android.adbkeyboard",
+            "pm unhide com.android.adbkeyboard",
+            "ime enable com.android.adbkeyboard/.AdbIME",
+            "ime set com.android.adbkeyboard/.AdbIME"
+        ]
+        for cmd in commands:
+            result = self._execute_command(cmd)
+            if result.get("code") != 200:
+                return False
+            time.sleep(0.3)
+        return True
+
     def input_text(self, text: str) -> bool:
         """ADBKeyboardでテキスト入力"""
+        # First ensure ADBKeyboard is enabled
+        self.enable_adb_keyboard()
+        time.sleep(0.5)
+
         # シングルクォートをエスケープ
         escaped_text = text.replace("'", "'\\''")
         command = f"am broadcast -a ADB_INPUT_TEXT --es msg '{escaped_text}'"

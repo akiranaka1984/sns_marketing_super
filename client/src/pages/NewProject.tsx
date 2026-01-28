@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Target, Calendar, TrendingUp } from "lucide-react";
+import { ArrowLeft, Target, Calendar, TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function NewProject() {
   const [, setLocation] = useLocation();
@@ -23,6 +24,7 @@ export default function NewProject() {
     targetConversions: "",
     targetUrl: "",
   });
+  const [kpiRationale, setKpiRationale] = useState<string | null>(null);
 
   const createMutation = trpc.projects.create.useMutation({
     onSuccess: (data) => {
@@ -33,6 +35,32 @@ export default function NewProject() {
       toast.error("プロジェクトの作成に失敗しました");
     },
   });
+
+  const suggestKPIsMutation = trpc.projects.suggestKPIs.useMutation({
+    onSuccess: (suggestion) => {
+      // Apply suggested KPIs to form
+      setFormData(prev => ({
+        ...prev,
+        targetFollowers: suggestion.followers?.toString() || prev.targetFollowers,
+        targetEngagementRate: suggestion.engagement?.toString() || prev.targetEngagementRate,
+        targetClicks: suggestion.clicks?.toString() || prev.targetClicks,
+        targetConversions: suggestion.conversions?.toString() || prev.targetConversions,
+      }));
+      setKpiRationale(suggestion.rationale);
+      toast.success("AIがKPIを提案しました");
+    },
+    onError: () => {
+      toast.error("KPI提案の取得に失敗しました");
+    },
+  });
+
+  const handleSuggestKPIs = () => {
+    if (!formData.objective.trim()) {
+      toast.error("目的を入力してください");
+      return;
+    }
+    suggestKPIsMutation.mutate({ objective: formData.objective });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,13 +190,39 @@ export default function NewProject() {
           {/* Targets */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                目標設定
-              </CardTitle>
-              <CardDescription>達成したい数値目標を設定します</CardDescription>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    目標設定
+                  </CardTitle>
+                  <CardDescription>達成したい数値目標を設定します</CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSuggestKPIs}
+                  disabled={suggestKPIsMutation.isPending || !formData.objective.trim()}
+                >
+                  {suggestKPIsMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  AIが提案
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {kpiRationale && (
+                <Alert className="mb-4 bg-blue-50 border-blue-200">
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    <strong>AIの提案理由:</strong> {kpiRationale}
+                  </AlertDescription>
+                </Alert>
+              )}
               <p className="text-sm text-slate-600 mb-4">設定したいKPIだけを入力してください（任意）</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

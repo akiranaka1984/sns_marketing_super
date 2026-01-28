@@ -1,0 +1,69 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://user:password@db:3306/sns_automation
+      - REDIS_URL=redis://redis:6379
+      # API keys are loaded from database on startup (see server/_core/index.ts)
+      - VITE_APP_ID=sns-marketing-app
+      - VITE_OAUTH_PORTAL_URL=http://localhost:5001
+      - OAUTH_SERVER_URL=http://localhost:5001
+      - JWT_SECRET=dev-secret-key-for-local-development-only
+      - TZ=Asia/Tokyo
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: pnpm dev
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sns_automation
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      TZ: Asia/Tokyo
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      - TZ=Asia/Tokyo
+
+  python-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=mysql://user:password@db:3306/sns_automation
+      - TZ=Asia/Tokyo
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  mysql_data:
+  redis_data:

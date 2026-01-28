@@ -187,17 +187,32 @@ export const scheduledPostsRouter = router({
         });
       }
       
-      // Determine max length based on platform
+      // Determine max length based on platform and account plan
+      // X (Twitter): free=280, premium=280, premium_plus=25000
       let maxLength: number | undefined;
+      let planType: string = 'free';
       if (input.accountId) {
         const account = await db.query.accounts.findFirst({
           where: eq(accounts.id, input.accountId),
         });
         if (account && account.platform === 'twitter') {
-          maxLength = 80; // X (Twitter) character limit (temporary for testing)
+          planType = account.planType || 'free';
+          switch (planType) {
+            case 'premium_plus':
+              maxLength = 25000;
+              break;
+            case 'premium':
+              maxLength = 4000;
+              break;
+            case 'free':
+            default:
+              maxLength = 280;
+              break;
+          }
+          console.log(`[ScheduledPosts] Account plan: ${planType}, maxLength: ${maxLength}`);
         }
       }
-      
+
       const generated = await generateContent(context, maxLength);
 
       return {

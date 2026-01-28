@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import DashboardLayout from "@/components/DashboardLayout";
+import { useI18n } from "@/contexts/I18nContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,23 +23,51 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { 
-  FlaskConical, 
-  Plus, 
-  Play, 
-  BarChart3, 
+import {
+  FlaskConical,
+  Plus,
+  Play,
+  BarChart3,
   Trophy,
   Clock,
   CheckCircle,
   XCircle,
   Lightbulb,
-  Eye
+  Eye,
+  AlertTriangle,
+  TrendingUp,
+  Activity
 } from "lucide-react";
 import { Link } from "wouter";
+import { Progress } from "@/components/ui/progress";
+
+// Statistical analysis result type
+interface AnalysisResult {
+  winnerId: number | null;
+  confidence: number;
+  analysis: string;
+  statistics: {
+    pValue: number | null;
+    effectSize: number | null;
+    effectSizeInterpretation: string;
+    isStatisticallySignificant: boolean;
+    confidenceInterval: {
+      lower: number;
+      upper: number;
+    } | null;
+    sampleSizeAdequate: boolean;
+    requiredSampleSize: number;
+    currentSampleSize: number;
+    warnings: string[];
+  } | null;
+}
 
 export default function ABTesting() {
+  const { t } = useI18n();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [previewVariations, setPreviewVariations] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     agentId: 0,
@@ -78,6 +106,8 @@ export default function ABTesting() {
 
   const analyzeMutation = trpc.abTesting.analyze.useMutation({
     onSuccess: (result) => {
+      setAnalysisResult(result as AnalysisResult);
+      setIsAnalysisOpen(true);
       if (result.winnerId) {
         toast.success(`分析完了！信頼度: ${result.confidence}%`);
       } else {
@@ -139,7 +169,7 @@ export default function ABTesting() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -248,7 +278,12 @@ export default function ABTesting() {
                           <span>バリエーション: {test.variationCount}個</span>
                           <span>期間: {test.testDurationHours}時間</span>
                           {test.confidenceLevel && (
-                            <span>信頼度: {test.confidenceLevel}%</span>
+                            <span className="flex items-center gap-1">
+                              信頼度: {test.confidenceLevel}%
+                              {test.confidenceLevel >= 95 && (
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                              )}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -493,6 +528,146 @@ export default function ABTesting() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+
+      {/* Analysis Result Dialog */}
+      <Dialog open={isAnalysisOpen} onOpenChange={setIsAnalysisOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              分析結果
+            </DialogTitle>
+            <DialogDescription>
+              A/Bテストの統計分析結果
+            </DialogDescription>
+          </DialogHeader>
+
+          {analysisResult && (
+            <div className="space-y-6">
+              {/* Winner Section */}
+              {analysisResult.winnerId ? (
+                <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-950">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    <span className="font-semibold">勝者決定</span>
+                    <Badge variant="default" className="bg-green-500">
+                      信頼度: {analysisResult.confidence}%
+                    </Badge>
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{analysisResult.analysis}</p>
+                </div>
+              ) : (
+                <div className="border rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                    <span className="font-semibold">まだ十分なデータがありません</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistical Analysis Section */}
+              {analysisResult.statistics && (
+                <div className="space-y-4">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    統計分析
+                  </h4>
+
+                  {/* Significance */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground">統計的有意性</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {analysisResult.statistics.isStatisticallySignificant ? (
+                          <>
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <span className="font-semibold text-green-600">有意 (p &lt; 0.05)</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-5 w-5 text-gray-400" />
+                            <span className="font-semibold text-gray-500">有意差なし</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground">p値</div>
+                      <div className="font-semibold mt-1">
+                        {analysisResult.statistics.pValue !== null
+                          ? analysisResult.statistics.pValue.toFixed(4)
+                          : "N/A"}
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground">効果量 (Cohen's d)</div>
+                      <div className="font-semibold mt-1">
+                        {analysisResult.statistics.effectSize !== null
+                          ? `${analysisResult.statistics.effectSize.toFixed(2)} (${analysisResult.statistics.effectSizeInterpretation})`
+                          : "N/A"}
+                      </div>
+                    </div>
+
+                    <div className="border rounded-lg p-3">
+                      <div className="text-sm text-muted-foreground">信頼区間 (95%)</div>
+                      <div className="font-semibold mt-1">
+                        {analysisResult.statistics.confidenceInterval
+                          ? `[${analysisResult.statistics.confidenceInterval.lower.toFixed(2)}, ${analysisResult.statistics.confidenceInterval.upper.toFixed(2)}]`
+                          : "N/A"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sample Size Progress */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-sm text-muted-foreground">サンプルサイズ</div>
+                      <div className="text-sm">
+                        {analysisResult.statistics.currentSampleSize} / {analysisResult.statistics.requiredSampleSize}
+                      </div>
+                    </div>
+                    <Progress
+                      value={Math.min(100, (analysisResult.statistics.currentSampleSize / analysisResult.statistics.requiredSampleSize) * 100)}
+                      className="h-2"
+                    />
+                    {!analysisResult.statistics.sampleSizeAdequate && (
+                      <div className="flex items-center gap-1 mt-2 text-sm text-yellow-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        サンプルサイズが不足しています
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Warnings */}
+                  {analysisResult.statistics.warnings.length > 0 && (
+                    <div className="border rounded-lg p-3 bg-yellow-50 dark:bg-yellow-950">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                        <span className="font-semibold text-sm">警告</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {analysisResult.statistics.warnings.map((warning, i) => (
+                          <li key={i} className="text-sm text-yellow-700 dark:text-yellow-300">
+                            {warning}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setIsAnalysisOpen(false)}>
+              閉じる
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

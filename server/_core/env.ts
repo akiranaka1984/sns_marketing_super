@@ -7,5 +7,8 @@ export const ENV = {
   ownerName: process.env.OWNER_NAME ?? "",
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
-  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  // Use OPENAI_API_KEY if BUILT_IN_FORGE_API_KEY is not set
+  get forgeApiKey() {
+    return process.env.BUILT_IN_FORGE_API_KEY || process.env.OPENAI_API_KEY || "";
+  },
 };

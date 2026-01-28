@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Plus, Trash2, RefreshCw, ExternalLink, Power, PowerOff, RotateCw, ArrowUpDown, Smartphone } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { useI18n } from "@/contexts/I18nContext";
 
@@ -18,6 +18,7 @@ type SortOrder = "asc" | "desc";
 
 export default function Accounts() {
   const { t } = useI18n();
+  const [, navigate] = useLocation();
   const utils = trpc.useUtils();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("all");
   const [sortField, setSortField] = useState<SortField>("createdAt");
@@ -181,6 +182,20 @@ export default function Accounts() {
       toast.error(`再起動失敗: ${error.message}`);
     },
   });
+
+  const updatePlanMutation = trpc.accounts.update.useMutation({
+    onSuccess: () => {
+      toast.success("プランを更新しました");
+      utils.accounts.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(`プラン更新失敗: ${error.message}`);
+    },
+  });
+
+  const handlePlanChange = (accountId: number, planType: 'free' | 'premium' | 'premium_plus') => {
+    updatePlanMutation.mutate({ accountId, planType });
+  };
 
   const handleDelete = (accountId: number) => {
     if (confirm("このアカウントを削除してもよろしいですか？")) {
@@ -379,6 +394,7 @@ export default function Accounts() {
                       </TableHead>
                       <TableHead>デバイスID</TableHead>
                       <TableHead>プロキシ</TableHead>
+                      <TableHead>プラン</TableHead>
                       <TableHead>
                         <Button
                           variant="ghost"
@@ -396,13 +412,17 @@ export default function Accounts() {
                   <TableBody>
                     {filteredAndSortedAccounts.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                           アカウントがありません
                         </TableCell>
                       </TableRow>
                     ) : (
                       filteredAndSortedAccounts.map((account) => (
-                        <TableRow key={account.id}>
+                        <TableRow
+                          key={account.id}
+                          onClick={() => navigate(`/accounts/${account.id}`)}
+                          className="cursor-pointer hover:bg-muted/50"
+                        >
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <span className="text-2xl">{getPlatformIcon(account.platform)}</span>
@@ -444,6 +464,43 @@ export default function Accounts() {
                               <span className="text-muted-foreground text-sm">-</span>
                             )}
                           </TableCell>
+                          <TableCell>
+                            {account.platform === 'twitter' ? (
+                              <Select
+                                value={(account as any).planType || 'free'}
+                                onValueChange={(value: 'free' | 'premium' | 'premium_plus') =>
+                                  handlePlanChange(account.id, value)
+                                }
+                                disabled={updatePlanMutation.isPending}
+                              >
+                                <SelectTrigger className="w-[130px] h-8 text-xs" onClick={(e) => e.stopPropagation()}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="free">
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full bg-gray-400" />
+                                      Free (280字)
+                                    </span>
+                                  </SelectItem>
+                                  <SelectItem value="premium">
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                      Premium (4000字)
+                                    </span>
+                                  </SelectItem>
+                                  <SelectItem value="premium_plus">
+                                    <span className="flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                                      Premium+ (25000字)
+                                    </span>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {new Date(account.createdAt).toLocaleString("ja-JP")}
                           </TableCell>
@@ -453,7 +510,7 @@ export default function Accounts() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => activateMutation.mutate({ accountId: account.id })}
+                                  onClick={(e) => { e.stopPropagation(); activateMutation.mutate({ accountId: account.id }); }}
                                   disabled={activateMutation.isPending}
                                   title="アクティブ化"
                                   className="text-green-600 border-green-300 hover:bg-green-50"
@@ -470,7 +527,7 @@ export default function Accounts() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleOpenDeviceSelectDialog({id: account.id, username: account.username})}
+                                  onClick={(e) => { e.stopPropagation(); handleOpenDeviceSelectDialog({id: account.id, username: account.username}); }}
                                   disabled={assigningAccountId !== null}
                                   title="デバイスを割り当て"
                                   className="text-blue-600 border-blue-300 hover:bg-blue-50"
@@ -488,7 +545,7 @@ export default function Accounts() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleStartDevice(account.deviceId!)}
+                                    onClick={(e) => { e.stopPropagation(); handleStartDevice(account.deviceId!); }}
                                     disabled={startDeviceMutation.isPending}
                                     title="デバイスを起動"
                                   >
@@ -497,7 +554,7 @@ export default function Accounts() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleStopDevice(account.deviceId!)}
+                                    onClick={(e) => { e.stopPropagation(); handleStopDevice(account.deviceId!); }}
                                     disabled={stopDeviceMutation.isPending}
                                     title="デバイスを停止"
                                   >
@@ -506,7 +563,7 @@ export default function Accounts() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => handleRestartDevice(account.deviceId!)}
+                                    onClick={(e) => { e.stopPropagation(); handleRestartDevice(account.deviceId!); }}
                                     disabled={restartDeviceMutation.isPending}
                                     title="デバイスを再起動"
                                   >
@@ -515,22 +572,17 @@ export default function Accounts() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => openDuoPlusDashboard(account.deviceId!)}
+                                    onClick={(e) => { e.stopPropagation(); openDuoPlusDashboard(account.deviceId!); }}
                                     title="DuoPlusで表示"
                                   >
                                     <ExternalLink className="h-4 w-4" />
                                   </Button>
                                 </>
                               )}
-                              <Link href={`/accounts/${account.id}`}>
-                                <Button variant="outline" size="sm">
-                                  詳細
-                                </Button>
-                              </Link>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleDelete(account.id)}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(account.id); }}
                                 disabled={deleteMutation.isPending}
                                 title="削除"
                               >

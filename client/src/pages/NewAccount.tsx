@@ -14,28 +14,12 @@ export default function NewAccount() {
   const [platform, setPlatform] = useState<'twitter' | 'tiktok' | 'instagram' | 'facebook'>('twitter');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [autoRegister, setAutoRegister] = useState(true);
 
   const utils = trpc.useUtils();
-  
+
   const createMutation = trpc.accounts.create.useMutation({
-    onSuccess: async (result) => {
+    onSuccess: async () => {
       toast.success("アカウントを作成しました");
-      
-      if (autoRegister && result.id) {
-        toast.info("自動登録を開始しています...");
-        try {
-          const registerResult = await registerMutation.mutateAsync({ accountId: result.id });
-          if (registerResult.success) {
-            toast.success("アカウントの登録が完了しました");
-          } else {
-            toast.error(`登録に失敗しました: ${registerResult.error}`);
-          }
-        } catch (error) {
-          toast.error("登録に失敗しました");
-        }
-      }
-      
       utils.accounts.list.invalidate();
       setLocation('/accounts');
     },
@@ -59,11 +43,9 @@ export default function NewAccount() {
     },
   });
 
-  const registerMutation = trpc.accounts.register.useMutation();
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username || !password) {
       toast.error("すべての項目を入力してください");
       return;
@@ -76,7 +58,7 @@ export default function NewAccount() {
     });
   };
 
-  const isLoading = createMutation.isPending || registerMutation.isPending;
+  const isLoading = createMutation.isPending;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -140,20 +122,6 @@ export default function NewAccount() {
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="autoRegister"
-                    checked={autoRegister}
-                    onChange={(e) => setAutoRegister(e.target.checked)}
-                    disabled={isLoading}
-                    className="h-4 w-4 rounded border-slate-300"
-                  />
-                  <Label htmlFor="autoRegister" className="text-sm font-normal">
-                    作成後に自動でアカウント登録を実行する
-                  </Label>
-                </div>
-
                 <div className="flex gap-4">
                   <Button
                     type="button"
@@ -172,7 +140,7 @@ export default function NewAccount() {
                     {isLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        {registerMutation.isPending ? '登録中...' : '作成中...'}
+                        作成中...
                       </>
                     ) : (
                       'アカウントを追加'
@@ -202,8 +170,8 @@ export default function NewAccount() {
                   2
                 </div>
                 <div>
-                  <p className="font-medium text-slate-900">自動登録</p>
-                  <p>クラウドデバイスを使用して自動的にアカウントにログインします</p>
+                  <p className="font-medium text-slate-900">デバイスを割り当て</p>
+                  <p>アカウント詳細画面からクラウドデバイスを割り当て、手動でログインします</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -212,7 +180,7 @@ export default function NewAccount() {
                 </div>
                 <div>
                   <p className="font-medium text-slate-900">管理開始</p>
-                  <p>登録完了後、アカウントの管理やマーケティング戦略の生成が可能になります</p>
+                  <p>ログイン完了後、アカウントの管理やマーケティング戦略の生成が可能になります</p>
                 </div>
               </div>
             </CardContent>

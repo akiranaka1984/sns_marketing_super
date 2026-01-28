@@ -114,8 +114,8 @@ export default function ExecutionModeSelector({ projectId, currentMode }: Execut
                     <Icon className={`h-5 w-5 ${config.color}`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-900 mb-1">{config.label}</h3>
-                    <p className="text-sm text-slate-600">{config.description}</p>
+                    <h3 className="text-base font-semibold text-slate-900 mb-1">{config.label}</h3>
+                    <p className="text-xs text-slate-600">{config.description}</p>
                   </div>
                 </div>
               </div>

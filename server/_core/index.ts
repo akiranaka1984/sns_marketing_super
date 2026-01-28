@@ -8,12 +8,15 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { deviceStatusUpdater } from "../device-status-updater";
-import { startScheduledPostsExecutor } from "../scheduled-posts";
+import { startScheduledPostsEnqueuer } from "../scheduled-posts";
 import { startAutoEngagementExecutor } from "../auto-engagement";
 import { getSetting } from "../db";
 import { startProxyHealthMonitor } from "../duoplus-proxy-health";
 import uploadRouter from "../upload";
-import { startInteractionScheduler } from "../interaction-scheduler";
+import { startInteractionEnqueuer } from "../interaction-scheduler";
+import { registerQueueProcessors } from "../queue-processors";
+import { closeQueues } from "../queue-manager";
+import { startScheduler } from "../agent-scheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -104,24 +107,60 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
-    
+
     // Start device status background updater
     deviceStatusUpdater.start();
-    
-    // Start scheduled posts executor
-    startScheduledPostsExecutor();
-    
+
+    // Register queue processors (Bull)
+    registerQueueProcessors();
+    console.log('[Queue] Queue processors registered');
+
+    // Start scheduled posts enqueuer (adds pending posts to queue)
+    startScheduledPostsEnqueuer();
+
     // Start auto-engagement executor
     startAutoEngagementExecutor();
-    
+
     // Start proxy health monitor
     startProxyHealthMonitor();
-    
-    // Start interaction scheduler
-    startInteractionScheduler();
-    
+
+    // Start interaction enqueuer (adds pending interactions to queue)
+    startInteractionEnqueuer();
+
+    // Start agent scheduler (runs scheduled agents automatically)
+    startScheduler();
+    console.log('[AgentScheduler] Agent scheduler started');
+
     console.log('[Automation] All background executors started');
   });
+
+  // Graceful shutdown
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`[Server] Received ${signal}, starting graceful shutdown...`);
+
+    // Stop accepting new connections
+    server.close(async () => {
+      console.log('[Server] HTTP server closed');
+
+      // Close queue connections
+      await closeQueues();
+
+      // Stop device updater
+      deviceStatusUpdater.stop();
+
+      console.log('[Server] Graceful shutdown complete');
+      process.exit(0);
+    });
+
+    // Force shutdown after 30 seconds
+    setTimeout(() => {
+      console.error('[Server] Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 // Global error handlers to prevent server crashes
