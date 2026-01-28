@@ -16,6 +16,15 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Build arguments for Vite
+ARG VITE_APP_ID=sns-marketing-app
+ARG VITE_OAUTH_PORTAL_URL=https://example.com
+
+# Set environment variables for build
+ENV VITE_APP_ID=$VITE_APP_ID
+ENV VITE_OAUTH_PORTAL_URL=$VITE_OAUTH_PORTAL_URL
+ENV NODE_ENV=production
+
 # Build the application
 RUN pnpm build
 
