@@ -165,17 +165,13 @@ jobs:
           EOF
 
             # Pull new images
-            docker compose -f docker-compose.prod.yml pull
+            docker compose -p sns-marketing -f docker-compose.prod.yml pull
 
-            # Stop old containers if running
-            if [ -L "${{ env.DEPLOY_PATH }}/current" ]; then
-              cd "\$(readlink -f ${{ env.DEPLOY_PATH }}/current)" 2>/dev/null || true
-              docker compose -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
-            fi
+            # Stop ALL sns-marketing containers (use fixed project name)
+            docker compose -p sns-marketing -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
-            # Start new containers
-            cd "\$DEPLOY_DIR"
-            docker compose -f docker-compose.prod.yml up -d
+            # Start new containers with fixed project name
+            docker compose -p sns-marketing -f docker-compose.prod.yml up -d
 
             # Update symlink
             ln -sfn "\$DEPLOY_DIR" "${{ env.DEPLOY_PATH }}/current"
@@ -211,11 +207,11 @@ jobs:
                 # Stop failed deployment
                 FAILED_DIR=$(cat "${{ env.DEPLOY_PATH }}/new_deploy_dir")
                 cd "$FAILED_DIR"
-                docker compose -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+                docker compose -p sns-marketing -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
                 # Start previous version
                 cd "$PREVIOUS"
-                docker compose -f docker-compose.prod.yml up -d
+                docker compose -p sns-marketing -f docker-compose.prod.yml up -d
 
                 # Update symlink
                 ln -sfn "$PREVIOUS" "${{ env.DEPLOY_PATH }}/current"
