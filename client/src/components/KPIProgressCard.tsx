@@ -96,7 +96,7 @@ export default function KPIProgressCard({ targets, currentMetrics = {} }: KPIPro
           const Icon = kpi.icon;
 
           return (
-            <div key={kpi.label} className="space-y-2">
+            <div key={kpi.label} className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-slate-700">
                   <Icon className="h-4 w-4" />
@@ -106,9 +106,9 @@ export default function KPIProgressCard({ targets, currentMetrics = {} }: KPIPro
                   {kpi.current.toLocaleString()}{kpi.unit} / {kpi.target.toLocaleString()}{kpi.unit}
                 </span>
               </div>
-              <div className="relative">
-                <Progress value={progress} className="h-2" />
-                <span className="absolute right-0 -top-5 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <Progress value={progress} className="h-2 flex-1" />
+                <span className="text-xs text-slate-500 w-8 text-right">
                   {progress.toFixed(0)}%
                 </span>
               </div>

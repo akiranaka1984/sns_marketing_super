@@ -38,8 +38,14 @@ export const projectsRouter = router({
   byId: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
+      console.log('[DEBUG] projects.byId called with:', {
+        inputId: input.id,
+        userId: ctx.user.id,
+        userOpenId: ctx.user.openId
+      });
       const project = await db.getProjectById(input.id, ctx.user.id);
       if (!project) {
+        console.log('[DEBUG] Project not found for:', { inputId: input.id, userId: ctx.user.id });
         return null;
       }
 
