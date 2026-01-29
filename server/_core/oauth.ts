@@ -11,7 +11,8 @@ function getQueryParam(req: Request, key: string): string | undefined {
 
 export function registerOAuthRoutes(app: Express) {
   // Development mode: auto-login endpoint
-  if (process.env.NODE_ENV === "development") {
+  // Also enabled when ENABLE_DEV_LOGIN=true for production debugging
+  if (process.env.NODE_ENV === "development" || process.env.ENABLE_DEV_LOGIN === "true") {
     app.get("/api/dev-login", async (req: Request, res: Response) => {
       try {
         const testOpenId = "dev-test-user";
