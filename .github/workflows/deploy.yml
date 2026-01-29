@@ -24,8 +24,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-push:
-    name: Build & Push Images
+  # Build App and Python Worker in parallel
+  build-app:
+    name: Build App Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -70,6 +71,26 @@ jobs:
             VITE_APP_ID=${{ secrets.VITE_APP_ID }}
             VITE_OAUTH_PORTAL_URL=${{ secrets.VITE_OAUTH_PORTAL_URL }}
 
+  build-python:
+    name: Build Python Worker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Extract metadata for Python Worker
         id: meta-python
         uses: docker/metadata-action@v5
@@ -93,7 +114,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-app, build-python]
     environment: production
     steps:
       - name: Checkout code
@@ -139,7 +160,7 @@ jobs:
 
       - name: Deploy new version
         env:
-          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          IMAGE_TAG: ${{ needs.build-app.outputs.image_tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin"
@@ -183,9 +204,10 @@ jobs:
             # Start new containers with fixed project name
             docker compose -p sns-marketing -f docker-compose.prod.yml up -d
 
-            # Wait for database to be ready
+            # Wait for database to be healthy (uses docker-compose healthcheck)
             echo "Waiting for database to be ready..."
-            sleep 30
+            timeout 60 bash -c 'until docker compose -p sns-marketing -f docker-compose.prod.yml ps db | grep -q "healthy"; do echo "Waiting for database..."; sleep 5; done' || echo "DB wait timeout"
+            echo "✅ Database is ready"
 
             # Run database migrations (as root to avoid permission issues)
             echo "Running database migrations..."
@@ -278,6 +300,6 @@ jobs:
         run: |
           echo "## Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image Tag:** ${{ needs.build-and-push.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** ${{ needs.build-app.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** production" >> $GITHUB_STEP_SUMMARY
           echo "- **Deployed at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
