@@ -189,7 +189,12 @@ jobs:
 
             # Run database migrations (as root to avoid permission issues)
             echo "Running database migrations..."
-            docker compose -p sns-marketing -f docker-compose.prod.yml exec -T -u root app pnpm db:push || echo "Migration failed or not needed"
+            if docker compose -p sns-marketing -f docker-compose.prod.yml exec -T -u root app pnpm db:push; then
+              echo "✅ Database migration completed successfully"
+            else
+              echo "⚠️ Database migration failed - check logs above"
+              # Continue deployment but log the failure
+            fi
 
             # Update symlink
             ln -sfn "\$DEPLOY_DIR" "${{ env.DEPLOY_PATH }}/current"
