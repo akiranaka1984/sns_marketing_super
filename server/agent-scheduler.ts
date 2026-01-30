@@ -256,17 +256,6 @@ export async function getAllScheduledExecutions(): Promise<{
   scheduledPostContent?: string;
   scheduledPostId?: number;
 }[]> {
-  const now = new Date();
-
-  // Get pending scheduled posts directly from scheduled_posts table
-  const pendingPosts = await db.query.scheduledPosts.findMany({
-    where: and(
-      eq(scheduledPosts.status, "pending"),
-      gte(scheduledPosts.scheduledTime, now)
-    ),
-    orderBy: [desc(scheduledPosts.scheduledTime)],
-  });
-
   const allExecutions: {
     agentId: number;
     agentName: string;
@@ -281,6 +270,81 @@ export async function getAllScheduledExecutions(): Promise<{
     scheduledPostContent?: string;
     scheduledPostId?: number;
   }[] = [];
+
+  // 1. アクティブなエージェントの設定から次回実行予定を計算
+  const activeAgents = await db
+    .select()
+    .from(agents)
+    .where(eq(agents.isActive, 1));
+
+  for (const agent of activeAgents) {
+    // 紐づくアカウントを取得
+    const linkedAccounts = await db
+      .select({
+        accountId: agentAccounts.accountId,
+        account: accounts,
+      })
+      .from(agentAccounts)
+      .leftJoin(accounts, eq(agentAccounts.accountId, accounts.id))
+      .where(and(
+        eq(agentAccounts.agentId, agent.id),
+        eq(agentAccounts.isActive, 1)
+      ));
+
+    if (linkedAccounts.length === 0) continue;
+
+    // 投稿時間スロットを解析
+    let timeSlots: string[] = ["09:00"];
+    try {
+      if (agent.postingTimeSlots) {
+        timeSlots = JSON.parse(agent.postingTimeSlots);
+      }
+    } catch {
+      // デフォルトを使用
+    }
+
+    // 最近の投稿を取得（参考表示用）
+    const recentPost = await db.query.posts.findFirst({
+      where: eq(posts.agentId, agent.id),
+      orderBy: [desc(posts.createdAt)],
+    });
+
+    for (const timeSlot of timeSlots) {
+      for (const { accountId, account } of linkedAccounts) {
+        if (!account) continue;
+
+        const nextTime = calculateNextExecutionTime(
+          timeSlot,
+          agent.postingFrequency || "daily"
+        );
+
+        allExecutions.push({
+          agentId: agent.id,
+          agentName: agent.name,
+          accountId,
+          accountUsername: account.username || "unknown",
+          platform: account.platform || "unknown",
+          scheduledTime: nextTime,
+          agentTheme: agent.theme || "",
+          agentTone: agent.tone || "",
+          agentStyle: agent.style || "",
+          recentPostContent: recentPost?.content || undefined,
+          scheduledPostContent: undefined,
+          scheduledPostId: undefined,
+        });
+      }
+    }
+  }
+
+  // 2. scheduledPostsテーブルの未処理レコードも追加
+  const nowStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const pendingPosts = await db.query.scheduledPosts.findMany({
+    where: and(
+      eq(scheduledPosts.status, "pending"),
+      gte(scheduledPosts.scheduledTime, nowStr)
+    ),
+    orderBy: [desc(scheduledPosts.scheduledTime)],
+  });
 
   for (const post of pendingPosts) {
     const agent = post.agentId
@@ -297,7 +361,7 @@ export async function getAllScheduledExecutions(): Promise<{
       accountId: post.accountId,
       accountUsername: account?.username || "unknown",
       platform: account?.platform || "unknown",
-      scheduledTime: post.scheduledTime,
+      scheduledTime: new Date(post.scheduledTime),
       agentTheme: agent?.theme || "",
       agentTone: agent?.tone || "",
       agentStyle: agent?.style || "",
