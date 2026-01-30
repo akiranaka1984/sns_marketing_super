@@ -6,7 +6,7 @@
  */
 
 import { db } from "./db";
-import { agents, agentAccounts, agentSchedules, accounts, posts, scheduledPosts } from "../drizzle/schema";
+import { agents, agentAccounts, agentSchedules, agentExecutionLogs, accounts, posts, scheduledPosts } from "../drizzle/schema";
 import { eq, and, lte, sql, desc, gte } from "drizzle-orm";
 import { runAgent } from "./agent-engine";
 
@@ -191,6 +191,23 @@ export async function checkAndRunScheduledAgents(): Promise<{
         if (jstNow.getUTCDay() !== targetDay) {
           continue;
         }
+      }
+
+      // 重複実行防止: 直近30分以内にこのエージェントが成功実行済みならスキップ
+      const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+      const recentExecution = await db.query.agentExecutionLogs.findFirst({
+        where: and(
+          eq(agentExecutionLogs.agentId, agent.id),
+          eq(agentExecutionLogs.executionType, "content_generation"),
+          eq(agentExecutionLogs.status, "success"),
+          gte(agentExecutionLogs.createdAt, thirtyMinutesAgo)
+        ),
+        orderBy: [desc(agentExecutionLogs.createdAt)],
+      });
+
+      if (recentExecution) {
+        console.log(`[AgentScheduler] Skipping agent ${agent.id} (${agent.name}): already executed at ${recentExecution.createdAt}`);
+        continue;
       }
 
       console.log(`[AgentScheduler] Running agent: ${agent.name} (ID: ${agent.id})`);
