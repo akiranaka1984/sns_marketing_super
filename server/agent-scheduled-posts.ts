@@ -15,7 +15,7 @@ import {
   agentExecutionLogs,
   projects
 } from "../drizzle/schema";
-import { eq, and, sql, desc, lte } from "drizzle-orm";
+import { eq, and, sql, desc, lte, inArray } from "drizzle-orm";
 import { buildAgentContext, generateContent } from "./agent-engine";
 
 // ============================================
@@ -203,7 +203,16 @@ export async function generateScheduledPosts(
       : generateDefaultPostTimes(count);
 
     const createdPosts: { id: number; accountId: number; scheduledTime: Date; content: string }[] = [];
-    const recentContents: string[] = [];
+    const targetAccountIds = targetAccounts.map(a => a.id);
+    const existingPendingPosts = await db.query.scheduledPosts.findMany({
+      where: and(
+        inArray(scheduledPosts.accountId, targetAccountIds),
+        eq(scheduledPosts.status, "pending")
+      ),
+      orderBy: desc(scheduledPosts.createdAt),
+      limit: 30,
+    });
+    const recentContents: string[] = existingPendingPosts.map(p => p.content);
 
     // 各投稿時間に対してコンテンツを生成
     for (let i = 0; i < postTimes.length; i++) {
@@ -481,7 +490,7 @@ export async function getPendingReviewPosts(
 /**
  * 2つのテキストが類似しているか簡易判定（先頭50文字が一致 or 全体の80%以上一致）
  */
-function isSimilar(a: string, b: string): boolean {
+export function isSimilar(a: string, b: string): boolean {
   if (a === b) return true;
   // 先頭50文字の一致チェック
   if (a.substring(0, 50) === b.substring(0, 50)) return true;

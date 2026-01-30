@@ -22,6 +22,7 @@ import {
   projectAccounts,
   accountModelAccounts,
   buzzLearnings,
+  scheduledPosts,
 } from "../drizzle/schema";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
@@ -91,6 +92,7 @@ interface AgentContext {
   projectTargets?: Record<string, number>;
   // New: Account personas for personalized content generation
   accountPersonas: AccountPersona[];
+  pendingScheduledContents: string[];
 }
 
 interface GeneratedContent {
@@ -164,6 +166,19 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     orderBy: desc(posts.createdAt),
     limit: 20,
   });
+
+  // pending scheduledPostsのコンテンツを取得（重複防止用）
+  const pendingScheduledPosts = accountIds.length > 0
+    ? await db.query.scheduledPosts.findMany({
+        where: and(
+          inArray(scheduledPosts.accountId, accountIds),
+          eq(scheduledPosts.status, "pending")
+        ),
+        orderBy: desc(scheduledPosts.createdAt),
+        limit: 30,
+      })
+    : [];
+  const pendingScheduledContents = pendingScheduledPosts.map(sp => sp.content);
 
   // アカウント学習を取得
   const accountLearnings = new Map<number, AccountLearning[]>();
@@ -299,6 +314,7 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     projectStrategy,
     projectTargets,
     accountPersonas,
+    pendingScheduledContents,
   };
 }
 
@@ -314,7 +330,7 @@ export async function generateContent(
   maxLength?: number,
   targetAccountId?: number
 ): Promise<GeneratedContent> {
-  const { agent, knowledge, rules, recentPosts, accountLearnings, projectStrategy, projectTargets, accountPersonas } = context;
+  const { agent, knowledge, rules, recentPosts, accountLearnings, projectStrategy, projectTargets, accountPersonas, pendingScheduledContents } = context;
 
   // Get the target account's persona
   const targetAccountPersona = targetAccountId
@@ -575,10 +591,11 @@ export async function generateContent(
     .filter(r => r.ruleType === 'tone_guideline')
     .map(r => r.ruleValue);
 
-  // 最近の投稿内容（重複防止用）
-  const recentContents = recentPosts
-    .slice(0, 10)
-    .map(p => p.content.substring(0, 100));
+  // 最近の投稿内容（重複防止用）- pending scheduledPostsも含む
+  const recentContents = [
+    ...recentPosts.slice(0, 10).map(p => p.content.substring(0, 100)),
+    ...pendingScheduledContents.slice(0, 15).map(c => c.substring(0, 100)),
+  ];
 
   // 現在日付を取得
   const now = new Date();

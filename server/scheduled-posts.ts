@@ -10,6 +10,7 @@ import { scheduledPosts, accounts, logs, freezeDetections, postUrls } from "../d
 import { eq, and, lte, desc, sql, inArray } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
 import { buildAgentContext, generateContent } from "./agent-engine";
+import { isSimilar } from "./agent-scheduled-posts";
 import { postToSNS } from "./sns-posting";
 import { ensureDeviceReady } from "./ensure-device-ready";
 import { onPostSuccess } from "./post-success-hook";
@@ -336,7 +337,27 @@ async function createNextScheduledPost(post: any) {
     try {
       const context = await buildAgentContext(post.agentId);
       if (context) {
-        const generated = await generateContent(context, undefined, post.accountId);
+        // 既存pending投稿のコンテンツを取得（類似チェック用）
+        const existingPending = await db.query.scheduledPosts.findMany({
+          where: and(
+            eq(scheduledPosts.accountId, post.accountId),
+            eq(scheduledPosts.status, "pending")
+          ),
+          orderBy: desc(scheduledPosts.createdAt),
+          limit: 20,
+        });
+        const existingContents = existingPending.map(p => p.content);
+
+        let generated = await generateContent(context, undefined, post.accountId);
+
+        // 類似チェック（最大2回リトライ）
+        let retries = 0;
+        while (retries < 2 && existingContents.some(ec => isSimilar(ec, generated.content))) {
+          console.log(`[ScheduledPosts] Regenerated content similar to existing, retrying (${retries + 1})`);
+          generated = await generateContent(context, undefined, post.accountId);
+          retries++;
+        }
+
         const hashtagText = generated.hashtags.map((h: string) => `#${h}`).join(' ');
         content = generated.content + (hashtagText ? '\n\n' + hashtagText : '');
         hashtags = JSON.stringify(generated.hashtags);
