@@ -9,6 +9,7 @@ import { db } from "./db";
 import { scheduledPosts, accounts, logs, freezeDetections, postUrls } from "../drizzle/schema";
 import { eq, and, lte, desc, sql, inArray } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
+import { buildAgentContext, generateContent } from "./agent-engine";
 import { postToSNS } from "./sns-posting";
 import { ensureDeviceReady } from "./ensure-device-ready";
 import { onPostSuccess } from "./post-success-hook";
@@ -325,22 +326,58 @@ async function createNextScheduledPost(post: any) {
     post.repeatInterval
   );
 
-  if (nextTime) {
-    await db.insert(scheduledPosts).values({
-      projectId: post.projectId,
-      accountId: post.accountId,
-      content: post.content,
-      mediaUrls: post.mediaUrls,
-      hashtags: post.hashtags,
-      scheduledTime: nextTime,
-      repeatInterval: post.repeatInterval,
-      status: "pending",
-    });
+  if (!nextTime) return;
 
-    console.log(
-      `[ScheduledPosts] Created next scheduled post for ${nextTime.toISOString()}`
-    );
+  let content = post.content;
+  let hashtags = post.hashtags;
+
+  // エージェント生成の投稿は新しいコンテンツを再生成
+  if (post.agentId) {
+    try {
+      const context = await buildAgentContext(post.agentId);
+      if (context) {
+        const generated = await generateContent(context, undefined, post.accountId);
+        const hashtagText = generated.hashtags.map((h: string) => `#${h}`).join(' ');
+        content = generated.content + (hashtagText ? '\n\n' + hashtagText : '');
+        hashtags = JSON.stringify(generated.hashtags);
+        console.log(`[ScheduledPosts] Regenerated content for repeat post`);
+      }
+    } catch (error) {
+      console.warn(`[ScheduledPosts] Content regeneration failed, using original content:`, error);
+      // フォールバック: 元のコンテンツを使用
+    }
   }
+
+  // 同一アカウント・同一時刻の重複チェック
+  const existing = await db.query.scheduledPosts.findFirst({
+    where: and(
+      eq(scheduledPosts.accountId, post.accountId),
+      eq(scheduledPosts.scheduledTime, nextTime),
+      eq(scheduledPosts.status, "pending")
+    ),
+  });
+  if (existing) {
+    console.log(`[ScheduledPosts] Duplicate detected for account ${post.accountId} at ${nextTime.toISOString()}, skipping`);
+    return;
+  }
+
+  await db.insert(scheduledPosts).values({
+    projectId: post.projectId,
+    accountId: post.accountId,
+    content,
+    hashtags,
+    mediaUrls: post.mediaUrls,
+    scheduledTime: nextTime,
+    repeatInterval: post.repeatInterval,
+    status: "pending",
+    agentId: post.agentId || null,
+    generatedByAgent: post.agentId ? true : false,
+    reviewStatus: post.agentId ? "approved" : "draft",
+  });
+
+  console.log(
+    `[ScheduledPosts] Created next scheduled post for ${nextTime.toISOString()}`
+  );
 }
 
 /**

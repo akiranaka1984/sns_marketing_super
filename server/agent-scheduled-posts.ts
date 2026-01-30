@@ -15,7 +15,7 @@ import {
   agentExecutionLogs,
   projects
 } from "../drizzle/schema";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql, desc, lte } from "drizzle-orm";
 import { buildAgentContext, generateContent } from "./agent-engine";
 
 // ============================================
@@ -203,6 +203,7 @@ export async function generateScheduledPosts(
       : generateDefaultPostTimes(count);
 
     const createdPosts: { id: number; accountId: number; scheduledTime: Date; content: string }[] = [];
+    const recentContents: string[] = [];
 
     // 各投稿時間に対してコンテンツを生成
     for (let i = 0; i < postTimes.length; i++) {
@@ -210,8 +211,31 @@ export async function generateScheduledPosts(
       const targetAccount = targetAccounts[i % targetAccounts.length];
 
       try {
+        // 同一アカウント・同一時刻の既存投稿チェック
+        const existingPost = await db.query.scheduledPosts.findFirst({
+          where: and(
+            eq(scheduledPosts.accountId, targetAccount.id),
+            eq(scheduledPosts.scheduledTime, postTime),
+            eq(scheduledPosts.status, "pending")
+          ),
+        });
+        if (existingPost) {
+          console.log(`[AgentScheduledPosts] Skipping duplicate: account ${targetAccount.id} at ${postTime.toISOString()}`);
+          continue;
+        }
+
         // コンテンツを生成（アカウント固有のペルソナ・学習を反映）
-        const content = await generateContent(context, undefined, targetAccount.id);
+        let content = await generateContent(context, undefined, targetAccount.id);
+
+        // 直前の生成内容との重複チェック（最大2回リトライ）
+        let retries = 0;
+        while (retries < 2 && recentContents.some(rc => isSimilar(rc, content.content))) {
+          console.log(`[AgentScheduledPosts] Similar content detected, regenerating (retry ${retries + 1})`);
+          content = await generateContent(context, undefined, targetAccount.id);
+          retries++;
+        }
+
+        recentContents.push(content.content);
 
         // スケジュール投稿として登録
         const postId = await createAgentScheduledPost({
@@ -448,4 +472,24 @@ export async function getPendingReviewPosts(
     orderBy: [desc(scheduledPosts.scheduledTime)],
     limit,
   });
+}
+
+// ============================================
+// Utility
+// ============================================
+
+/**
+ * 2つのテキストが類似しているか簡易判定（先頭50文字が一致 or 全体の80%以上一致）
+ */
+function isSimilar(a: string, b: string): boolean {
+  if (a === b) return true;
+  // 先頭50文字の一致チェック
+  if (a.substring(0, 50) === b.substring(0, 50)) return true;
+  // 短い方の文字列の先頭80%が長い方に含まれるかチェック
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length > b.length ? a : b;
+  if (shorter.length > 0 && longer.includes(shorter.substring(0, Math.floor(shorter.length * 0.8)))) {
+    return true;
+  }
+  return false;
 }

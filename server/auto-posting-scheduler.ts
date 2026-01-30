@@ -123,48 +123,7 @@ async function publishScheduledPost(postId: number) {
   await publishPost(postId);
 
   console.log(`[AutoPosting] Post ${postId} published successfully`);
-
-  // Handle repeat interval
-  if (post.repeatInterval && post.repeatInterval !== "none") {
-    await scheduleNextPost(post);
-  }
-}
-
-/**
- * Schedule the next post based on repeat interval
- */
-async function scheduleNextPost(post: any) {
-  let nextScheduledTime: Date;
-  const currentTime = new Date(post.scheduledTime);
-
-  switch (post.repeatInterval) {
-    case "daily":
-      nextScheduledTime = new Date(currentTime.getTime() + 24 * 60 * 60 * 1000);
-      break;
-    case "weekly":
-      nextScheduledTime = new Date(currentTime.getTime() + 7 * 24 * 60 * 60 * 1000);
-      break;
-    case "monthly":
-      nextScheduledTime = new Date(currentTime);
-      nextScheduledTime.setMonth(nextScheduledTime.getMonth() + 1);
-      break;
-    default:
-      return; // No repeat
-  }
-
-  // Create new scheduled post
-  await db.insert(scheduledPosts).values({
-    projectId: post.projectId,
-    accountId: post.accountId,
-    content: post.content,
-    mediaUrls: post.mediaUrls,
-    hashtags: post.hashtags,
-    scheduledTime: nextScheduledTime,
-    repeatInterval: post.repeatInterval,
-    status: "pending",
-  });
-
-  console.log(`[AutoPosting] Scheduled next post for ${nextScheduledTime.toISOString()}`);
+  // Repeat scheduling is handled by executeScheduledPosts() in scheduled-posts.ts
 }
 
 /**
