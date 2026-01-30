@@ -36,6 +36,7 @@ import {
   BuzzPatternsForPrompt,
   formatWeightedLearningsForPrompt,
 } from "./services/account-learning-service";
+import { ensureDeviceReady } from './ensure-device-ready';
 
 // ============================================
 // Types
@@ -831,6 +832,12 @@ export async function executePost(
 
   if (!account.deviceId) {
     return { success: false, error: 'No device assigned to account' };
+  }
+
+  // デバイスが起動しているか確認し、停止中なら自動起動
+  const deviceReady = await ensureDeviceReady(account.deviceId);
+  if (!deviceReady.ready) {
+    return { success: false, error: `デバイス起動失敗: ${deviceReady.message}` };
   }
 
   // プロジェクトのexecutionModeを取得

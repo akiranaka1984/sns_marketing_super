@@ -9,7 +9,8 @@ import { db } from "./db";
 import { scheduledPosts, accounts, logs, freezeDetections, postUrls } from "../drizzle/schema";
 import { eq, and, lte, desc, sql, inArray } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
-import { postToSNS, isDevicePoweredOn } from "./sns-posting";
+import { postToSNS } from "./sns-posting";
+import { ensureDeviceReady } from "./ensure-device-ready";
 import { onPostSuccess } from "./post-success-hook";
 import { addScheduledPostJob, type ScheduledPostJob } from "./queue-manager";
 
@@ -126,20 +127,20 @@ export async function publishPost(postId: number): Promise<{
       };
     }
 
-    // Check if device is powered on
-    const devicePoweredOn = await isDevicePoweredOn(account.deviceId);
-    if (!devicePoweredOn) {
+    // Ensure device is powered on (auto-start if stopped)
+    const deviceReady = await ensureDeviceReady(account.deviceId);
+    if (!deviceReady.ready) {
       await db
         .update(scheduledPosts)
         .set({
           status: "failed",
-          errorMessage: "Device is not powered on",
+          errorMessage: `デバイス起動失敗: ${deviceReady.message}`,
         })
         .where(eq(scheduledPosts.id, postId));
 
       return {
         success: false,
-        message: "Device is not powered on. Please start the device first.",
+        message: `デバイス起動失敗: ${deviceReady.message}`,
         postId,
       };
     }

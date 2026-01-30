@@ -69,6 +69,10 @@ class DeviceStatusCache {
     }
   }
 
+  delete(deviceId: string): void {
+    this.cache.delete(deviceId);
+  }
+
   clear(): void {
     this.cache.clear();
   }
