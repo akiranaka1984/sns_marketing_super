@@ -233,14 +233,14 @@ export async function generateScheduledPosts(
           continue;
         }
 
-        // コンテンツを生成（アカウント固有のペルソナ・学習を反映）
-        let content = await generateContent(context, undefined, targetAccount.id);
+        // コンテンツを生成（アカウント固有のペルソナ・学習を反映 + バッチ内生成済みコンテンツをAIに通知）
+        let content = await generateContent(context, undefined, targetAccount.id, recentContents);
 
         // 直前の生成内容との重複チェック（最大2回リトライ）
         let retries = 0;
         while (retries < 2 && recentContents.some(rc => isSimilar(rc, content.content))) {
           console.log(`[AgentScheduledPosts] Similar content detected, regenerating (retry ${retries + 1})`);
-          content = await generateContent(context, undefined, targetAccount.id);
+          content = await generateContent(context, undefined, targetAccount.id, recentContents);
           retries++;
         }
 

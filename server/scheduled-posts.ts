@@ -348,13 +348,13 @@ async function createNextScheduledPost(post: any) {
         });
         const existingContents = existingPending.map(p => p.content);
 
-        let generated = await generateContent(context, undefined, post.accountId);
+        let generated = await generateContent(context, undefined, post.accountId, existingContents);
 
         // 類似チェック（最大2回リトライ）
         let retries = 0;
         while (retries < 2 && existingContents.some(ec => isSimilar(ec, generated.content))) {
           console.log(`[ScheduledPosts] Regenerated content similar to existing, retrying (${retries + 1})`);
-          generated = await generateContent(context, undefined, post.accountId);
+          generated = await generateContent(context, undefined, post.accountId, existingContents);
           retries++;
         }
 

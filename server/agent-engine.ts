@@ -328,7 +328,8 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
 export async function generateContent(
   context: AgentContext,
   maxLength?: number,
-  targetAccountId?: number
+  targetAccountId?: number,
+  additionalAvoidContents?: string[]
 ): Promise<GeneratedContent> {
   const { agent, knowledge, rules, recentPosts, accountLearnings, projectStrategy, projectTargets, accountPersonas, pendingScheduledContents } = context;
 
@@ -591,10 +592,11 @@ export async function generateContent(
     .filter(r => r.ruleType === 'tone_guideline')
     .map(r => r.ruleValue);
 
-  // 最近の投稿内容（重複防止用）- pending scheduledPostsも含む
+  // 最近の投稿内容（重複防止用）- pending scheduledPosts + バッチ内生成済みコンテンツも含む
   const recentContents = [
     ...recentPosts.slice(0, 10).map(p => p.content.substring(0, 100)),
     ...pendingScheduledContents.slice(0, 15).map(c => c.substring(0, 100)),
+    ...(additionalAvoidContents || []).map(c => c.substring(0, 100)),
   ];
 
   // 現在日付を取得
