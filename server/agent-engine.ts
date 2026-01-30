@@ -932,7 +932,8 @@ export async function executePost(
     }
   }
 
-  // レビュー待ちの場合
+  // レビュー待ちの場合（実際にはデバイスへ投稿されない）
+  console.log(`[AgentEngine] Post ${postId} created as pending_review (not posted to device). Set project executionMode=fullAuto or agent.skipReview=1 to auto-post.`);
   return { success: true, postId };
 }
 
