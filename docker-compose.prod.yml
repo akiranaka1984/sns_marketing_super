@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-sns-marketing}:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-akiranaka1984/sns_marketing_super}:${IMAGE_TAG:-latest}
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -43,7 +43,7 @@ services:
         max-file: "5"
 
   python-worker:
-    image: ghcr.io/${GITHUB_REPOSITORY:-sns-marketing}-python:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GITHUB_REPOSITORY:-akiranaka1984/sns_marketing_super}-python:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
       - DATABASE_URL=${DATABASE_URL}
@@ -132,4 +132,4 @@ volumes:
 
 networks:
   default:
-    name: sns-marketing-network
+    name: sns-marketing-super-network

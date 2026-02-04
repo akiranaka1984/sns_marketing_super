@@ -17,7 +17,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DEPLOY_PATH: /root/sns-marketing
+  DEPLOY_PATH: /root/sns-marketing-super
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -188,7 +188,7 @@ jobs:
           EOF
 
             # Pull new images
-            docker compose -p sns-marketing -f docker-compose.prod.yml pull
+            docker compose -p sns-marketing-super -f docker-compose.prod.yml pull
 
             # Stop ALL containers using port 3000 (handle legacy deployments with different project names)
             echo "Stopping all containers using port 3000..."
@@ -199,19 +199,19 @@ jobs:
             docker ps -a --format '{{.Names}}' | grep -E '^[0-9]{8}_[0-9]{6}' | xargs -r docker rm -f 2>/dev/null || true
 
             # Stop current sns-marketing project if running
-            docker compose -p sns-marketing -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+            docker compose -p sns-marketing-super -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
             # Start new containers with fixed project name
-            docker compose -p sns-marketing -f docker-compose.prod.yml up -d
+            docker compose -p sns-marketing-super -f docker-compose.prod.yml up -d
 
             # Wait for database to be healthy (uses docker-compose healthcheck)
             echo "Waiting for database to be ready..."
-            timeout 60 bash -c 'until docker compose -p sns-marketing -f docker-compose.prod.yml ps db | grep -q "healthy"; do echo "Waiting for database..."; sleep 5; done' || echo "DB wait timeout"
+            timeout 60 bash -c 'until docker compose -p sns-marketing-super -f docker-compose.prod.yml ps db | grep -q "healthy"; do echo "Waiting for database..."; sleep 5; done' || echo "DB wait timeout"
             echo "✅ Database is ready"
 
             # Run database migrations (as root to avoid permission issues)
             echo "Running database migrations..."
-            if docker compose -p sns-marketing -f docker-compose.prod.yml exec -T -u root app pnpm db:push; then
+            if docker compose -p sns-marketing-super -f docker-compose.prod.yml exec -T -u root app pnpm db:push; then
               echo "✅ Database migration completed successfully"
             else
               echo "⚠️ Database migration failed - check logs above"
@@ -252,11 +252,11 @@ jobs:
                 # Stop failed deployment
                 FAILED_DIR=$(cat "${{ env.DEPLOY_PATH }}/new_deploy_dir")
                 cd "$FAILED_DIR"
-                docker compose -p sns-marketing -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
+                docker compose -p sns-marketing-super -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
 
                 # Start previous version
                 cd "$PREVIOUS"
-                docker compose -p sns-marketing -f docker-compose.prod.yml up -d
+                docker compose -p sns-marketing-super -f docker-compose.prod.yml up -d
 
                 # Update symlink
                 ln -sfn "$PREVIOUS" "${{ env.DEPLOY_PATH }}/current"
