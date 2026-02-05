@@ -23,6 +23,7 @@ import {
   accountModelAccounts,
   buzzLearnings,
   scheduledPosts,
+  modelAccounts,
 } from "../drizzle/schema";
 import { eq, and, desc, gte, lte, sql, inArray } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
@@ -37,7 +38,13 @@ import {
   BuzzPatternsForPrompt,
   formatWeightedLearningsForPrompt,
 } from "./services/account-learning-service";
-import { ensureDeviceReady } from './ensure-device-ready';
+import {
+  searchTrendingHashtag,
+  findHighEngagementHashtags,
+  extractHashtagsFromUser,
+} from "./x-api-service";
+// Device readiness check removed (Playwright-based now)
+const ensureDeviceReady = async (_deviceId: string) => ({ ready: true, message: 'Playwright mode' });
 
 // ============================================
 // Types
@@ -79,6 +86,13 @@ interface AccountPersona {
   modelAccountIds?: number[];
 }
 
+// Trending hashtag context for content generation
+interface TrendingContext {
+  trendingHashtags: { hashtag: string; engagement: number }[];
+  modelAccountHashtags: { hashtag: string; count: number }[];
+  hasTrendingData: boolean;
+}
+
 interface AgentContext {
   agent: typeof agents.$inferSelect;
   accounts: (typeof accounts.$inferSelect)[];
@@ -93,6 +107,8 @@ interface AgentContext {
   // New: Account personas for personalized content generation
   accountPersonas: AccountPersona[];
   pendingScheduledContents: string[];
+  // New: Trending hashtags and topics for timely content
+  trendingContext: TrendingContext;
 }
 
 interface GeneratedContent {
@@ -303,6 +319,62 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     }
   }
 
+  // Get trending context (hashtags from model accounts)
+  let trendingContext: TrendingContext = {
+    trendingHashtags: [],
+    modelAccountHashtags: [],
+    hasTrendingData: false,
+  };
+
+  try {
+    // Extract hashtags from model accounts
+    const modelAccountUsernames: string[] = [];
+    for (const persona of accountPersonas) {
+      if (persona.modelAccountIds && persona.modelAccountIds.length > 0) {
+        const modelAccountsData = await db.query.modelAccounts.findMany({
+          where: inArray(modelAccounts.id, persona.modelAccountIds),
+        });
+        for (const ma of modelAccountsData) {
+          modelAccountUsernames.push(ma.username.replace(/^@/, ""));
+        }
+      }
+    }
+
+    // Get high-engagement hashtags from model accounts
+    if (modelAccountUsernames.length > 0) {
+      const highEngagementHashtags = await findHighEngagementHashtags(
+        modelAccountUsernames.slice(0, 3), // Limit to 3 to reduce API calls
+        50 // Minimum engagement threshold
+      );
+
+      trendingContext.trendingHashtags = highEngagementHashtags
+        .slice(0, 10)
+        .map((h) => ({ hashtag: h.hashtag, engagement: h.avgEngagement }));
+
+      // Also get commonly used hashtags
+      for (const username of modelAccountUsernames.slice(0, 2)) {
+        const userHashtags = await extractHashtagsFromUser(username, 20);
+        for (const h of userHashtags.slice(0, 5)) {
+          if (!trendingContext.modelAccountHashtags.find((mh) => mh.hashtag === h.hashtag)) {
+            trendingContext.modelAccountHashtags.push(h);
+          }
+        }
+      }
+
+      trendingContext.hasTrendingData =
+        trendingContext.trendingHashtags.length > 0 ||
+        trendingContext.modelAccountHashtags.length > 0;
+
+      if (trendingContext.hasTrendingData) {
+        console.log(
+          `[AgentEngine] Loaded trending context: ${trendingContext.trendingHashtags.length} trending, ${trendingContext.modelAccountHashtags.length} model hashtags`
+        );
+      }
+    }
+  } catch (error) {
+    console.error(`[AgentEngine] Failed to get trending context:`, error);
+  }
+
   return {
     agent,
     accounts: linkedAccounts,
@@ -315,6 +387,7 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     projectTargets,
     accountPersonas,
     pendingScheduledContents,
+    trendingContext,
   };
 }
 
@@ -331,7 +404,7 @@ export async function generateContent(
   targetAccountId?: number,
   additionalAvoidContents?: string[]
 ): Promise<GeneratedContent> {
-  const { agent, knowledge, rules, recentPosts, accountLearnings, projectStrategy, projectTargets, accountPersonas, pendingScheduledContents } = context;
+  const { agent, knowledge, rules, recentPosts, accountLearnings, projectStrategy, projectTargets, accountPersonas, pendingScheduledContents, trendingContext } = context;
 
   // Get the target account's persona
   const targetAccountPersona = targetAccountId
@@ -564,6 +637,31 @@ export async function generateContent(
     projectTargetsPrompt = '\n\n' + targetSections.join('\n');
   }
 
+  // Build trending context prompt
+  let trendingPrompt = '';
+  if (trendingContext.hasTrendingData) {
+    const trendingSections: string[] = [];
+    trendingSections.push('## 🔥 トレンド＆人気ハッシュタグ');
+    trendingSections.push('以下のハッシュタグやトレンドを参考に、タイムリーな投稿を心がけてください:');
+
+    if (trendingContext.trendingHashtags.length > 0) {
+      trendingSections.push('\n### 高エンゲージメントハッシュタグ');
+      trendingSections.push('（モデルアカウントで効果的だったタグ）');
+      for (const h of trendingContext.trendingHashtags.slice(0, 5)) {
+        trendingSections.push(`- #${h.hashtag} (平均${h.engagement}いいね)`);
+      }
+    }
+
+    if (trendingContext.modelAccountHashtags.length > 0) {
+      trendingSections.push('\n### よく使われるハッシュタグ');
+      const topHashtags = trendingContext.modelAccountHashtags.slice(0, 5);
+      trendingSections.push(`${topHashtags.map((h) => `#${h.hashtag}`).join('、')}`);
+    }
+
+    trendingSections.push('\n※ 無理に全てのタグを使う必要はありません。テーマに合うものを選んでください。');
+    trendingPrompt = '\n\n---\n' + trendingSections.join('\n');
+  }
+
   // 成功パターンを抽出
   const successPatterns = knowledge
     .filter(k => k.knowledgeType === 'success_pattern')
@@ -657,7 +755,7 @@ ${hashtagStrategies.length > 0 ? hashtagStrategies.map((h, i) => `${i + 1}. ${h}
 
 ## 最近の投稿（重複を避けてください）
 ${recentContents.length > 0 ? recentContents.map((c, i) => `${i + 1}. ${c}...`).join('\n') : '- まだ投稿がありません'}
-${accountLearningPrompt}${weightedLearningPrompt ? '\n\n---\n' + weightedLearningPrompt : ''}${personaPrompt}${strategyPrompt}${projectTargetsPrompt}
+${accountLearningPrompt}${weightedLearningPrompt ? '\n\n---\n' + weightedLearningPrompt : ''}${personaPrompt}${strategyPrompt}${projectTargetsPrompt}${trendingPrompt}
 
 ---
 ## 重要な指示
@@ -889,18 +987,18 @@ export async function executePost(
     try {
       // ハッシュタグを含めた投稿内容を構築
       const fullContent = content.content + '\n\n' + content.hashtags.map(h => `#${h}`).join(' ');
-      
+
       const result = await postToSNS(
         account.platform,
-        account.deviceId,
-        fullContent
+        fullContent,
+        accountId
       );
 
       if (result.success) {
         await db.update(posts)
           .set({
             status: 'published',
-            publishedAt: new Date(),
+            publishedAt: new Date().toISOString(),
           })
           .where(eq(posts.id, postId));
 

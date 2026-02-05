@@ -396,7 +396,7 @@ export function extractTweetIdFromUrl(postUrl: string): string | null {
 /**
  * Update user profile (bio/description)
  * Note: X API v1.1 account/update_profile requires OAuth 1.0a user authentication.
- * In production, this should be done via DuoPlus device automation.
+ * In production, this should be done via Playwright browser automation.
  */
 export async function updateXUserProfile(
   accountId: number,
@@ -413,9 +413,9 @@ export async function updateXUserProfile(
   // X API v2 doesn't support profile updates directly
   // v1.1 POST account/update_profile requires OAuth 1.0a with user credentials
   // For now, log the request and return success
-  // In production, implement via DuoPlus device automation
+  // In production, implement via Playwright browser automation
 
-  // TODO: Implement via DuoPlus device automation
+  // TODO: Implement via Playwright browser automation
   // 1. Connect to the device assigned to this account
   // 2. Navigate to profile settings
   // 3. Update the bio/description field
@@ -429,4 +429,177 @@ export async function updateXUserProfile(
     success: true,
     error: undefined,
   };
+}
+
+// ============================================
+// Trending & Search Functions
+// ============================================
+
+interface TrendingHashtagResult {
+  hashtag: string;
+  tweetCount: number;
+  sampleTweets: Tweet[];
+}
+
+/**
+ * Search for tweets with a specific hashtag
+ * Uses Search Recent API to find trending content
+ *
+ * @param hashtag - The hashtag to search (with or without #)
+ * @param count - Number of tweets to retrieve (max 100)
+ */
+export async function searchTrendingHashtag(
+  hashtag: string,
+  count: number = 20
+): Promise<TrendingHashtagResult | null> {
+  const settings = await getXApiSettings();
+  if (!settings?.bearerToken) {
+    console.error("[X API] Bearer token not found");
+    return null;
+  }
+
+  try {
+    // Clean hashtag (remove # if present)
+    const cleanHashtag = hashtag.replace(/^#/, "");
+    const query = `#${cleanHashtag}`;
+    const maxResults = Math.max(10, Math.min(100, count));
+
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=${maxResults}&tweet.fields=created_at,author_id,public_metrics`;
+
+    console.log("[X API] Searching hashtag:", cleanHashtag);
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${settings.bearerToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[X API] Hashtag search failed:", response.status, errorData);
+      return null;
+    }
+
+    const data: SearchResponse = await response.json();
+    console.log("[X API] Hashtag search result:", data.meta?.result_count, "tweets");
+
+    return {
+      hashtag: cleanHashtag,
+      tweetCount: data.meta?.result_count || 0,
+      sampleTweets: data.data || [],
+    };
+  } catch (error) {
+    console.error("[X API] Error searching hashtag:", error);
+    return null;
+  }
+}
+
+/**
+ * Search for multiple trending hashtags and return aggregated results
+ *
+ * @param hashtags - Array of hashtags to search
+ * @param countPerHashtag - Number of tweets per hashtag
+ */
+export async function searchMultipleHashtags(
+  hashtags: string[],
+  countPerHashtag: number = 10
+): Promise<TrendingHashtagResult[]> {
+  const results: TrendingHashtagResult[] = [];
+
+  for (const hashtag of hashtags) {
+    const result = await searchTrendingHashtag(hashtag, countPerHashtag);
+    if (result) {
+      results.push(result);
+    }
+    // Small delay between requests to avoid rate limits
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  // Sort by tweet count (most popular first)
+  results.sort((a, b) => b.tweetCount - a.tweetCount);
+
+  return results;
+}
+
+/**
+ * Extract popular hashtags from recent tweets of a user
+ * Useful for finding relevant hashtags in your niche
+ *
+ * @param username - The username to analyze
+ * @param tweetCount - Number of tweets to analyze
+ */
+export async function extractHashtagsFromUser(
+  username: string,
+  tweetCount: number = 50
+): Promise<{ hashtag: string; count: number }[]> {
+  const tweets = await getLatestTweets(username, tweetCount);
+
+  // Extract hashtags from tweets
+  const hashtagCounts = new Map<string, number>();
+  const hashtagRegex = /#(\w+)/g;
+
+  for (const tweet of tweets) {
+    const matches = tweet.text.matchAll(hashtagRegex);
+    for (const match of matches) {
+      const hashtag = match[1].toLowerCase();
+      hashtagCounts.set(hashtag, (hashtagCounts.get(hashtag) || 0) + 1);
+    }
+  }
+
+  // Convert to array and sort by count
+  const sortedHashtags = Array.from(hashtagCounts.entries())
+    .map(([hashtag, count]) => ({ hashtag, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return sortedHashtags;
+}
+
+/**
+ * Find potential trending topics based on engagement metrics
+ * Analyzes tweets from model accounts to identify high-performing hashtags
+ *
+ * @param usernames - Array of usernames to analyze
+ * @param minEngagement - Minimum engagement (likes) to consider
+ */
+export async function findHighEngagementHashtags(
+  usernames: string[],
+  minEngagement: number = 100
+): Promise<{ hashtag: string; avgEngagement: number; tweetCount: number }[]> {
+  const hashtagStats = new Map<string, { totalEngagement: number; count: number }>();
+  const hashtagRegex = /#(\w+)/g;
+
+  for (const username of usernames) {
+    const tweets = await getLatestTweetsWithMetrics(username, 20);
+
+    for (const tweet of tweets) {
+      const engagement = tweet.public_metrics?.like_count || 0;
+
+      if (engagement >= minEngagement) {
+        const matches = tweet.text.matchAll(hashtagRegex);
+        for (const match of matches) {
+          const hashtag = match[1].toLowerCase();
+          const current = hashtagStats.get(hashtag) || { totalEngagement: 0, count: 0 };
+          hashtagStats.set(hashtag, {
+            totalEngagement: current.totalEngagement + engagement,
+            count: current.count + 1,
+          });
+        }
+      }
+    }
+
+    // Small delay between users to avoid rate limits
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  // Convert to array and calculate averages
+  const results = Array.from(hashtagStats.entries())
+    .map(([hashtag, stats]) => ({
+      hashtag,
+      avgEngagement: Math.round(stats.totalEngagement / stats.count),
+      tweetCount: stats.count,
+    }))
+    .filter((h) => h.tweetCount >= 2) // At least 2 occurrences
+    .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+  return results;
 }

@@ -1,13 +1,22 @@
 /**
  * Auto-Engagement System
- * 
+ *
  * Automatically performs likes, follows, comments, and unfollows
+ * using Playwright browser automation.
  */
 
 import { db } from "./db";
 import { engagementTasks, engagementLogs, accounts } from "../drizzle/schema";
 import { eq, and, lt, or, isNull } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
+import {
+  likePostViaPlaywright,
+  commentPostViaPlaywright,
+  followUserViaPlaywright,
+  unfollowUserViaPlaywright,
+  retweetPostViaPlaywright,
+  getEngagementRateLimits,
+} from "./playwright/engagement-actions";
 
 /**
  * Execute pending engagement tasks
@@ -15,7 +24,7 @@ import { detectFreeze, handleFreeze } from "./freeze-detection";
 export async function executeEngagementTasks() {
   // Get all active tasks
   const activeTasks = await db.query.engagementTasks.findMany({
-    where: eq(engagementTasks.isActive, true),
+    where: eq(engagementTasks.isActive, 1),
   });
 
   console.log(`[AutoEngagement] Found ${activeTasks.length} active tasks`);
@@ -58,7 +67,7 @@ async function shouldExecuteTask(task: any): Promise<boolean> {
     where: and(
       eq(engagementLogs.taskId, task.id),
       eq(engagementLogs.status, "success"),
-      gte(engagementLogs.createdAt, today)
+      gte(engagementLogs.createdAt, today.toISOString())
     ),
   });
 
@@ -119,6 +128,9 @@ async function executeTask(task: any): Promise<{
       case "unfollow":
         result = await executeUnfollow(account, task);
         break;
+      case "retweet":
+        result = await executeRetweet(account, task);
+        break;
       default:
         result = { success: false, error: "Unknown task type" };
     }
@@ -137,7 +149,7 @@ async function executeTask(task: any): Promise<{
     // Update last executed time
     await db
       .update(engagementTasks)
-      .set({ lastExecutedAt: new Date() })
+      .set({ lastExecutedAt: new Date().toISOString() })
       .where(eq(engagementTasks.id, task.id));
 
     if (!result.success && result.error) {
@@ -185,93 +197,156 @@ async function executeTask(task: any): Promise<{
 }
 
 /**
- * Execute like action
+ * Execute like action via Playwright
  */
 async function executeLike(
   account: any,
   task: any
 ): Promise<{ success: boolean; error?: string }> {
-  // TODO: Implement actual like using DuoPlus API
+  if (!task.targetPost) {
+    return { success: false, error: "No target post URL provided" };
+  }
+
   console.log(
     `[AutoEngagement] Liking post ${task.targetPost} with account ${account.username}`
   );
 
-  // Simulate API call
-  return simulateEngagementAction("like");
+  // Get rate limit settings
+  const rateLimits = await getEngagementRateLimits(task.projectId);
+
+  // Add random delay for human-like behavior
+  const delay =
+    Math.random() * (rateLimits.likeDelayMax - rateLimits.likeDelayMin) +
+    rateLimits.likeDelayMin;
+  await new Promise((resolve) => setTimeout(resolve, delay * 60 * 1000));
+
+  // Execute via Playwright
+  const result = await likePostViaPlaywright(account.id, task.targetPost);
+  return { success: result.success, error: result.error };
 }
 
 /**
- * Execute follow action
+ * Execute follow action via Playwright
  */
 async function executeFollow(
   account: any,
   task: any
 ): Promise<{ success: boolean; error?: string }> {
-  // TODO: Implement actual follow using DuoPlus API
+  if (!task.targetUser) {
+    return { success: false, error: "No target user provided" };
+  }
+
   console.log(
     `[AutoEngagement] Following user ${task.targetUser} with account ${account.username}`
   );
 
-  // Simulate API call
-  return simulateEngagementAction("follow");
+  // Get rate limit settings
+  const rateLimits = await getEngagementRateLimits(task.projectId);
+
+  // Add random delay for human-like behavior
+  const delay =
+    Math.random() * (rateLimits.followDelayMax - rateLimits.followDelayMin) +
+    rateLimits.followDelayMin;
+  await new Promise((resolve) => setTimeout(resolve, delay * 60 * 1000));
+
+  // Execute via Playwright
+  const result = await followUserViaPlaywright(account.id, task.targetUser);
+  return { success: result.success, error: result.error };
 }
 
 /**
- * Execute comment action
+ * Execute comment action via Playwright
  */
 async function executeComment(
   account: any,
   task: any
 ): Promise<{ success: boolean; error?: string }> {
-  // TODO: Implement actual comment using DuoPlus API
+  if (!task.targetPost) {
+    return { success: false, error: "No target post URL provided" };
+  }
+
+  if (!task.commentText) {
+    return { success: false, error: "No comment text provided" };
+  }
+
   console.log(
     `[AutoEngagement] Commenting "${task.commentText}" on post ${task.targetPost} with account ${account.username}`
   );
 
-  // Simulate API call
-  return simulateEngagementAction("comment");
+  // Get rate limit settings
+  const rateLimits = await getEngagementRateLimits(task.projectId);
+
+  // Add random delay for human-like behavior
+  const delay =
+    Math.random() * (rateLimits.commentDelayMax - rateLimits.commentDelayMin) +
+    rateLimits.commentDelayMin;
+  await new Promise((resolve) => setTimeout(resolve, delay * 60 * 1000));
+
+  // Execute via Playwright
+  const result = await commentPostViaPlaywright(
+    account.id,
+    task.targetPost,
+    task.commentText
+  );
+  return { success: result.success, error: result.error };
 }
 
 /**
- * Execute unfollow action
+ * Execute unfollow action via Playwright
  */
 async function executeUnfollow(
   account: any,
   task: any
 ): Promise<{ success: boolean; error?: string }> {
-  // TODO: Implement actual unfollow using DuoPlus API
+  if (!task.targetUser) {
+    return { success: false, error: "No target user provided" };
+  }
+
   console.log(
     `[AutoEngagement] Unfollowing user ${task.targetUser} with account ${account.username}`
   );
 
-  // Simulate API call
-  return simulateEngagementAction("unfollow");
+  // Get rate limit settings
+  const rateLimits = await getEngagementRateLimits(task.projectId);
+
+  // Add random delay for human-like behavior
+  const delay =
+    Math.random() * (rateLimits.followDelayMax - rateLimits.followDelayMin) +
+    rateLimits.followDelayMin;
+  await new Promise((resolve) => setTimeout(resolve, delay * 60 * 1000));
+
+  // Execute via Playwright
+  const result = await unfollowUserViaPlaywright(account.id, task.targetUser);
+  return { success: result.success, error: result.error };
 }
 
 /**
- * Simulate engagement action (placeholder for actual DuoPlus API integration)
+ * Execute retweet action via Playwright
  */
-async function simulateEngagementAction(
-  actionType: string
+async function executeRetweet(
+  account: any,
+  task: any
 ): Promise<{ success: boolean; error?: string }> {
-  // TODO: Replace with actual DuoPlus API call
-  // For now, simulate success/failure
-
-  // Simulate 97% success rate
-  const random = Math.random();
-  if (random < 0.97) {
-    return { success: true };
-  } else {
-    // Simulate different error types
-    const errorTypes = [
-      "Rate limit exceeded",
-      "IP blocked",
-      "Action blocked by platform",
-    ];
-    const randomError =
-      errorTypes[Math.floor(Math.random() * errorTypes.length)];
-    return { success: false, error: randomError };
+  if (!task.targetPost) {
+    return { success: false, error: "No target post URL provided" };
   }
+
+  console.log(
+    `[AutoEngagement] Retweeting post ${task.targetPost} with account ${account.username}`
+  );
+
+  // Get rate limit settings
+  const rateLimits = await getEngagementRateLimits(task.projectId);
+
+  // Add random delay for human-like behavior
+  const delay =
+    Math.random() * (rateLimits.retweetDelayMax - rateLimits.retweetDelayMin) +
+    rateLimits.retweetDelayMin;
+  await new Promise((resolve) => setTimeout(resolve, delay * 60 * 1000));
+
+  // Execute via Playwright
+  const result = await retweetPostViaPlaywright(account.id, task.targetPost);
+  return { success: result.success, error: result.error };
 }
 
 // Import missing dependencies
