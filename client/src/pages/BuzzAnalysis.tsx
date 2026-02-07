@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -153,444 +149,428 @@ export default function BuzzAnalysis() {
 
   if (statsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-96">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">バズ投稿</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPosts || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              分析済み: {stats?.analyzedPosts || 0}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">高バイラリティ</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.highViralityPosts || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              スコア70以上
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均スコア</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getViralityColor(stats?.avgViralityScore || 0)}`}>
+    <div className="space-y-5 max-w-5xl">
+      {/* Stat Cards */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#F59E0B' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">バズ投稿</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalPosts || 0}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">分析済み: {stats?.analyzedPosts || 0}</p>
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#10B981' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">高バイラリティ</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-0.5">{stats?.highViralityPosts || 0}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">スコア70以上</p>
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#6366F1' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">平均スコア</p>
+            <p className={`text-2xl font-bold mt-0.5 ${getViralityColor(stats?.avgViralityScore || 0)}`}>
               {stats?.avgViralityScore || 0}
-            </div>
-            <Progress value={stats?.avgViralityScore || 0} className="mt-2" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">学習パターン</CardTitle>
-            <Lightbulb className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalLearnings || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              アクティブ: {stats?.activeLearnings || 0}
             </p>
-          </CardContent>
-        </Card>
+            <Progress value={stats?.avgViralityScore || 0} className="mt-1" />
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#8B5CF6' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">学習パターン</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalLearnings || 0}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">アクティブ: {stats?.activeLearnings || 0}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Main Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>バズ投稿分析</CardTitle>
-              <CardDescription>バズ投稿を分析してパターンを学習</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => batchAnalyzeMutation.mutate({ limit: 10 })}
-                disabled={batchAnalyzeMutation.isPending}
-              >
-                {batchAnalyzeMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Brain className="h-4 w-4 mr-2" />
-                )}
-                一括分析
-              </Button>
-              <Button
-                onClick={() => extractPatternsMutation.mutate({ minViralityScore: 50, minPosts: 5 })}
-                disabled={extractPatternsMutation.isPending}
-              >
-                {extractPatternsMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                パターン抽出
-              </Button>
+      {/* Page Header */}
+      <div className="page-header flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-[#1A1A1A]">バズ投稿分析</h2>
+          <p className="text-xs text-[#A3A3A3] mt-0.5">バズ投稿を分析してパターンを学習</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => batchAnalyzeMutation.mutate({ limit: 10 })}
+            disabled={batchAnalyzeMutation.isPending}
+          >
+            {batchAnalyzeMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Brain className="h-4 w-4 mr-2" />
+            )}
+            一括分析
+          </Button>
+          <Button
+            onClick={() => extractPatternsMutation.mutate({ minViralityScore: 50, minPosts: 5 })}
+            disabled={extractPatternsMutation.isPending}
+            className="bg-[#D4380D] hover:bg-[#B8300B] text-white"
+          >
+            {extractPatternsMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            パターン抽出
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+        {/* Tab Buttons */}
+        <div className="flex gap-1 bg-[#F5F5F5] rounded-md p-0.5 w-fit">
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              activeTab === "dashboard" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            ダッシュボード
+          </button>
+          <button
+            onClick={() => setActiveTab("posts")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              activeTab === "posts" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            投稿一覧 ({stats?.totalPosts || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab("learnings")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              activeTab === "learnings" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            学習パターン ({stats?.totalLearnings || 0})
+          </button>
+        </div>
+
+        {/* Dashboard Tab */}
+        {activeTab === "dashboard" && (
+          <div className="mt-6 space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Source Distribution */}
+              <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+                <h3 className="text-sm font-semibold text-[#1A1A1A] mb-3">ソース別</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-[#1A1A1A]">自アカウント</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm">{stats?.ownAccountPosts || 0}</span>
+                      <Progress value={stats?.totalPosts ? ((stats.ownAccountPosts || 0) / stats.totalPosts) * 100 : 0} className="w-24" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-[#1A1A1A]">モデルアカウント</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm">{stats?.modelAccountPosts || 0}</span>
+                      <Progress value={stats?.totalPosts ? ((stats.modelAccountPosts || 0) / stats.totalPosts) * 100 : 0} className="w-24" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category Distribution */}
+              <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+                <h3 className="text-sm font-semibold text-[#1A1A1A] mb-3">カテゴリ別</h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {stats?.byCategory && Object.entries(stats.byCategory).map(([cat, count]) => (
+                    <div key={cat} className="flex justify-between items-center">
+                      <span className="text-xs text-[#1A1A1A]">{industryLabels[cat] || cat}</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Learning Types */}
+              <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4 md:col-span-2">
+                <h3 className="text-sm font-semibold text-[#1A1A1A] mb-3">学習タイプ別</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {stats?.byLearningType && Object.entries(stats.byLearningType).map(([type, count]) => (
+                    <div key={type} className="text-center p-4 rounded-lg bg-[#F5F5F5]">
+                      <div className="text-2xl font-bold text-[#1A1A1A]">{count}</div>
+                      <div className="text-xs text-[#A3A3A3] mt-1">
+                        {learningTypeLabels[type] || type}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="dashboard">ダッシュボード</TabsTrigger>
-              <TabsTrigger value="posts">投稿一覧 ({stats?.totalPosts || 0})</TabsTrigger>
-              <TabsTrigger value="learnings">学習パターン ({stats?.totalLearnings || 0})</TabsTrigger>
-            </TabsList>
+        )}
 
-            {/* Dashboard Tab */}
-            <TabsContent value="dashboard" className="mt-6 space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                {/* Source Distribution */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">ソース別</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span>自アカウント</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">{stats?.ownAccountPosts || 0}</span>
-                          <Progress value={stats?.totalPosts ? ((stats.ownAccountPosts || 0) / stats.totalPosts) * 100 : 0} className="w-24" />
-                        </div>
+        {/* Posts Tab */}
+        {activeTab === "posts" && (
+          <div className="mt-6">
+            <div className="mb-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="カテゴリでフィルター" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">すべて</SelectItem>
+                  {Object.entries(industryLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
+              <div className="grid grid-cols-7 gap-0 bg-[#F5F5F5] text-[11px] font-medium text-[#A3A3A3] uppercase tracking-wide">
+                <div className="px-3 py-2 col-span-2">コンテンツ</div>
+                <div className="px-3 py-2">スコア</div>
+                <div className="px-3 py-2">カテゴリ</div>
+                <div className="px-3 py-2">タイプ</div>
+                <div className="px-3 py-2">エンゲージメント</div>
+                <div className="px-3 py-2 text-right">ステータス / アクション</div>
+              </div>
+              {postsLoading ? (
+                <div className="px-3 py-8 text-center">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                </div>
+              ) : !posts || posts.length === 0 ? (
+                <div className="px-3 py-8 text-center text-[#A3A3A3] text-sm">
+                  バズ投稿がありません
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <div key={post.id} className="grid grid-cols-7 gap-0 border-t border-[#F0F0F0] hover:bg-[#F5F5F5] transition-colors">
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A] col-span-2">
+                      <div className="max-w-[300px]">
+                        <p className="text-sm line-clamp-2">{post.content}</p>
+                        {post.postUrl && (
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="p-0 h-auto text-xs"
+                            onClick={() => window.open(post.postUrl || '', '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            元投稿を見る
+                          </Button>
+                        )}
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span>モデルアカウント</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">{stats?.modelAccountPosts || 0}</span>
-                          <Progress value={stats?.totalPosts ? ((stats.modelAccountPosts || 0) / stats.totalPosts) * 100 : 0} className="w-24" />
-                        </div>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${getViralityBgColor(post.viralityScore || 0)}`} />
+                        <span className={`font-bold ${getViralityColor(post.viralityScore || 0)}`}>
+                          {post.viralityScore || 0}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Category Distribution */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">カテゴリ別</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {stats?.byCategory && Object.entries(stats.byCategory).map(([cat, count]) => (
-                        <div key={cat} className="flex justify-between items-center">
-                          <span className="text-sm">{industryLabels[cat] || cat}</span>
-                          <Badge variant="outline">{count}</Badge>
-                        </div>
-                      ))}
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      {post.industryCategory ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">
+                          {industryLabels[post.industryCategory] || post.industryCategory}
+                        </span>
+                      ) : (
+                        <span className="text-[#A3A3A3] text-sm">-</span>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Learning Types */}
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-sm">学習タイプ別</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {stats?.byLearningType && Object.entries(stats.byLearningType).map(([type, count]) => (
-                        <div key={type} className="text-center p-4 rounded-lg bg-muted">
-                          <div className="text-2xl font-bold">{count}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {learningTypeLabels[type] || type}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      {post.postType ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                          {postTypeLabels[post.postType] || post.postType}
+                        </span>
+                      ) : (
+                        <span className="text-[#A3A3A3] text-sm">-</span>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Posts Tab */}
-            <TabsContent value="posts" className="mt-6">
-              <div className="mb-4">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="カテゴリでフィルター" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">すべて</SelectItem>
-                    {Object.entries(industryLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[300px]">コンテンツ</TableHead>
-                      <TableHead>スコア</TableHead>
-                      <TableHead>カテゴリ</TableHead>
-                      <TableHead>タイプ</TableHead>
-                      <TableHead>エンゲージメント</TableHead>
-                      <TableHead>ステータス</TableHead>
-                      <TableHead className="text-right">アクション</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {postsLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ) : !posts || posts.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          バズ投稿がありません
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      posts.map((post) => (
-                        <TableRow key={post.id}>
-                          <TableCell>
-                            <div className="max-w-[300px]">
-                              <p className="text-sm line-clamp-2">{post.content}</p>
-                              {post.postUrl && (
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  className="p-0 h-auto text-xs"
-                                  onClick={() => window.open(post.postUrl || '', '_blank')}
-                                >
-                                  <ExternalLink className="h-3 w-3 mr-1" />
-                                  元投稿を見る
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full ${getViralityBgColor(post.viralityScore || 0)}`} />
-                              <span className={`font-bold ${getViralityColor(post.viralityScore || 0)}`}>
-                                {post.viralityScore || 0}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {post.industryCategory ? (
-                              <Badge variant="outline">
-                                {industryLabels[post.industryCategory] || post.industryCategory}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {post.postType ? (
-                              <Badge variant="secondary">
-                                {postTypeLabels[post.postType] || post.postType}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <span className="text-red-500">♡ {post.likesCount || 0}</span>
-                              <span className="mx-1 text-muted-foreground">|</span>
-                              <span className="text-blue-500">↻ {post.sharesCount || 0}</span>
-                              <span className="mx-1 text-muted-foreground">|</span>
-                              <span className="text-green-500">💬 {post.commentsCount || 0}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={post.isAnalyzed === 1 ? "default" : "secondary"}>
-                              {post.isAnalyzed === 1 ? "分析済み" : "未分析"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setSelectedPost(post)}
-                                  >
-                                    詳細
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>投稿分析詳細</DialogTitle>
-                                    <DialogDescription>
-                                      バイラリティスコア: {post.viralityScore || 0}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-                                    <div>
-                                      <h4 className="font-semibold mb-2">コンテンツ</h4>
-                                      <p className="text-sm bg-muted p-3 rounded">{post.content}</p>
-                                    </div>
-                                    {post.successFactors && (
-                                      <div>
-                                        <h4 className="font-semibold mb-2">成功要因</h4>
-                                        <div className="space-y-2">
-                                          {JSON.parse(post.successFactors).map((factor: any, i: number) => (
-                                            <div key={i} className="bg-muted p-2 rounded text-sm">
-                                              <span className="font-medium">{factor.factor}</span>
-                                              <Badge className="ml-2" variant={
-                                                factor.importance === 'high' ? 'default' :
-                                                factor.importance === 'medium' ? 'secondary' : 'outline'
-                                              }>
-                                                {factor.importance}
-                                              </Badge>
-                                              <p className="text-muted-foreground mt-1">{factor.explanation}</p>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {post.hookAnalysis && (
-                                      <div>
-                                        <h4 className="font-semibold mb-2">フック分析</h4>
-                                        <div className="bg-muted p-3 rounded text-sm">
-                                          {(() => {
-                                            const hook = JSON.parse(post.hookAnalysis);
-                                            return (
-                                              <>
-                                                <p><span className="font-medium">タイプ:</span> {hook.hookType}</p>
-                                                <p><span className="font-medium">テキスト:</span> "{hook.hookText}"</p>
-                                                <p><span className="font-medium">効果:</span> {hook.effectiveness}%</p>
-                                                <p className="text-muted-foreground mt-1">{hook.analysis}</p>
-                                              </>
-                                            );
-                                          })()}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                              {post.isAnalyzed !== 1 && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleAnalyze(post.id)}
-                                  disabled={analyzingId === post.id}
-                                >
-                                  {analyzingId === post.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Play className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-
-            {/* Learnings Tab */}
-            <TabsContent value="learnings" className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>タイトル</TableHead>
-                      <TableHead>タイプ</TableHead>
-                      <TableHead>カテゴリ</TableHead>
-                      <TableHead>信頼度</TableHead>
-                      <TableHead>サンプル数</TableHead>
-                      <TableHead>使用回数</TableHead>
-                      <TableHead>ステータス</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {learningsLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ) : !learnings || learnings.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          学習パターンがありません
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      learnings.map((learning) => (
-                        <TableRow key={learning.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{learning.title}</p>
-                              <p className="text-xs text-muted-foreground line-clamp-1">
-                                {learning.description}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {learningTypeLabels[learning.learningType || ''] || learning.learningType}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {learning.industryCategory ? (
-                              <Badge variant="secondary">
-                                {industryLabels[learning.industryCategory] || learning.industryCategory}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={learning.confidence || 0} className="w-16" />
-                              <span className="text-sm">{learning.confidence || 0}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{learning.sampleSize || 0}</TableCell>
-                          <TableCell>{learning.usageCount || 0}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={learning.isActive === 1 ? "default" : "secondary"}
-                              className="cursor-pointer"
-                              onClick={() => toggleLearningMutation.mutate({ learningId: learning.id })}
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <div className="text-sm">
+                        <span className="text-red-500">&#9825; {post.likesCount || 0}</span>
+                        <span className="mx-1 text-[#A3A3A3]">|</span>
+                        <span className="text-blue-500">&#8635; {post.sharesCount || 0}</span>
+                        <span className="mx-1 text-[#A3A3A3]">|</span>
+                        <span className="text-green-500">&#128172; {post.commentsCount || 0}</span>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <div className="flex items-center justify-end gap-1">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${
+                          post.isAnalyzed === 1
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-[#F5F5F5] text-[#737373]"
+                        }`}>
+                          {post.isAnalyzed === 1 ? "分析済み" : "未分析"}
+                        </span>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedPost(post)}
                             >
-                              {learning.isActive === 1 ? "アクティブ" : "停止中"}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                              詳細
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>投稿分析詳細</DialogTitle>
+                              <DialogDescription>
+                                バイラリティスコア: {post.viralityScore || 0}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                              <div>
+                                <h4 className="font-semibold mb-2">コンテンツ</h4>
+                                <p className="text-sm bg-[#F5F5F5] p-3 rounded">{post.content}</p>
+                              </div>
+                              {post.successFactors && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">成功要因</h4>
+                                  <div className="space-y-2">
+                                    {JSON.parse(post.successFactors).map((factor: any, i: number) => (
+                                      <div key={i} className="bg-[#F5F5F5] p-2 rounded text-sm">
+                                        <span className="font-medium">{factor.factor}</span>
+                                        <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${
+                                          factor.importance === 'high'
+                                            ? 'bg-emerald-50 text-emerald-700'
+                                            : factor.importance === 'medium'
+                                            ? 'bg-[#F5F5F5] text-[#737373]'
+                                            : 'border border-[#E5E5E5] text-[#737373]'
+                                        }`}>
+                                          {factor.importance}
+                                        </span>
+                                        <p className="text-[#A3A3A3] mt-1">{factor.explanation}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {post.hookAnalysis && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">フック分析</h4>
+                                  <div className="bg-[#F5F5F5] p-3 rounded text-sm">
+                                    {(() => {
+                                      const hook = JSON.parse(post.hookAnalysis);
+                                      return (
+                                        <>
+                                          <p><span className="font-medium">タイプ:</span> {hook.hookType}</p>
+                                          <p><span className="font-medium">テキスト:</span> "{hook.hookText}"</p>
+                                          <p><span className="font-medium">効果:</span> {hook.effectiveness}%</p>
+                                          <p className="text-[#A3A3A3] mt-1">{hook.analysis}</p>
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        {post.isAnalyzed !== 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleAnalyze(post.id)}
+                            disabled={analyzingId === post.id}
+                          >
+                            {analyzingId === post.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Learnings Tab */}
+        {activeTab === "learnings" && (
+          <div className="mt-6">
+            <div className="border border-[#E5E5E5] rounded-md overflow-hidden">
+              <div className="grid grid-cols-7 gap-0 bg-[#F5F5F5] text-[11px] font-medium text-[#A3A3A3] uppercase tracking-wide">
+                <div className="px-3 py-2 col-span-2">タイトル</div>
+                <div className="px-3 py-2">タイプ</div>
+                <div className="px-3 py-2">カテゴリ</div>
+                <div className="px-3 py-2">信頼度</div>
+                <div className="px-3 py-2">サンプル / 使用</div>
+                <div className="px-3 py-2">ステータス</div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              {learningsLoading ? (
+                <div className="px-3 py-8 text-center">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                </div>
+              ) : !learnings || learnings.length === 0 ? (
+                <div className="px-3 py-8 text-center text-[#A3A3A3] text-sm">
+                  学習パターンがありません
+                </div>
+              ) : (
+                learnings.map((learning) => (
+                  <div key={learning.id} className="grid grid-cols-7 gap-0 border-t border-[#F0F0F0] hover:bg-[#F5F5F5] transition-colors">
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A] col-span-2">
+                      <div>
+                        <p className="font-medium">{learning.title}</p>
+                        <p className="text-[10px] text-[#A3A3A3] line-clamp-1">
+                          {learning.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">
+                        {learningTypeLabels[learning.learningType || ''] || learning.learningType}
+                      </span>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      {learning.industryCategory ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                          {industryLabels[learning.industryCategory] || learning.industryCategory}
+                        </span>
+                      ) : (
+                        <span className="text-[#A3A3A3]">-</span>
+                      )}
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <div className="flex items-center gap-2">
+                        <Progress value={learning.confidence || 0} className="w-16" />
+                        <span className="text-sm">{learning.confidence || 0}%</span>
+                      </div>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <span>{learning.sampleSize || 0}</span>
+                      <span className="text-[#A3A3A3] mx-1">/</span>
+                      <span>{learning.usageCount || 0}</span>
+                    </div>
+                    <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium cursor-pointer ${
+                          learning.isActive === 1
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-[#F5F5F5] text-[#737373]"
+                        }`}
+                        onClick={() => toggleLearningMutation.mutate({ learningId: learning.id })}
+                      >
+                        {learning.isActive === 1 ? "アクティブ" : "停止中"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

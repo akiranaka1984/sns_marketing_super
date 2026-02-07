@@ -3,7 +3,6 @@ import { interactions, postUrls, accounts, projectAccounts } from "../drizzle/sc
 import { eq, and, lte } from "drizzle-orm";
 import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./utils/python-runner";
 import { getAccountLearnings } from "./services/account-learning-service";
-import { ensureDeviceReady } from "./ensure-device-ready";
 import { addInteractionJob, type InteractionJob } from "./queue-manager";
 
 /**
@@ -124,19 +123,6 @@ async function processScheduledInteractions(): Promise<{
     result.processed++;
     console.log(`[InteractionScheduler] Processing ${task.interaction.interactionType} task ${task.interaction.id}`);
 
-    // デバイスが起動しているか確認し、停止中なら自動起動
-    const deviceId = task.interaction.fromDeviceId;
-    if (deviceId) {
-      const deviceReady = await ensureDeviceReady(deviceId);
-      if (!deviceReady.ready) {
-        await db.update(interactions)
-          .set({ status: "failed", errorMessage: `デバイス起動失敗: ${deviceReady.message}` })
-          .where(eq(interactions.id, task.interaction.id));
-        result.failed++;
-        continue;
-      }
-    }
-
     // ステータスを処理中に更新
     await db.update(interactions)
       .set({ status: "processing" })
@@ -145,10 +131,8 @@ async function processScheduledInteractions(): Promise<{
     try {
       let execResult;
 
-      const apiKey = process.env.DUOPLUS_API_KEY;
-      if (!apiKey) {
-        execResult = { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
-      } else if (task.interaction.interactionType === "like") {
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
+      if (task.interaction.interactionType === "like") {
         execResult = await executeLike(apiKey, task.interaction.fromDeviceId, task.postUrl!.postUrl);
       } else if (task.interaction.interactionType === "comment") {
         const openaiApiKey = process.env.OPENAI_API_KEY;

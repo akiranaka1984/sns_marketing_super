@@ -1,31 +1,48 @@
-import { z } from "zod";
 import { router, protectedProcedure } from "./_core/trpc";
+import { z } from "zod";
 import { db } from "./db";
 import { xApiSettings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * X API Settings Router
+ * Manages X (Twitter) API credentials
+ */
 export const xApiSettingsRouter = router({
-  // 設定を取得
+  /**
+   * Get X API settings for current user
+   */
   get: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user?.id || 1;
+
     const settings = await db.query.xApiSettings.findFirst({
-      where: eq(xApiSettings.userId, ctx.user.id),
+      where: eq(xApiSettings.userId, userId),
     });
-    // パスワード系はマスク
-    if (settings) {
+
+    if (!settings) {
       return {
-        ...settings,
-        apiKey: settings.apiKey ? "****" + settings.apiKey.slice(-4) : null,
-        apiSecret: settings.apiSecret ? "****" : null,
-        bearerToken: settings.bearerToken ? "****" + settings.bearerToken.slice(-4) : null,
-        hasApiKey: !!settings.apiKey,
-        hasApiSecret: !!settings.apiSecret,
-        hasBearerToken: !!settings.bearerToken,
+        configured: false,
+        apiKey: "",
+        apiSecret: "",
+        bearerToken: "",
+        lastTestedAt: null,
+        testResult: null,
       };
     }
-    return null;
+
+    return {
+      configured: !!settings.bearerToken,
+      apiKey: settings.apiKey || "",
+      apiSecret: settings.apiSecret || "",
+      bearerToken: settings.bearerToken || "",
+      lastTestedAt: settings.lastTestedAt,
+      testResult: settings.testResult,
+    };
   }),
 
-  // 設定を保存
+  /**
+   * Save X API settings
+   */
   save: protectedProcedure
     .input(z.object({
       apiKey: z.string().optional(),
@@ -33,75 +50,114 @@ export const xApiSettingsRouter = router({
       bearerToken: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id || 1;
+
+      // Check if settings exist
       const existing = await db.query.xApiSettings.findFirst({
-        where: eq(xApiSettings.userId, ctx.user.id),
+        where: eq(xApiSettings.userId, userId),
       });
 
-      // 空文字でない場合のみ更新
-      const updateData: any = {};
-      if (input.apiKey && input.apiKey.length > 10) updateData.apiKey = input.apiKey;
-      if (input.apiSecret && input.apiSecret.length > 10) updateData.apiSecret = input.apiSecret;
-      if (input.bearerToken && input.bearerToken.length > 10) updateData.bearerToken = input.bearerToken;
-
       if (existing) {
+        // Update existing
         await db.update(xApiSettings)
-          .set({ ...updateData, updatedAt: new Date() })
-          .where(eq(xApiSettings.id, existing.id));
+          .set({
+            apiKey: input.apiKey || existing.apiKey,
+            apiSecret: input.apiSecret || existing.apiSecret,
+            bearerToken: input.bearerToken || existing.bearerToken,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(xApiSettings.userId, userId));
       } else {
+        // Insert new
         await db.insert(xApiSettings).values({
-          userId: ctx.user.id,
-          ...updateData,
+          userId,
+          apiKey: input.apiKey || null,
+          apiSecret: input.apiSecret || null,
+          bearerToken: input.bearerToken || null,
         });
       }
 
-      return { success: true };
+      return {
+        success: true,
+        message: "X API設定を保存しました",
+      };
     }),
 
-  // 接続テスト
-  test: protectedProcedure.mutation(async ({ ctx }) => {
-    const settings = await db.query.xApiSettings.findFirst({
-      where: eq(xApiSettings.userId, ctx.user.id),
-    });
+  /**
+   * Test X API connection using Bearer Token
+   */
+  testConnection: protectedProcedure
+    .input(z.object({
+      bearerToken: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id || 1;
 
-    if (!settings?.bearerToken) {
-      return { success: false, error: "Bearer Token が設定されていません" };
-    }
+      try {
+        // Test the Bearer Token by fetching a user
+        const response = await fetch(
+          "https://api.twitter.com/2/users/by/username/twitter",
+          {
+            headers: {
+              Authorization: `Bearer ${input.bearerToken}`,
+            },
+          }
+        );
 
-    try {
-      // Bearer Token（App-only auth）で使用可能なSearch APIでテスト
-      const testQuery = encodeURIComponent("twitter -is:retweet");
-      const response = await fetch(
-        `https://api.twitter.com/2/tweets/search/recent?query=${testQuery}&max_results=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${settings.bearerToken}`,
-          },
+        const testResult = response.ok ? "success" : "failed";
+        const now = new Date().toISOString();
+
+        // Update test result in database
+        const existing = await db.query.xApiSettings.findFirst({
+          where: eq(xApiSettings.userId, userId),
+        });
+
+        if (existing) {
+          await db.update(xApiSettings)
+            .set({
+              lastTestedAt: now,
+              testResult,
+            })
+            .where(eq(xApiSettings.userId, userId));
         }
-      );
 
-      const result = response.ok ? "success" : "failed";
+        if (response.ok) {
+          return {
+            success: true,
+            message: "接続成功: X APIが正常に動作しています",
+          };
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.errors?.[0]?.message || response.statusText;
 
-      await db.update(xApiSettings)
-        .set({ lastTestedAt: new Date(), testResult: result })
-        .where(eq(xApiSettings.id, settings.id));
-
-      if (response.ok) {
-        const data = await response.json();
-        const tweetCount = data.meta?.result_count || 0;
-        return { 
-          success: true, 
-          message: `接続成功: ${tweetCount}件のツイートを取得しました`,
-          user: { username: "(Search API verified)" }
-        };
-      } else {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        return { 
-          success: false, 
-          error: `API エラー (${response.status}): ${errorData.title || errorData.error || "接続に失敗しました"}` 
+          if (response.status === 401) {
+            return {
+              success: false,
+              message: "接続失敗: Bearer Tokenが無効です",
+            };
+          } else if (response.status === 403) {
+            return {
+              success: false,
+              message: "接続失敗: アクセスが拒否されました（API権限を確認してください）",
+            };
+          } else if (response.status === 429) {
+            return {
+              success: false,
+              message: "接続失敗: レート制限に達しました",
+            };
+          } else {
+            return {
+              success: false,
+              message: `接続失敗: ${errorMessage}`,
+            };
+          }
+        }
+      } catch (error: any) {
+        console.error("[X API] Connection test failed:", error);
+        return {
+          success: false,
+          message: `接続失敗: ${error.message}`,
         };
       }
-    } catch (error) {
-      return { success: false, error: `接続エラー: ${String(error)}` };
-    }
-  }),
+    }),
 });

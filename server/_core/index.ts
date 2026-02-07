@@ -7,16 +7,15 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { deviceStatusUpdater } from "../device-status-updater";
 import { startScheduledPostsEnqueuer } from "../scheduled-posts";
 import { startAutoEngagementExecutor } from "../auto-engagement";
 import { getSetting } from "../db";
-import { startProxyHealthMonitor } from "../duoplus-proxy-health";
 import uploadRouter from "../upload";
 import { startInteractionEnqueuer } from "../interaction-scheduler";
 import { registerQueueProcessors } from "../queue-processors";
 import { closeQueues } from "../queue-manager";
 import { startScheduler } from "../agent-scheduler";
+import { attachWebSocketServer } from "../playwright/ws-preview";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -45,37 +44,23 @@ async function startServer() {
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   try {
-    const duoplusApiKey = await getSetting('DUOPLUS_API_KEY');
     const openaiApiKey = await getSetting('OPENAI_API_KEY');
-    
-    console.log('[Settings] Database query results:', {
-      duoplusApiKey: duoplusApiKey ? `${duoplusApiKey.substring(0, 20)}...` : 'null',
-      openaiApiKey: openaiApiKey ? `${openaiApiKey.substring(0, 20)}...` : 'null',
-    });
-    
-    if (duoplusApiKey) {
-      const oldKey = process.env.DUOPLUS_API_KEY;
-      process.env.DUOPLUS_API_KEY = duoplusApiKey;
-      console.log('[Settings] ✅ Loaded DUOPLUS_API_KEY from database');
-      console.log(`[Settings]    Old: ${oldKey?.substring(0, 20)}...`);
-      console.log(`[Settings]    New: ${duoplusApiKey.substring(0, 20)}...`);
-    } else {
-      console.log('[Settings] ⚠️  No DUOPLUS_API_KEY found in database, using environment variable');
-    }
-    
+
     if (openaiApiKey) {
       process.env.OPENAI_API_KEY = openaiApiKey;
-      console.log('[Settings] ✅ Loaded OPENAI_API_KEY from database');
+      console.log('[Settings] Loaded OPENAI_API_KEY from database');
     } else {
-      console.log('[Settings] ⚠️  No OPENAI_API_KEY found in database, using environment variable');
+      console.log('[Settings] No OPENAI_API_KEY found in database, using environment variable');
     }
   } catch (error: any) {
-    console.error('[Settings] ❌ Failed to load API keys from database:', error.message);
-    console.error('[Settings] Stack trace:', error.stack);
+    console.error('[Settings] Failed to load API keys from database:', error.message);
   }
   
   const app = express();
   const server = createServer(app);
+
+  // Attach WebSocket server for Playwright live preview
+  attachWebSocketServer(server);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -108,9 +93,6 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
 
-    // Start device status background updater
-    deviceStatusUpdater.start();
-
     // Register queue processors (Bull)
     registerQueueProcessors();
     console.log('[Queue] Queue processors registered');
@@ -120,9 +102,6 @@ async function startServer() {
 
     // Start auto-engagement executor
     startAutoEngagementExecutor();
-
-    // Start proxy health monitor
-    startProxyHealthMonitor();
 
     // Start interaction enqueuer (adds pending interactions to queue)
     startInteractionEnqueuer();
@@ -144,9 +123,6 @@ async function startServer() {
 
       // Close queue connections
       await closeQueues();
-
-      // Stop device updater
-      deviceStatusUpdater.stop();
 
       console.log('[Server] Graceful shutdown complete');
       process.exit(0);

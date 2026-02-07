@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "./_core/trpc";
 import { db } from "./db";
-import { buzzPosts, buzzLearnings, agentKnowledge, accounts } from "../drizzle/schema";
+import { buzzPosts, buzzLearnings, agentKnowledge, accounts, learningSyncLog } from "../drizzle/schema";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
 import { analyzeBuzzPost, extractBuzzPatterns, generateLearningEntry } from "./services/buzz-analyzer";
 import { classifyPost } from "./services/category-classifier";
@@ -302,12 +302,22 @@ export const buzzAnalysisRouter = router({
 
             console.log(`[BuzzAnalysis] Auto-applying ${savedLearnings.length} learnings to ${userAccounts.length} accounts`);
 
-            // Apply each learning to each account
+            // Apply each learning to each account and record sync log
             for (const learningId of savedLearnings) {
               for (const account of userAccounts) {
                 try {
-                  await applyBuzzLearningToAccount(learningId, account.id);
+                  const accountLearningId = await applyBuzzLearningToAccount(learningId, account.id);
                   appliedCount++;
+
+                  // Record in learning sync log for traceability
+                  await db.insert(learningSyncLog).values({
+                    sourceLearningType: 'buzz_learning',
+                    sourceLearningId: learningId,
+                    targetAccountId: account.id,
+                    accountLearningId: accountLearningId,
+                    relevanceScore: 70,
+                    autoApplied: 1,
+                  });
                 } catch (applyError) {
                   console.error(`[BuzzAnalysis] Error applying learning ${learningId} to account ${account.id}:`, applyError);
                   applyErrors++;

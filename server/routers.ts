@@ -8,15 +8,11 @@ import * as db from "./db";
 import { db as drizzleDb } from "./db";
 import { agentAccounts, agents, settings } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import { registerAccountWithRetry } from "./accountRegistration";
 import { generateStrategy, generatePersonaCharacteristics } from "./aiEngine";
-import { automationRouter } from "./automation.routers";
 import { automationRouter as newAutomationRouter } from "./routers/automation";
 import { settingsRouter } from "./settings.routers";
 import { projectsRouter } from "./projects.routers";
-import { proxyRouter } from "./proxy.routers";
-import { deviceRouter } from "./device.routers";
-import { findDeviceIdByAccountName } from "./duoplus-proxy";
+
 import { freezeRouter } from "./freeze.routers";
 import { scheduledPostsRouter } from "./scheduled-posts.routers";
 import { engagementRouter } from "./engagement.routers";
@@ -32,13 +28,6 @@ import { autoContentGenerationRouter } from "./auto-content-generation.routers";
 import { engagementCollectorRouter } from "./engagement-collector.routers";
 import { abTestingRouter } from "./ab-testing.routers";
 import { agentScheduledPostsRouter } from "./agent-scheduled-posts.routers";
-import { deviceMonitorRouter } from "./device-monitor.routers";
-import { debugRouter } from "./debug.routers";
-import { proxyHealthRouter } from "./proxy-health.routers";
-import { xWebRouter } from './x-web.routers';
-import { xWebCoordinateRouter } from './x-web-coordinate.routers';
-import { adbkeyboardRouter } from './adbkeyboard.routers';
-import { xApiSettingsRouter } from './x-api-settings.routers';
 import { interactionsRouter } from './interactions.routers';
 import { interactionSettingsRouter } from './interaction-settings.routers';
 import { schedulerRouter } from './scheduler.routers';
@@ -48,6 +37,9 @@ import { buzzAnalysisRouter } from './buzz-analysis.routers';
 import { profileOptimizationRouter } from './profile-optimization.routers';
 import { projectModelAccountsRouter } from './project-model-accounts.routers';
 import { kpiTrackingRouter } from './kpi-tracking.routers';
+import { playwrightSessionRouter } from './playwright-session.routers';
+import { xApiSettingsRouter } from './x-api-settings.routers';
+import { learningInsightsRouter } from './learning-insights.routers';
 import { startScheduler, stopScheduler, isSchedulerRunning, getAllScheduledExecutions, checkAndRunScheduledAgents } from "./agent-scheduler";
 import { getAccountGrowthStats, getAccountLearningsWithDetails, syncAccountGrowthFromLearnings } from "./services/account-growth-service";
 
@@ -64,12 +56,9 @@ export const appRouter = router({
   }),
 
   system: systemRouter,
-  automation: automationRouter,
   newAutomation: newAutomationRouter,
   settings: settingsRouter,
   projects: projectsRouter,
-  proxy: proxyRouter,
-  device: deviceRouter,
   freeze: freezeRouter,
   scheduledPosts: scheduledPostsRouter,
   engagement: engagementRouter,
@@ -85,13 +74,6 @@ export const appRouter = router({
   engagementCollector: engagementCollectorRouter,
   abTesting: abTestingRouter,
   agentScheduledPosts: agentScheduledPostsRouter,
-  deviceMonitor: deviceMonitorRouter,
-  debug: debugRouter,
-  proxyHealth: proxyHealthRouter,
-  xWeb: xWebRouter,
-  xWebCoordinate: xWebCoordinateRouter,
-  adbkeyboard: adbkeyboardRouter,
-  xApiSettings: xApiSettingsRouter,
   interactions: interactionsRouter,
   interactionSettings: interactionSettingsRouter,
   scheduler: schedulerRouter,
@@ -101,6 +83,9 @@ export const appRouter = router({
   profileOptimization: profileOptimizationRouter,
   projectModelAccounts: projectModelAccountsRouter,
   kpiTracking: kpiTrackingRouter,
+  playwrightSession: playwrightSessionRouter,
+  xApiSettings: xApiSettingsRouter,
+  learningInsights: learningInsightsRouter,
 
   // Agent Scheduler endpoints
   agentScheduler: router({
@@ -192,49 +177,6 @@ export const appRouter = router({
 
         // Return the account ID for the frontend to use
         return { id: insertId };
-      }),
-
-    // Register an account (start the registration process)
-    register: protectedProcedure
-      .input(z.object({
-        accountId: z.number(),
-      }))
-      .mutation(async ({ input }) => {
-        const account = await db.getAccountById(input.accountId);
-        if (!account) {
-          throw new Error('Account not found');
-        }
-
-        // Get an available device
-        const device = await db.getAvailableDevice();
-        if (!device) {
-          throw new Error('No available devices');
-        }
-
-        // Update device status to busy
-        await db.updateDeviceStatus(device.deviceId, 'busy');
-
-        try {
-          // Start registration process
-          const result = await registerAccountWithRetry({
-            accountId: account.id,
-            deviceId: device.deviceId,
-            platform: account.platform,
-            username: account.username,
-            password: account.password,
-          });
-
-          if (result.success) {
-            await db.updateAccountStatus(account.id, 'active', device.deviceId);
-          } else {
-            await db.updateAccountStatus(account.id, 'failed');
-          }
-
-          return result;
-        } finally {
-          // Release device
-          await db.updateDeviceStatus(device.deviceId, 'available');
-        }
       }),
 
     // Update account (including xHandle and planType)
@@ -368,104 +310,6 @@ export const appRouter = router({
 
         await db.updateAccountDeviceId(input.accountId, null);
         return { success: true };
-      }),
-
-    // Sync device IDs from DuoPlus
-    syncDeviceIds: protectedProcedure
-      .mutation(async ({ ctx }) => {
-        const accounts = await db.getAccountsByUserId(ctx.user.id);
-        let synced = 0;
-        let failed = 0;
-        let skipped = 0;
-        const errors: string[] = [];
-
-        console.log(`[Account Sync] Starting sync for ${accounts.length} accounts`);
-
-        for (const account of accounts) {
-          // Skip if device ID already exists
-          if (account.deviceId) {
-            console.log(`[Account Sync] Skipping account ${account.id} (${account.username}) - already has device ID: ${account.deviceId}`);
-            skipped++;
-            continue;
-          }
-
-          try {
-            // Try to find device ID by account username
-            console.log(`[Account Sync] Searching device ID for account ${account.id} (${account.username})`);
-            const deviceId = await findDeviceIdByAccountName(account.username);
-            
-            if (deviceId) {
-              // Update account with device ID
-              await db.updateAccountDeviceId(account.id, deviceId);
-              console.log(`[Account Sync] Updated device ID for account ${account.id}: ${deviceId}`);
-              synced++;
-            } else {
-              console.log(`[Account Sync] No device found for account ${account.id} (${account.username})`);
-              errors.push(`${account.username}: デバイスが見つかりません`);
-              failed++;
-            }
-          } catch (error: any) {
-            console.error(`[Account Sync] Error syncing account ${account.id}:`, error.message);
-            errors.push(`${account.username}: ${error.message}`);
-            failed++;
-          }
-        }
-
-        console.log(`[Account Sync] Sync completed: ${synced} synced, ${failed} failed, ${skipped} skipped`);
-
-        return {
-          success: true,
-          message: `同期完了: ${synced}件成功, ${failed}件失敗, ${skipped}件スキップ`,
-          synced,
-          failed,
-          skipped,
-          errors,
-        };
-      }),
-
-    // Assign a device to an account
-    assignDevice: protectedProcedure
-      .input(z.object({
-        accountId: z.number(),
-        deviceId: z.string().optional(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        const account = await db.getAccountById(input.accountId);
-        if (!account || account.userId !== ctx.user.id) {
-          return { success: false, message: 'アカウントが見つかりません' };
-        }
-
-        if (account.deviceId) {
-          return { success: false, message: 'このアカウントには既にデバイスが割り当てられています' };
-        }
-
-        try {
-          let deviceIdToAssign: string;
-
-          if (input.deviceId) {
-            // Use the specified device ID
-            deviceIdToAssign = input.deviceId;
-          } else {
-            // Get an available device from database
-            const device = await db.getAvailableDevice();
-            if (!device) {
-              return { success: false, message: '利用可能なデバイスがありません。DuoPlusでデバイスを追加してください。' };
-            }
-            deviceIdToAssign = device.deviceId;
-          }
-
-          // Update account with device ID
-          await db.updateAccountDeviceId(input.accountId, deviceIdToAssign);
-
-          return {
-            success: true,
-            message: `デバイス ${deviceIdToAssign} を割り当てました`,
-            deviceId: deviceIdToAssign,
-          };
-        } catch (error: any) {
-          console.error('[AssignDevice] Error:', error);
-          return { success: false, message: `デバイス割り当てに失敗しました: ${error.message}` };
-        }
       }),
 
     // Get account growth stats (level, XP, learnings count)
@@ -763,19 +607,6 @@ export const appRouter = router({
 
         return strategy;
       }),
-  }),
-
-  devices: router({
-    // List all devices
-    list: protectedProcedure.query(async () => {
-      return await db.getAllDevices();
-    }),
-
-    // Get available device count
-    availableCount: protectedProcedure.query(async () => {
-      const device = await db.getAvailableDevice();
-      return device ? 1 : 0;
-    }),
   }),
 
   oldAnalytics: router({

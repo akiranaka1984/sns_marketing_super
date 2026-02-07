@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -193,316 +189,316 @@ export default function ModelAccounts() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-96">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">モデルアカウント</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAccounts || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              アクティブ: {stats?.activeAccounts || 0}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">収集済み投稿</CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalCollectedPosts || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              分析済み: {stats?.analyzedPosts || 0}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">カテゴリ</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Object.keys(categoryCounts).length}</div>
-            <p className="text-xs text-muted-foreground">
-              業界分類数
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI分類</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">GPT-4o</div>
-            <p className="text-xs text-muted-foreground">
-              自動分類エンジン
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-5 max-w-5xl">
+      {/* Stat Cards */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#6366F1' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">モデルアカウント</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalAccounts || 0}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">アクティブ: {stats?.activeAccounts || 0}</p>
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#10B981' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">収集済み投稿</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalCollectedPosts || 0}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">分析済み: {stats?.analyzedPosts || 0}</p>
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#F59E0B' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">カテゴリ</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{Object.keys(categoryCounts).length}</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">業界分類数</p>
+          </div>
+        </div>
+        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#8B5CF6' } as React.CSSProperties}>
+          <div className="pl-3">
+            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">AI分類</p>
+            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">GPT-4o</p>
+            <p className="text-[10px] text-[#A3A3A3] mt-0.5">自動分類エンジン</p>
+          </div>
+        </div>
       </div>
 
-      {/* Main Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>モデルアカウント管理</CardTitle>
-              <CardDescription>バズ投稿を学習するためのモデルアカウント（インフルエンサー・競合）を管理</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => collectAllActiveMutation.mutate()}
-                disabled={collectAllActiveMutation.isPending}
-              >
-                {collectAllActiveMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Download className="h-4 w-4 mr-2" />
-                )}
-                一括収集
+      {/* Page Header */}
+      <div className="page-header flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-[#1A1A1A]">モデルアカウント管理</h2>
+          <p className="text-xs text-[#A3A3A3] mt-0.5">バズ投稿を学習するためのモデルアカウント（インフルエンサー・競合）を管理</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => collectAllActiveMutation.mutate()}
+            disabled={collectAllActiveMutation.isPending}
+          >
+            {collectAllActiveMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            一括収集
+          </Button>
+          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                アカウント追加
               </Button>
-              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    アカウント追加
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>モデルアカウント追加</DialogTitle>
-                    <DialogDescription>
-                      学習対象のXアカウント（インフルエンサー・競合）を追加します
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="username">Xユーザー名</Label>
-                      <Input
-                        id="username"
-                        placeholder="@username または username"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category">業界カテゴリ（オプション）</Label>
-                      <Select value={newIndustryCategory} onValueChange={setNewIndustryCategory}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="カテゴリを選択..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(industryLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        後からAIで自動分類することもできます
-                      </p>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                      キャンセル
-                    </Button>
-                    <Button onClick={handleAdd} disabled={addMutation.isPending}>
-                      {addMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                      追加
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as IndustryCategory)}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="all">
-                すべて ({stats?.totalAccounts || 0})
-              </TabsTrigger>
-              <TabsTrigger value="it_tech">
-                IT・テック ({categoryCounts['it_tech'] || 0})
-              </TabsTrigger>
-              <TabsTrigger value="business">
-                ビジネス ({categoryCounts['business'] || 0})
-              </TabsTrigger>
-              <TabsTrigger value="entertainment">
-                エンタメ ({categoryCounts['entertainment'] || 0})
-              </TabsTrigger>
-              <TabsTrigger value="education">
-                教育 ({categoryCounts['education'] || 0})
-              </TabsTrigger>
-              <TabsTrigger value="other">
-                その他 ({categoryCounts['other'] || 0})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={selectedCategory} className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ユーザー</TableHead>
-                      <TableHead>フォロワー</TableHead>
-                      <TableHead>業界</TableHead>
-                      <TableHead>投稿スタイル</TableHead>
-                      <TableHead>トーン</TableHead>
-                      <TableHead>収集数</TableHead>
-                      <TableHead>ステータス</TableHead>
-                      <TableHead className="text-right">アクション</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {!accounts || accounts.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          モデルアカウントがありません
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      accounts.map((account) => (
-                        <TableRow key={account.id}>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg">𝕏</span>
-                                <span className="font-medium">@{account.username}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => window.open(`https://x.com/${account.username}`, '_blank')}
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              {account.displayName && (
-                                <span className="text-sm text-muted-foreground">{account.displayName}</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {account.followersCount ? (
-                              <span className="font-medium">
-                                {account.followersCount.toLocaleString()}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {account.industryCategory ? (
-                              <Badge variant="outline">
-                                {industryLabels[account.industryCategory] || account.industryCategory}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">未分類</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {account.postingStyle ? (
-                              <Badge variant="secondary">
-                                {postingStyleLabels[account.postingStyle] || account.postingStyle}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {account.toneStyle ? (
-                              <Badge variant="secondary">
-                                {toneStyleLabels[account.toneStyle] || account.toneStyle}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-medium">{account.totalCollectedPosts || 0}</span>
-                            <span className="text-muted-foreground text-sm ml-1">件</span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={account.isActive === 1 ? "default" : "secondary"}
-                              className="cursor-pointer"
-                              onClick={() => toggleActiveMutation.mutate({ modelAccountId: account.id })}
-                            >
-                              {account.isActive === 1 ? "アクティブ" : "停止中"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => fetchProfileMutation.mutate({ modelAccountId: account.id })}
-                                disabled={fetchProfileMutation.isPending}
-                                title="プロフィール更新"
-                              >
-                                <RefreshCw className={`h-4 w-4 ${fetchProfileMutation.isPending ? 'animate-spin' : ''}`} />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleCollect(account.id)}
-                                disabled={collectingId === account.id}
-                                title="投稿を収集"
-                              >
-                                {collectingId === account.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Download className="h-4 w-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleAutoClassify(account.id)}
-                                disabled={classifyingId === account.id}
-                                title="AIで自動分類"
-                              >
-                                {classifyingId === account.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Brain className="h-4 w-4 text-purple-600" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(account.id)}
-                                disabled={deleteMutation.isPending}
-                                title="削除"
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>モデルアカウント追加</DialogTitle>
+                <DialogDescription>
+                  学習対象のXアカウント（インフルエンサー・競合）を追加します
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Xユーザー名</Label>
+                  <Input
+                    id="username"
+                    placeholder="@username または username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">業界カテゴリ（オプション）</Label>
+                  <Select value={newIndustryCategory} onValueChange={setNewIndustryCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="カテゴリを選択..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(industryLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-[#A3A3A3]">
+                    後からAIで自動分類することもできます
+                  </p>
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+                  キャンセル
+                </Button>
+                <Button onClick={handleAdd} disabled={addMutation.isPending} className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+                  {addMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  追加
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Tab Buttons */}
+      <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+        <div className="flex gap-1 bg-[#F5F5F5] rounded-md p-0.5 w-fit">
+          <button
+            onClick={() => setSelectedCategory("all")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "all" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            すべて ({stats?.totalAccounts || 0})
+          </button>
+          <button
+            onClick={() => setSelectedCategory("it_tech")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "it_tech" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            IT・テック ({categoryCounts['it_tech'] || 0})
+          </button>
+          <button
+            onClick={() => setSelectedCategory("business")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "business" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            ビジネス ({categoryCounts['business'] || 0})
+          </button>
+          <button
+            onClick={() => setSelectedCategory("entertainment")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "entertainment" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            エンタメ ({categoryCounts['entertainment'] || 0})
+          </button>
+          <button
+            onClick={() => setSelectedCategory("education")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "education" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            教育 ({categoryCounts['education'] || 0})
+          </button>
+          <button
+            onClick={() => setSelectedCategory("other")}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              selectedCategory === "other" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            }`}
+          >
+            その他 ({categoryCounts['other'] || 0})
+          </button>
+        </div>
+
+        {/* Table */}
+        <div className="mt-4 border border-[#E5E5E5] rounded-md overflow-hidden">
+          <div className="grid grid-cols-8 gap-0 bg-[#F5F5F5] text-[11px] font-medium text-[#A3A3A3] uppercase tracking-wide">
+            <div className="px-3 py-2">ユーザー</div>
+            <div className="px-3 py-2">フォロワー</div>
+            <div className="px-3 py-2">業界</div>
+            <div className="px-3 py-2">投稿スタイル</div>
+            <div className="px-3 py-2">トーン</div>
+            <div className="px-3 py-2">収集数</div>
+            <div className="px-3 py-2">ステータス</div>
+            <div className="px-3 py-2 text-right">アクション</div>
+          </div>
+          {!accounts || accounts.length === 0 ? (
+            <div className="px-3 py-8 text-center text-[#A3A3A3] text-sm">
+              モデルアカウントがありません
+            </div>
+          ) : (
+            accounts.map((account) => (
+              <div key={account.id} className="grid grid-cols-8 gap-0 border-t border-[#F0F0F0] hover:bg-[#F5F5F5] transition-colors">
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">𝕏</span>
+                      <span className="font-medium">@{account.username}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => window.open(`https://x.com/${account.username}`, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    {account.displayName && (
+                      <span className="text-sm text-[#A3A3A3]">{account.displayName}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  {account.followersCount ? (
+                    <span className="font-medium">
+                      {account.followersCount.toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="text-[#A3A3A3]">-</span>
+                  )}
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  {account.industryCategory ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">
+                      {industryLabels[account.industryCategory] || account.industryCategory}
+                    </span>
+                  ) : (
+                    <span className="text-[#A3A3A3] text-sm">未分類</span>
+                  )}
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  {account.postingStyle ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                      {postingStyleLabels[account.postingStyle] || account.postingStyle}
+                    </span>
+                  ) : (
+                    <span className="text-[#A3A3A3] text-sm">-</span>
+                  )}
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  {account.toneStyle ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                      {toneStyleLabels[account.toneStyle] || account.toneStyle}
+                    </span>
+                  ) : (
+                    <span className="text-[#A3A3A3] text-sm">-</span>
+                  )}
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  <span className="font-medium">{account.totalCollectedPosts || 0}</span>
+                  <span className="text-[#A3A3A3] text-sm ml-1">件</span>
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium cursor-pointer ${
+                      account.isActive === 1
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-[#F5F5F5] text-[#737373]"
+                    }`}
+                    onClick={() => toggleActiveMutation.mutate({ modelAccountId: account.id })}
+                  >
+                    {account.isActive === 1 ? "アクティブ" : "停止中"}
+                  </span>
+                </div>
+                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fetchProfileMutation.mutate({ modelAccountId: account.id })}
+                      disabled={fetchProfileMutation.isPending}
+                      title="プロフィール更新"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${fetchProfileMutation.isPending ? 'animate-spin' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCollect(account.id)}
+                      disabled={collectingId === account.id}
+                      title="投稿を収集"
+                    >
+                      {collectingId === account.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleAutoClassify(account.id)}
+                      disabled={classifyingId === account.id}
+                      title="AIで自動分類"
+                    >
+                      {classifyingId === account.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Brain className="h-4 w-4 text-[#D4380D]" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(account.id)}
+                      disabled={deleteMutation.isPending}
+                      title="削除"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

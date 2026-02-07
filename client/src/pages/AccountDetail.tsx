@@ -1,17 +1,15 @@
 import { useRoute, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
 import {
-  ArrowLeft, Smartphone, Calendar, Activity, Keyboard, Loader2, Info, ExternalLink,
-  Edit2, Save, X, RefreshCw, User, BookOpen, Users2, LayoutDashboard, Sparkles, Bot
+  ArrowLeft, Calendar, Activity, Loader2, Info,
+  Edit2, Save, X, RefreshCw, User, BookOpen, Users2, LayoutDashboard, Sparkles, Bot,
+  Monitor, Shield, ShieldCheck, ShieldAlert, ShieldX, LogIn, Trash2, Eye
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import BrowserPreviewDialog from "@/components/BrowserPreviewDialog";
 import { toast } from "sonner";
 import { useI18n } from "@/contexts/I18nContext";
 import AccountLevelCard from "@/components/AccountLevelCard";
@@ -21,15 +19,29 @@ import AccountModelAccountsTab from "@/components/AccountModelAccountsTab";
 import AccountProfileTab from "@/components/AccountProfileTab";
 import AccountAgentsTab from "@/components/AccountAgentsTab";
 
+function SessionStatusBadge({ status }: { status: string }) {
+  const config: Record<string, { bg: string; text: string; border: string; icon: typeof ShieldCheck; label: string }> = {
+    active: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: ShieldCheck, label: "Active" },
+    expired: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: ShieldAlert, label: "Expired" },
+    needs_login: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: ShieldX, label: "Needs Login" },
+  };
+  const { bg, text, border, icon: Icon, label } = config[status] || config.needs_login;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${bg} ${text} border ${border}`}>
+      <Icon className="w-3.5 h-3.5" />
+      {label}
+    </span>
+  );
+}
+
 export default function AccountDetail() {
   const { t } = useI18n();
   const [, params] = useRoute("/accounts/:id");
   const accountId = params?.id ? parseInt(params.id) : 0;
   const [isEditingXHandle, setIsEditingXHandle] = useState(false);
   const [xHandleInput, setXHandleInput] = useState("");
-  const [isDeviceDialogOpen, setIsDeviceDialogOpen] = useState(false);
-  const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [previewOpen, setPreviewOpen] = useState(false);
   const utils = trpc.useUtils();
 
   const { data: account, isLoading } = trpc.accounts.byId.useQuery(
@@ -37,14 +49,70 @@ export default function AccountDetail() {
     { refetchInterval: 60000 }
   );
 
-  const { data: devices } = trpc.device.listDuoPlusDevices.useQuery(undefined, {
-    refetchInterval: 60000,
-  });
-
   const { data: growthStats, isLoading: isLoadingGrowth } = trpc.accounts.growthStats.useQuery(
     { accountId },
     { enabled: !!accountId }
   );
+
+  // Playwright session hooks
+  const { data: sessionStatus, refetch: refetchSession } = trpc.playwrightSession.getStatus.useQuery(
+    { accountId },
+    { enabled: !!accountId, refetchInterval: 30000 }
+  );
+
+  const loginMutation = trpc.playwrightSession.login.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success("X.comログイン成功");
+      } else {
+        toast.error(result.message);
+      }
+      refetchSession();
+      utils.accounts.byId.invalidate({ id: accountId });
+      // Auto-close preview after 2 seconds
+      setTimeout(() => setPreviewOpen(false), 2000);
+    },
+    onError: (error) => {
+      toast.error(`ログイン失敗: ${error.message}`);
+      setTimeout(() => setPreviewOpen(false), 2000);
+    },
+  });
+
+  const healthCheckMutation = trpc.playwrightSession.checkHealth.useMutation({
+    onSuccess: (result) => {
+      if (result.healthy) {
+        toast.success("セッションは有効です");
+      } else {
+        toast.warning(`セッション状態: ${result.status}`);
+      }
+      refetchSession();
+      setTimeout(() => setPreviewOpen(false), 2000);
+    },
+    onError: (error) => {
+      toast.error(`ヘルスチェック失敗: ${error.message}`);
+      setTimeout(() => setPreviewOpen(false), 2000);
+    },
+  });
+
+  const testPreviewMutation = trpc.playwrightSession.testPreview.useMutation({
+    onSuccess: () => {
+      toast.success("テストプレビュー完了");
+      // Don't auto-close — let the user close the modal manually
+    },
+    onError: (error) => {
+      toast.error(`テストプレビュー失敗: ${error.message}`);
+    },
+  });
+
+  const deleteSessionMutation = trpc.playwrightSession.deleteSession.useMutation({
+    onSuccess: () => {
+      toast.success("セッションを削除しました");
+      refetchSession();
+    },
+    onError: (error) => {
+      toast.error(`セッション削除失敗: ${error.message}`);
+    },
+  });
 
   const updateAccountMutation = trpc.accounts.update.useMutation({
     onSuccess: () => {
@@ -54,17 +122,6 @@ export default function AccountDetail() {
     },
     onError: (error) => {
       toast.error(`更新失敗: ${error.message}`);
-    },
-  });
-
-  const updateDeviceMutation = trpc.accounts.updateDevice.useMutation({
-    onSuccess: () => {
-      toast.success("デバイスを変更しました");
-      setIsDeviceDialogOpen(false);
-      utils.accounts.byId.invalidate({ id: accountId });
-    },
-    onError: (error: any) => {
-      toast.error(`デバイス変更失敗: ${error.message}`);
     },
   });
 
@@ -95,29 +152,12 @@ export default function AccountDetail() {
     setXHandleInput("");
   };
 
-  const handleChangeDevice = () => {
-    setSelectedDeviceId(account?.deviceId || "");
-    setIsDeviceDialogOpen(true);
-  };
-
-  const handleSaveDevice = () => {
-    if (!selectedDeviceId) {
-      toast.error("デバイスを選択してください");
-      return;
-    }
-    updateDeviceMutation.mutate({
-      accountId,
-      deviceId: selectedDeviceId,
-    });
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container py-8">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-[#D4380D]" />
+          <span className="text-sm text-[#A3A3A3]">Loading account...</span>
         </div>
       </div>
     );
@@ -125,271 +165,383 @@ export default function AccountDetail() {
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container py-8">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-slate-500 mb-4">Account not found</p>
-              <Button asChild>
-                <Link href="/accounts">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t('accountDetail.backToAccounts')}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="max-w-5xl">
+        <div className="signal-card p-8 text-center">
+          <p className="text-[#A3A3A3] mb-4">Account not found</p>
+          <Button asChild size="sm" className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+            <Link href="/accounts">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('accountDetail.backToAccounts')}
+            </Link>
+          </Button>
         </div>
       </div>
     );
   }
 
-  const accountDevice = devices?.find(d => d.deviceId === account.deviceId);
+  const currentSessionStatus = sessionStatus?.sessionStatus || (account as any).sessionStatus || 'needs_login';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container py-8 max-w-5xl">
-        {/* Header */}
-        <div className="mb-6">
-          <Button variant="ghost" size="sm" className="mb-4" asChild>
-            <Link href="/accounts">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Accounts
-            </Link>
-          </Button>
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-1">
-                @{account.username}
-              </h1>
-              <p className="text-slate-600 capitalize">
-                {t('accounts.platform.' + account.platform)} アカウント
-              </p>
-            </div>
-            <span
-              className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                account.status === 'active'
-                  ? 'bg-green-100 text-green-700'
-                  : account.status === 'pending'
-                  ? 'bg-yellow-100 text-yellow-700'
-                  : 'bg-red-100 text-red-700'
-              }`}
-            >
+    <div className="max-w-5xl space-y-5">
+      {/* Back + Header */}
+      <div className="fade-in-up">
+        <Link href="/accounts">
+          <button className="flex items-center gap-1.5 text-xs font-medium text-[#A3A3A3] hover:text-[#1A1A1A] transition-colors mb-4">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Accounts
+          </button>
+        </Link>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="section-label mb-1">Account Detail</p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1A1A1A]">
+              @{account.username}
+            </h1>
+            <p className="text-sm text-[#737373] capitalize mt-0.5">
+              {t('accounts.platform.' + account.platform)} Account
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <Monitor className="w-3.5 h-3.5" />
+              Playwright
+            </span>
+            {/* Status badge */}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
+              account.status === 'active'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : account.status === 'pending'
+                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
               {account.status}
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Level Card */}
-        {growthStats && (
-          <div className="mb-6">
-            <AccountLevelCard
-              level={growthStats.level}
-              experiencePoints={growthStats.experiencePoints}
-              currentLevelXP={growthStats.currentLevelXP}
-              requiredXP={growthStats.requiredXP}
-              progressPercent={growthStats.progressPercent}
-              totalLearningsCount={growthStats.totalLearningsCount}
-              learningsByType={growthStats.learningsByType}
-            />
-          </div>
-        )}
+      {/* Level Card */}
+      {growthStats && (
+        <div className="fade-in-up" style={{ animationDelay: '80ms' }}>
+          <AccountLevelCard
+            level={growthStats.level}
+            experiencePoints={growthStats.experiencePoints}
+            currentLevelXP={growthStats.currentLevelXP}
+            requiredXP={growthStats.requiredXP}
+            progressPercent={growthStats.progressPercent}
+            totalLearningsCount={growthStats.totalLearningsCount}
+            learningsByType={growthStats.learningsByType}
+          />
+        </div>
+      )}
 
-        {/* Tabs */}
+      {/* Tabs */}
+      <div className="fade-in-up" style={{ animationDelay: '160ms' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="bg-white shadow-sm border">
-            <TabsTrigger value="overview" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              概要
-            </TabsTrigger>
-            <TabsTrigger value="learnings" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              学習データ
-            </TabsTrigger>
-            <TabsTrigger value="persona" className="gap-2">
-              <User className="h-4 w-4" />
-              ペルソナ
-            </TabsTrigger>
-            <TabsTrigger value="model-accounts" className="gap-2">
-              <Users2 className="h-4 w-4" />
-              モデル連携
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              プロフィール
-            </TabsTrigger>
-            <TabsTrigger value="agents" className="gap-2">
-              <Bot className="h-4 w-4" />
-              エージェント連携
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-1 p-1 bg-white border border-[#E5E5E5] rounded-lg w-fit">
+            {[
+              { value: "overview", icon: LayoutDashboard, label: "概要" },
+              { value: "session", icon: Shield, label: "セッション" },
+              { value: "learnings", icon: BookOpen, label: "学習" },
+              { value: "persona", icon: User, label: "ペルソナ" },
+              { value: "model-accounts", icon: Users2, label: "モデル" },
+              { value: "profile", icon: Sparkles, label: "プロフィール" },
+              { value: "agents", icon: Bot, label: "エージェント" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                  activeTab === tab.value
+                    ? "bg-[#1A1A1A] text-white shadow-sm"
+                    : "text-[#737373] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]"
+                }`}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-4">
-            {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-slate-600">
-                      デバイス
-                    </CardTitle>
-                    <Smartphone className="h-5 w-5 text-slate-400" />
+          {activeTab === "overview" && (
+            <div className="space-y-4">
+              {/* Quick Stats */}
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="signal-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">投稿方式</p>
+                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
+                      <Monitor className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-900 font-medium">
-                    {accountDevice?.name || account.deviceId || "未設定"}
-                  </p>
-                  {(accountDevice || account.deviceId) && (
-                    <>
-                      <p className="text-xs text-slate-500 mt-1">
-                        ID: {account.deviceId}
-                      </p>
-                      {account.deviceId && <ADBKeyboardInstaller deviceId={account.deviceId} />}
-                    </>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 w-full"
-                    onClick={handleChangeDevice}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    デバイスを変更
-                  </Button>
-                </CardContent>
-              </Card>
+                  <p className="text-sm font-semibold text-[#1A1A1A]">Playwright</p>
+                  <p className="text-[10px] text-[#A3A3A3] mt-0.5">ブラウザ自動化</p>
+                </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-slate-600">
-                      作成日
-                    </CardTitle>
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                <div className="signal-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">作成日</p>
+                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
+                      <Calendar className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-900 font-medium">
-                    {new Date(account.createdAt).toLocaleDateString()}
+                  <p className="text-sm font-semibold text-[#1A1A1A]">
+                    {new Date(account.createdAt).toLocaleDateString("ja-JP")}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {new Date(account.createdAt).toLocaleTimeString()}
+                  <p className="text-[10px] text-[#A3A3A3] mt-0.5">
+                    {new Date(account.createdAt).toLocaleTimeString("ja-JP")}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-slate-600">
-                      成長データ同期
-                    </CardTitle>
-                    <Activity className="h-5 w-5 text-slate-400" />
+                <div className="signal-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">成長データ</p>
+                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
+                      <Activity className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-xs text-[#737373]">
                     既存の学習データから経験値を再計算
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-3 w-full"
+                    className="mt-3 w-full h-7 text-xs border-[#E5E5E5] text-[#525252] hover:bg-[#F5F5F5]"
                     onClick={() => syncGrowthMutation.mutate({ accountId })}
                     disabled={syncGrowthMutation.isPending}
                   >
                     {syncGrowthMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
                     ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
+                      <RefreshCw className="h-3 w-3 mr-1.5" />
                     )}
                     同期
                   </Button>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
 
-            {/* Account Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>アカウント詳細</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Account Details */}
+              <div className="signal-card p-5">
+                <p className="section-label mb-4">アカウント詳細</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <dt className="text-sm font-medium text-slate-600">Username</dt>
-                    <dd className="text-sm text-slate-900 mt-1">{account.username}</dd>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Username</label>
+                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5">{account.username}</p>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-600">X Handle</dt>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">X Handle</label>
                     {isEditingXHandle ? (
-                      <dd className="mt-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-slate-600">@</span>
-                          <Input
-                            value={xHandleInput}
-                            onChange={(e) => setXHandleInput(e.target.value)}
-                            placeholder="例: elonmusk"
-                            className="flex-1"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={handleSaveXHandle}
-                            disabled={updateAccountMutation.isPending}
-                          >
-                            {updateAccountMutation.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Save className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancelEdit}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </dd>
-                    ) : (
-                      <dd className="text-sm text-slate-900 mt-1">
-                        <div className="flex items-center gap-2">
-                          {(account as any).xHandle ? (
-                            <code className="text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                              @{(account as any).xHandle}
-                            </code>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-[#A3A3A3]">@</span>
+                        <Input
+                          value={xHandleInput}
+                          onChange={(e) => setXHandleInput(e.target.value)}
+                          placeholder="例: elonmusk"
+                          className="flex-1 h-8 text-sm border-[#E5E5E5]"
+                        />
+                        <button
+                          onClick={handleSaveXHandle}
+                          disabled={updateAccountMutation.isPending}
+                          className="p-1.5 rounded-md hover:bg-emerald-50 text-emerald-600 transition-colors"
+                        >
+                          {updateAccountMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            <span className="text-slate-400">未設定</span>
+                            <Save className="h-4 w-4" />
                           )}
-                          <Button size="sm" variant="ghost" onClick={handleEditXHandle}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </dd>
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="p-1.5 rounded-md hover:bg-[#F5F5F5] text-[#A3A3A3] transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {(account as any).xHandle ? (
+                          <code className="text-sm font-mono bg-[#F5F5F5] text-[#525252] px-2 py-0.5 rounded">
+                            @{(account as any).xHandle}
+                          </code>
+                        ) : (
+                          <span className="text-sm text-[#A3A3A3]">未設定</span>
+                        )}
+                        <button onClick={handleEditXHandle} className="p-1 rounded-md hover:bg-[#F5F5F5] text-[#A3A3A3] transition-colors">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-600">Platform</dt>
-                    <dd className="text-sm text-slate-900 mt-1 capitalize">{account.platform}</dd>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Platform</label>
+                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5 capitalize">{account.platform}</p>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-600">Device ID</dt>
-                    <dd className="text-sm text-slate-900 mt-1">{account.deviceId || 'N/A'}</dd>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Device ID</label>
+                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5 font-mono">{account.deviceId || 'N/A'}</p>
                   </div>
-                </dl>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Session Management Tab (Playwright) */}
+          {activeTab === "session" && (
+            <div className="space-y-4">
+              {/* Session Status */}
+              <div className="signal-card p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="section-label">ブラウザセッション</p>
+                    <SessionStatusBadge status={currentSessionStatus} />
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Status detail */}
+                    <div className="p-3 rounded-lg bg-[#FAFAFA] border border-[#E5E5E5]">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          currentSessionStatus === 'active' ? 'bg-emerald-100' :
+                          currentSessionStatus === 'expired' ? 'bg-amber-100' : 'bg-red-100'
+                        }`}>
+                          {currentSessionStatus === 'active' ? (
+                            <ShieldCheck className="w-5 h-5 text-emerald-700" />
+                          ) : currentSessionStatus === 'expired' ? (
+                            <ShieldAlert className="w-5 h-5 text-amber-700" />
+                          ) : (
+                            <ShieldX className="w-5 h-5 text-red-700" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-[#1A1A1A]">
+                            {currentSessionStatus === 'active'
+                              ? 'セッション有効'
+                              : currentSessionStatus === 'expired'
+                              ? 'セッション期限切れ'
+                              : 'ログインが必要'}
+                          </p>
+                          <p className="text-xs text-[#737373] mt-0.5">
+                            {currentSessionStatus === 'active'
+                              ? 'X.comへの投稿が可能です。'
+                              : currentSessionStatus === 'expired'
+                              ? 'セッションが期限切れです。再ログインしてください。'
+                              : '初回ログインを行ってセッションを確立してください。'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewOpen(true)}
+                        className="h-8 text-xs font-semibold border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1.5" />
+                        ライブプレビュー
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPreviewOpen(true);
+                          testPreviewMutation.mutate({ accountId });
+                        }}
+                        disabled={testPreviewMutation.isPending}
+                        className="h-8 text-xs font-semibold border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                      >
+                        {testPreviewMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        ) : (
+                          <Monitor className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        テストプレビュー
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setPreviewOpen(true);
+                          loginMutation.mutate({ accountId });
+                        }}
+                        disabled={loginMutation.isPending}
+                        className="h-8 text-xs font-semibold bg-[#D4380D] hover:bg-[#B8300B] text-white"
+                      >
+                        {loginMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        ) : (
+                          <LogIn className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        {currentSessionStatus === 'active' ? '再ログイン' : 'ログイン'}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPreviewOpen(true);
+                          healthCheckMutation.mutate({ accountId });
+                        }}
+                        disabled={healthCheckMutation.isPending}
+                        className="h-8 text-xs font-semibold border-[#E5E5E5] text-[#525252] hover:bg-[#F5F5F5]"
+                      >
+                        {healthCheckMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        ) : (
+                          <Shield className="h-3.5 w-3.5 mr-1.5" />
+                        )}
+                        ヘルスチェック
+                      </Button>
+
+                      {currentSessionStatus !== 'needs_login' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm("セッションを削除しますか？再度ログインが必要になります。")) {
+                              deleteSessionMutation.mutate({ accountId });
+                            }
+                          }}
+                          disabled={deleteSessionMutation.isPending}
+                          className="h-8 text-xs font-semibold border-red-200 text-red-600 hover:bg-red-50"
+                        >
+                          {deleteSessionMutation.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                          )}
+                          セッション削除
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              {/* Info note */}
+              <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[#FAFAFA] border border-[#E5E5E5]">
+                <Info className="w-4 h-4 text-[#A3A3A3] mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-[#737373] leading-relaxed">
+                  <p className="font-semibold text-[#525252] mb-1">セッションについて</p>
+                  <p>
+                    Playwrightブラウザ自動化を使用してX.comに投稿します。
+                    X.comへのログインセッションの管理が必要です。
+                    セッションが期限切れの場合は再ログインしてください。
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Learnings Tab */}
-          <TabsContent value="learnings">
+          {activeTab === "learnings" && (
             <AccountLearningsTab accountId={accountId} />
-          </TabsContent>
+          )}
 
           {/* Persona Tab */}
-          <TabsContent value="persona">
+          {activeTab === "persona" && (
             <AccountPersonaTab
               accountId={accountId}
               account={{
@@ -398,15 +550,15 @@ export default function AccountDetail() {
                 personaCharacteristics: (account as any).personaCharacteristics,
               }}
             />
-          </TabsContent>
+          )}
 
           {/* Model Accounts Tab */}
-          <TabsContent value="model-accounts">
+          {activeTab === "model-accounts" && (
             <AccountModelAccountsTab accountId={accountId} />
-          </TabsContent>
+          )}
 
           {/* Profile Tab */}
-          <TabsContent value="profile">
+          {activeTab === "profile" && (
             <AccountProfileTab
               accountId={accountId}
               account={{
@@ -418,177 +570,22 @@ export default function AccountDetail() {
                 personaCharacteristics: (account as any).personaCharacteristics,
               }}
             />
-          </TabsContent>
+          )}
 
           {/* Agents Tab */}
-          <TabsContent value="agents">
+          {activeTab === "agents" && (
             <AccountAgentsTab accountId={accountId} />
-          </TabsContent>
+          )}
         </Tabs>
-
-        {/* Device Change Dialog */}
-        <Dialog open={isDeviceDialogOpen} onOpenChange={setIsDeviceDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>デバイスを変更</DialogTitle>
-              <DialogDescription>
-                このアカウントに割り当てるデバイスを選択してください。
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Label htmlFor="device-select">利用可能なデバイス</Label>
-              <Select value={selectedDeviceId} onValueChange={setSelectedDeviceId}>
-                <SelectTrigger id="device-select" className="mt-2">
-                  <SelectValue placeholder="デバイスを選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {devices?.map((device) => (
-                    <SelectItem key={device.deviceId} value={device.deviceId}>
-                      {device.name} ({device.deviceId}) - {device.status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDeviceDialogOpen(false)}
-                disabled={updateDeviceMutation.isPending}
-              >
-                キャンセル
-              </Button>
-              <Button
-                onClick={handleSaveDevice}
-                disabled={updateDeviceMutation.isPending}
-              >
-                {updateDeviceMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    変更中...
-                  </>
-                ) : (
-                  "保存"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
-    </div>
-  );
-}
 
-// ADBKeyboard Installer Component
-function ADBKeyboardInstaller({ deviceId }: { deviceId: string }) {
-  const [installing, setInstalling] = useState(false);
-  const [status, setStatus] = useState<{ installed: boolean; enabled?: boolean } | null>(null);
-
-  const { data: adbStatus, refetch: refetchStatus } = trpc.adbkeyboard.getStatus.useQuery(
-    { deviceId },
-    { refetchInterval: status?.installed ? false : 5000 }
-  );
-
-  const installMutation = trpc.adbkeyboard.install.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        alert('ADBKeyboard installed successfully!');
-        refetchStatus();
-      } else {
-        alert(`Installation failed: ${result.message}`);
-      }
-      setInstalling(false);
-    },
-    onError: (error) => {
-      alert(`Installation error: ${error.message}`);
-      setInstalling(false);
-    },
-  });
-
-  const handleInstall = () => {
-    if (confirm('Install ADBKeyboard on this device? This will take 1-2 minutes.')) {
-      setInstalling(true);
-      installMutation.mutate({ deviceId });
-    }
-  };
-
-  if (!adbStatus) return null;
-
-  return (
-    <div className="mt-3 pt-3 border-t border-slate-200">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Keyboard className="h-4 w-4 text-slate-400" />
-          <span className="text-xs text-slate-600">
-            ADBKeyboard: {adbStatus.installed ? (
-              <span className="text-green-600 font-medium">Installed</span>
-            ) : (
-              <span className="text-orange-600 font-medium">Not Installed</span>
-            )}
-          </span>
-        </div>
-        {!adbStatus.installed && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleInstall}
-            disabled={installing}
-            className="h-7 text-xs"
-          >
-            {installing ? (
-              <>
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                Installing...
-              </>
-            ) : (
-              'Install'
-            )}
-          </Button>
-        )}
-      </div>
-      {adbStatus.installed && adbStatus.enabled !== undefined && (
-        <p className="text-xs text-slate-500 mt-1">
-          IME: {adbStatus.enabled ? 'Enabled' : 'Disabled'}
-        </p>
-      )}
-      {!adbStatus.installed && (
-        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-start gap-2">
-            <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-xs text-blue-900">
-              <p className="font-medium mb-2">Manual Installation Required</p>
-              <ol className="list-decimal list-inside space-y-1 text-blue-800">
-                <li>
-                  Download ADBKeyboard.apk:
-                  <a
-                    href="https://files.manuscdn.com/user_upload_by_module/session_file/310519663209474318/mVjTbmzXsamFGxlj.apk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-1 text-blue-600 hover:underline inline-flex items-center"
-                  >
-                    Download APK
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </a>
-                </li>
-                <li>
-                  Upload to DuoPlus:
-                  <a
-                    href="https://www.duoplus.net/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-1 text-blue-600 hover:underline inline-flex items-center"
-                  >
-                    DuoPlus Dashboard
-                    <ExternalLink className="ml-1 h-3 w-3" />
-                  </a>
-                  {' → Cloud Drive → Upload File'}
-                </li>
-                <li>Click "Install" button above after upload</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Browser Preview Dialog */}
+      <BrowserPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        accountId={accountId}
+        username={account.username}
+      />
     </div>
   );
 }

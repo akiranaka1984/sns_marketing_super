@@ -7,7 +7,9 @@
 import { db } from "./db";
 import { freezeDetections, autoResponses, accounts, proxies } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import { rotateDeviceForAccount, releaseDevice } from "./services/device-pool-service";
+// Device pool service removed
+const rotateDeviceForAccount = async (_accountId: number, _currentDeviceId?: string | null) => ({ success: false, deviceId: null, message: "Device rotation not available" });
+const releaseDevice = async (_deviceId: string) => true;
 import { scheduleRecovery } from "./services/account-recovery-scheduler";
 
 export interface FreezeDetectionResult {

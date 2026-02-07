@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useI18n } from "@/contexts/I18nContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   FlaskConical,
@@ -143,15 +141,15 @@ export default function ABTesting() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "draft":
-        return <Badge variant="secondary">下書き</Badge>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">下書き</span>;
       case "running":
-        return <Badge variant="default" className="bg-blue-500">実行中</Badge>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-50 text-blue-700">実行中</span>;
       case "completed":
-        return <Badge variant="default" className="bg-green-500">完了</Badge>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700">完了</span>;
       case "cancelled":
-        return <Badge variant="destructive">キャンセル</Badge>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-700">キャンセル</span>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">{status}</span>;
     }
   };
 
@@ -170,19 +168,16 @@ export default function ABTesting() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-5 max-w-5xl">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="fade-in-up page-header">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <FlaskConical className="h-8 w-8" />
-              A/Bテスト
-            </h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="page-title">A/Bテスト</h1>
+            <p className="page-subtitle">
               異なるスタイルの投稿を比較し、最も効果的なパターンを発見
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => setIsCreateOpen(true)} className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
             <Plus className="mr-2 h-4 w-4" />
             新規テスト
           </Button>
@@ -190,194 +185,173 @@ export default function ABTesting() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <FlaskConical className="h-8 w-8 text-blue-500" />
-                <div>
-                  <p className="text-2xl font-bold">{tests.length}</p>
-                  <p className="text-sm text-muted-foreground">総テスト数</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Play className="h-8 w-8 text-green-500" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {tests.filter((t: any) => t.status === "running").length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">実行中</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <CheckCircle className="h-8 w-8 text-purple-500" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {tests.filter((t: any) => t.status === "completed").length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">完了</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Lightbulb className="h-8 w-8 text-yellow-500" />
-                <div>
-                  <p className="text-2xl font-bold">{learnings.length}</p>
-                  <p className="text-sm text-muted-foreground">獲得した学習</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#2563EB' } as React.CSSProperties}>
+            <div className="pl-3">
+              <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">総テスト数</p>
+              <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{tests.length}</p>
+              <p className="text-[10px] text-[#A3A3A3] mt-0.5">全テスト</p>
+            </div>
+          </div>
+          <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#059669' } as React.CSSProperties}>
+            <div className="pl-3">
+              <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">実行中</p>
+              <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">
+                {tests.filter((t: any) => t.status === "running").length}
+              </p>
+              <p className="text-[10px] text-[#A3A3A3] mt-0.5">アクティブ</p>
+            </div>
+          </div>
+          <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#7C3AED' } as React.CSSProperties}>
+            <div className="pl-3">
+              <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">完了</p>
+              <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">
+                {tests.filter((t: any) => t.status === "completed").length}
+              </p>
+              <p className="text-[10px] text-[#A3A3A3] mt-0.5">終了済み</p>
+            </div>
+          </div>
+          <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#D97706' } as React.CSSProperties}>
+            <div className="pl-3">
+              <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">獲得した学習</p>
+              <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{learnings.length}</p>
+              <p className="text-[10px] text-[#A3A3A3] mt-0.5">インサイト</p>
+            </div>
+          </div>
         </div>
 
         {/* Tests List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>テスト一覧</CardTitle>
-            <CardDescription>
-              作成したA/Bテストの管理と結果の確認
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {tests.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <FlaskConical className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>まだA/Bテストがありません</p>
-                <p className="text-sm mt-1">新規テストを作成して、最適な投稿スタイルを見つけましょう</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {tests.map((test: any) => (
-                  <div key={test.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{test.name}</h3>
-                          {getStatusBadge(test.status)}
-                          {test.winnerId && (
-                            <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                              <Trophy className="h-3 w-3 mr-1" />
-                              勝者決定
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          テーマ: {test.theme}
-                        </p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>バリエーション: {test.variationCount}個</span>
-                          <span>期間: {test.testDurationHours}時間</span>
-                          {test.confidenceLevel && (
-                            <span className="flex items-center gap-1">
-                              信頼度: {test.confidenceLevel}%
-                              {test.confidenceLevel >= 95 && (
-                                <CheckCircle className="h-3 w-3 text-green-500" />
-                              )}
-                            </span>
-                          )}
-                        </div>
+        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+          <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">テスト一覧</h3>
+          <p className="text-[11px] text-[#A3A3A3] mb-4">
+            作成したA/Bテストの管理と結果の確認
+          </p>
+          {tests.length === 0 ? (
+            <div className="text-center py-12 text-[#A3A3A3]">
+              <FlaskConical className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>まだA/Bテストがありません</p>
+              <p className="text-sm mt-1">新規テストを作成して、最適な投稿スタイルを見つけましょう</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {tests.map((test: any) => (
+                <div key={test.id} className="border border-[#E5E5E5] rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{test.name}</h3>
+                        {getStatusBadge(test.status)}
+                        {test.winnerId && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-amber-300 text-amber-700">
+                            <Trophy className="h-3 w-3 mr-1" />
+                            勝者決定
+                          </span>
+                        )}
                       </div>
-                      <div className="flex gap-2">
-                        {test.status === "draft" && (
-                          <Button
-                            size="sm"
-                            onClick={() => startMutation.mutate({ testId: test.id })}
-                            disabled={startMutation.isPending}
-                          >
-                            <Play className="h-4 w-4 mr-1" />
-                            開始
-                          </Button>
+                      <p className="text-sm text-[#A3A3A3] mt-1">
+                        テーマ: {test.theme}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-[#A3A3A3]">
+                        <span>バリエーション: {test.variationCount}個</span>
+                        <span>期間: {test.testDurationHours}時間</span>
+                        {test.confidenceLevel && (
+                          <span className="flex items-center gap-1">
+                            信頼度: {test.confidenceLevel}%
+                            {test.confidenceLevel >= 95 && (
+                              <CheckCircle className="h-3 w-3 text-emerald-500" />
+                            )}
+                          </span>
                         )}
-                        {test.status === "running" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => analyzeMutation.mutate({ testId: test.id })}
-                            disabled={analyzeMutation.isPending}
-                          >
-                            <BarChart3 className="h-4 w-4 mr-1" />
-                            分析
-                          </Button>
-                        )}
-                        {test.status === "completed" && !test.winnerId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => analyzeMutation.mutate({ testId: test.id })}
-                            disabled={analyzeMutation.isPending}
-                          >
-                            <BarChart3 className="h-4 w-4 mr-1" />
-                            結果確認
-                          </Button>
-                        )}
-                        {test.status === "completed" && test.winnerId && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => extractLearningsMutation.mutate({ testId: test.id })}
-                            disabled={extractLearningsMutation.isPending}
-                          >
-                            <Lightbulb className="h-4 w-4 mr-1" />
-                            学習抽出
-                          </Button>
-                        )}
-                        <Link href={`/ab-testing/${test.id}`}>
-                          <Button size="sm" variant="ghost">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
                       </div>
                     </div>
+                    <div className="flex gap-2">
+                      {test.status === "draft" && (
+                        <Button
+                          size="sm"
+                          onClick={() => startMutation.mutate({ testId: test.id })}
+                          disabled={startMutation.isPending}
+                          className="bg-[#D4380D] hover:bg-[#B8300B] text-white"
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          開始
+                        </Button>
+                      )}
+                      {test.status === "running" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => analyzeMutation.mutate({ testId: test.id })}
+                          disabled={analyzeMutation.isPending}
+                        >
+                          <BarChart3 className="h-4 w-4 mr-1" />
+                          分析
+                        </Button>
+                      )}
+                      {test.status === "completed" && !test.winnerId && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => analyzeMutation.mutate({ testId: test.id })}
+                          disabled={analyzeMutation.isPending}
+                        >
+                          <BarChart3 className="h-4 w-4 mr-1" />
+                          結果確認
+                        </Button>
+                      )}
+                      {test.status === "completed" && test.winnerId && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => extractLearningsMutation.mutate({ testId: test.id })}
+                          disabled={extractLearningsMutation.isPending}
+                        >
+                          <Lightbulb className="h-4 w-4 mr-1" />
+                          学習抽出
+                        </Button>
+                      )}
+                      <Link href={`/ab-testing/${test.id}`}>
+                        <Button size="sm" variant="ghost">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Learnings */}
         {learnings.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-yellow-500" />
-                獲得した学習
-              </CardTitle>
-              <CardDescription>
-                A/Bテストから抽出されたインサイト
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {learnings.slice(0, 5).map((learning: any) => (
-                  <div key={learning.id} className="border rounded-lg p-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{getLearningTypeLabel(learning.learningType)}</Badge>
-                          <span className="font-medium">{learning.title}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{learning.insight}</p>
+          <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+            <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1 flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              獲得した学習
+            </h3>
+            <p className="text-[11px] text-[#A3A3A3] mb-4">
+              A/Bテストから抽出されたインサイト
+            </p>
+            <div className="space-y-3">
+              {learnings.slice(0, 5).map((learning: any) => (
+                <div key={learning.id} className="border border-[#E5E5E5] rounded-lg p-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">{getLearningTypeLabel(learning.learningType)}</span>
+                        <span className="font-medium">{learning.title}</span>
                       </div>
-                      <Badge variant={learning.isApplied ? "default" : "secondary"}>
-                        {learning.isApplied ? "適用済み" : `信頼度: ${learning.confidence}%`}
-                      </Badge>
+                      <p className="text-sm text-[#A3A3A3] mt-1">{learning.insight}</p>
                     </div>
+                    {learning.isApplied ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700">適用済み</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">信頼度: {learning.confidence}%</span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -483,6 +457,7 @@ export default function ABTesting() {
             <Button
               onClick={() => createMutation.mutate(formData)}
               disabled={!formData.agentId || !formData.name || !formData.theme || createMutation.isPending}
+              className="bg-[#D4380D] hover:bg-[#B8300B] text-white"
             >
               作成
             </Button>
@@ -501,20 +476,20 @@ export default function ABTesting() {
           </DialogHeader>
           <div className="space-y-4">
             {previewVariations.map((v, i) => (
-              <div key={i} className="border rounded-lg p-4">
+              <div key={i} className="border border-[#E5E5E5] rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge>バリエーション {v.variationName}</Badge>
-                  <Badge variant="outline">{v.config.tone}</Badge>
-                  <Badge variant="outline">{v.config.contentLength}</Badge>
-                  <Badge variant="outline">絵文字: {v.config.emojiUsage}</Badge>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700">バリエーション {v.variationName}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">{v.config.tone}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">{v.config.contentLength}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">絵文字: {v.config.emojiUsage}</span>
                 </div>
                 <p className="text-sm">{v.content}</p>
                 {v.hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {v.hashtags.map((tag: string, j: number) => (
-                      <Badge key={j} variant="secondary" className="text-xs">
+                      <span key={j} className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
                         #{tag}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 )}
@@ -546,20 +521,20 @@ export default function ABTesting() {
             <div className="space-y-6">
               {/* Winner Section */}
               {analysisResult.winnerId ? (
-                <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-950">
+                <div className="border border-[#E5E5E5] rounded-lg p-4 bg-emerald-50">
                   <div className="flex items-center gap-2 mb-2">
-                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    <Trophy className="h-5 w-5 text-amber-500" />
                     <span className="font-semibold">勝者決定</span>
-                    <Badge variant="default" className="bg-green-500">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700">
                       信頼度: {analysisResult.confidence}%
-                    </Badge>
+                    </span>
                   </div>
                   <p className="text-sm whitespace-pre-wrap">{analysisResult.analysis}</p>
                 </div>
               ) : (
-                <div className="border rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950">
+                <div className="border border-[#E5E5E5] rounded-lg p-4 bg-amber-50">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                    <AlertTriangle className="h-5 w-5 text-amber-500" />
                     <span className="font-semibold">まだ十分なデータがありません</span>
                   </div>
                 </div>
@@ -575,25 +550,25 @@ export default function ABTesting() {
 
                   {/* Significance */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="border rounded-lg p-3">
-                      <div className="text-sm text-muted-foreground">統計的有意性</div>
+                    <div className="border border-[#E5E5E5] rounded-lg p-3">
+                      <div className="text-sm text-[#A3A3A3]">統計的有意性</div>
                       <div className="flex items-center gap-2 mt-1">
                         {analysisResult.statistics.isStatisticallySignificant ? (
                           <>
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                            <span className="font-semibold text-green-600">有意 (p &lt; 0.05)</span>
+                            <CheckCircle className="h-5 w-5 text-emerald-500" />
+                            <span className="font-semibold text-emerald-600">有意 (p &lt; 0.05)</span>
                           </>
                         ) : (
                           <>
-                            <XCircle className="h-5 w-5 text-gray-400" />
-                            <span className="font-semibold text-gray-500">有意差なし</span>
+                            <XCircle className="h-5 w-5 text-[#A3A3A3]" />
+                            <span className="font-semibold text-[#737373]">有意差なし</span>
                           </>
                         )}
                       </div>
                     </div>
 
-                    <div className="border rounded-lg p-3">
-                      <div className="text-sm text-muted-foreground">p値</div>
+                    <div className="border border-[#E5E5E5] rounded-lg p-3">
+                      <div className="text-sm text-[#A3A3A3]">p値</div>
                       <div className="font-semibold mt-1">
                         {analysisResult.statistics.pValue !== null
                           ? analysisResult.statistics.pValue.toFixed(4)
@@ -601,8 +576,8 @@ export default function ABTesting() {
                       </div>
                     </div>
 
-                    <div className="border rounded-lg p-3">
-                      <div className="text-sm text-muted-foreground">効果量 (Cohen's d)</div>
+                    <div className="border border-[#E5E5E5] rounded-lg p-3">
+                      <div className="text-sm text-[#A3A3A3]">効果量 (Cohen's d)</div>
                       <div className="font-semibold mt-1">
                         {analysisResult.statistics.effectSize !== null
                           ? `${analysisResult.statistics.effectSize.toFixed(2)} (${analysisResult.statistics.effectSizeInterpretation})`
@@ -610,8 +585,8 @@ export default function ABTesting() {
                       </div>
                     </div>
 
-                    <div className="border rounded-lg p-3">
-                      <div className="text-sm text-muted-foreground">信頼区間 (95%)</div>
+                    <div className="border border-[#E5E5E5] rounded-lg p-3">
+                      <div className="text-sm text-[#A3A3A3]">信頼区間 (95%)</div>
                       <div className="font-semibold mt-1">
                         {analysisResult.statistics.confidenceInterval
                           ? `[${analysisResult.statistics.confidenceInterval.lower.toFixed(2)}, ${analysisResult.statistics.confidenceInterval.upper.toFixed(2)}]`
@@ -621,9 +596,9 @@ export default function ABTesting() {
                   </div>
 
                   {/* Sample Size Progress */}
-                  <div className="border rounded-lg p-3">
+                  <div className="border border-[#E5E5E5] rounded-lg p-3">
                     <div className="flex justify-between items-center mb-2">
-                      <div className="text-sm text-muted-foreground">サンプルサイズ</div>
+                      <div className="text-sm text-[#A3A3A3]">サンプルサイズ</div>
                       <div className="text-sm">
                         {analysisResult.statistics.currentSampleSize} / {analysisResult.statistics.requiredSampleSize}
                       </div>
@@ -633,7 +608,7 @@ export default function ABTesting() {
                       className="h-2"
                     />
                     {!analysisResult.statistics.sampleSizeAdequate && (
-                      <div className="flex items-center gap-1 mt-2 text-sm text-yellow-600">
+                      <div className="flex items-center gap-1 mt-2 text-sm text-amber-600">
                         <AlertTriangle className="h-4 w-4" />
                         サンプルサイズが不足しています
                       </div>
@@ -642,14 +617,14 @@ export default function ABTesting() {
 
                   {/* Warnings */}
                   {analysisResult.statistics.warnings.length > 0 && (
-                    <div className="border rounded-lg p-3 bg-yellow-50 dark:bg-yellow-950">
+                    <div className="border border-[#E5E5E5] rounded-lg p-3 bg-amber-50">
                       <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
                         <span className="font-semibold text-sm">警告</span>
                       </div>
                       <ul className="space-y-1">
                         {analysisResult.statistics.warnings.map((warning, i) => (
-                          <li key={i} className="text-sm text-yellow-700 dark:text-yellow-300">
+                          <li key={i} className="text-sm text-amber-700">
                             {warning}
                           </li>
                         ))}

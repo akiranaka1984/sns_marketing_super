@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { postAnalytics, accounts, scheduledPosts } from "../drizzle/schema";
+import { postAnalytics, accounts, scheduledPosts, hashtagPerformance, modelAccounts, modelAccountBehaviorPatterns } from "../drizzle/schema";
 import { db } from "./db";
-import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql, inArray, asc } from "drizzle-orm";
+import { getTopHashtags, getHashtagCombinations, compareWithModelAccountHashtags } from "./services/hashtag-analyzer";
+import { getFunnelData, getPostFunnelContribution } from "./services/funnel-tracker";
 
 export const analyticsRouter = router({
   /**
@@ -340,5 +342,407 @@ export const analyticsRouter = router({
       });
 
       return { success: true };
+    }),
+
+  /**
+   * Get heatmap data (7x24 grid of engagement by day-of-week and hour)
+   */
+  getHeatmapData: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const userAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, userId));
+
+      const accountIds = input.accountId
+        ? [input.accountId]
+        : userAccounts.map((acc) => acc.id);
+
+      if (accountIds.length === 0) {
+        return { cells: [], recommendation: "" };
+      }
+
+      const conditions = [inArray(postAnalytics.accountId, accountIds)];
+      if (input.startDate) {
+        conditions.push(gte(postAnalytics.recordedAt, new Date(input.startDate)));
+      }
+      if (input.endDate) {
+        conditions.push(lte(postAnalytics.recordedAt, new Date(input.endDate)));
+      }
+
+      // Group by day of week and hour
+      const rows = await db
+        .select({
+          dayOfWeek: sql<number>`DAYOFWEEK(${postAnalytics.recordedAt}) - 1`,
+          hour: sql<number>`HOUR(${postAnalytics.recordedAt})`,
+          avgEngagementRate: sql<number>`AVG(${postAnalytics.engagementRate})`,
+          postCount: sql<number>`COUNT(*)`,
+        })
+        .from(postAnalytics)
+        .where(and(...conditions))
+        .groupBy(
+          sql`DAYOFWEEK(${postAnalytics.recordedAt})`,
+          sql`HOUR(${postAnalytics.recordedAt})`
+        );
+
+      const cells = rows.map((row) => ({
+        dayOfWeek: Number(row.dayOfWeek),
+        hour: Number(row.hour),
+        engagementRate: Number(row.avgEngagementRate || 0) / 100,
+        postCount: Number(row.postCount),
+      }));
+
+      // Find best time slot
+      let recommendation = "";
+      if (cells.length > 0) {
+        const best = cells.reduce((a, b) =>
+          a.engagementRate > b.engagementRate ? a : b
+        );
+        const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
+        recommendation = `最もエンゲージメントが高い時間帯: ${dayNames[best.dayOfWeek]}曜日 ${best.hour}時`;
+      }
+
+      return { cells, recommendation };
+    }),
+
+  /**
+   * Get hashtag performance ranking
+   */
+  getHashtagRanking: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+        limit: z.number().default(20),
+      })
+    )
+    .query(async ({ input }) => {
+      return await getTopHashtags({
+        accountId: input.accountId,
+        projectId: input.projectId,
+        limit: input.limit,
+      });
+    }),
+
+  /**
+   * Get hashtag trend data
+   */
+  getHashtagTrends: protectedProcedure
+    .input(
+      z.object({
+        hashtag: z.string(),
+        accountId: z.number().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      // Get usage history from hashtagPerformance
+      const conditions = [eq(hashtagPerformance.hashtag, input.hashtag)];
+      if (input.accountId) {
+        conditions.push(eq(hashtagPerformance.accountId, input.accountId));
+      }
+
+      const results = await db
+        .select()
+        .from(hashtagPerformance)
+        .where(and(...conditions))
+        .orderBy(desc(hashtagPerformance.updatedAt))
+        .limit(30);
+
+      return results.map((r) => ({
+        hashtag: r.hashtag,
+        usageCount: r.usageCount,
+        avgLikes: r.avgLikes,
+        avgComments: r.avgComments,
+        avgShares: r.avgShares,
+        avgEngagementRate: r.avgEngagementRate,
+        trendScore: r.trendScore,
+        lastUsedAt: r.lastUsedAt,
+      }));
+    }),
+
+  /**
+   * Get model account hashtags for comparison
+   */
+  getModelAccountHashtags: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // If no accountId provided, use first user account
+      let accountId = input.accountId;
+      if (!accountId) {
+        const userAccounts = await db
+          .select({ id: accounts.id })
+          .from(accounts)
+          .where(eq(accounts.userId, ctx.user.id))
+          .limit(1);
+        accountId = userAccounts[0]?.id;
+      }
+      if (!accountId) {
+        return { ownTopHashtags: [], modelTopHashtags: [], recommended: [] };
+      }
+      return await compareWithModelAccountHashtags(accountId, input.projectId);
+    }),
+
+  /**
+   * Get competitor comparison data (your accounts vs model accounts)
+   */
+  getCompetitorComparison: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      // Get user's accounts
+      const userAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, userId));
+
+      const accountIds = input.accountId
+        ? [input.accountId]
+        : userAccounts.map((acc) => acc.id);
+
+      // Get user's analytics summary
+      const myAnalytics = accountIds.length > 0
+        ? await db
+            .select({
+              totalPosts: sql<number>`COUNT(*)`,
+              avgLikes: sql<number>`AVG(${postAnalytics.likesCount})`,
+              avgComments: sql<number>`AVG(${postAnalytics.commentsCount})`,
+              avgShares: sql<number>`AVG(${postAnalytics.sharesCount})`,
+              avgEngagementRate: sql<number>`AVG(${postAnalytics.engagementRate})`,
+            })
+            .from(postAnalytics)
+            .where(inArray(postAnalytics.accountId, accountIds))
+        : [{ totalPosts: 0, avgLikes: 0, avgComments: 0, avgShares: 0, avgEngagementRate: 0 }];
+
+      // Get model accounts behavior patterns
+      const modelConditions = input.projectId
+        ? [eq(modelAccounts.projectId, input.projectId)]
+        : [];
+
+      const models = await db
+        .select()
+        .from(modelAccounts)
+        .where(modelConditions.length > 0 ? and(...modelConditions) : undefined)
+        .limit(20);
+
+      const modelIds = models.map((m) => m.id);
+
+      const modelPatterns = modelIds.length > 0
+        ? await db
+            .select()
+            .from(modelAccountBehaviorPatterns)
+            .where(inArray(modelAccountBehaviorPatterns.modelAccountId, modelIds))
+        : [];
+
+      // Calculate model averages
+      const modelAvgPostsPerWeek = modelPatterns.length > 0
+        ? modelPatterns.reduce((sum, p) => sum + Number(p.avgPostsPerDay || 0), 0) / modelPatterns.length * 7
+        : 0;
+      const modelAvgEngagementRate = modelPatterns.length > 0
+        ? modelPatterns.reduce((sum, p) => sum + Number(p.avgEngagementRate || 0), 0) / modelPatterns.length
+        : 0;
+
+      const my = myAnalytics[0];
+
+      return {
+        myStats: {
+          totalPosts: Number(my?.totalPosts || 0),
+          avgLikes: Math.round(Number(my?.avgLikes || 0)),
+          avgComments: Math.round(Number(my?.avgComments || 0)),
+          avgShares: Math.round(Number(my?.avgShares || 0)),
+          avgEngagementRate: Number(my?.avgEngagementRate || 0) / 100,
+        },
+        modelStats: {
+          accountCount: models.length,
+          avgPostsPerWeek: Math.round(modelAvgPostsPerWeek * 10) / 10,
+          avgEngagementRate: Math.round(modelAvgEngagementRate * 100) / 100,
+          topModels: models.slice(0, 5).map((m) => ({
+            id: m.id,
+            handle: m.username,
+            platform: m.platform,
+            followerCount: m.followersCount,
+          })),
+        },
+        modelPatterns: modelPatterns.map((p) => ({
+          modelAccountId: p.modelAccountId,
+          avgPostsPerDay: p.avgPostsPerDay,
+          avgEngagementRate: p.avgEngagementRate,
+          avgContentLength: p.avgContentLength,
+          hashtagAvgCount: p.hashtagAvgCount,
+        })),
+      };
+    }),
+
+  /**
+   * Get gap analysis between your accounts and model accounts
+   */
+  getGapAnalysis: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+
+      const userAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, userId));
+
+      const accountIds = input.accountId
+        ? [input.accountId]
+        : userAccounts.map((acc) => acc.id);
+
+      // My stats
+      const myStats = accountIds.length > 0
+        ? await db
+            .select({
+              avgLikes: sql<number>`AVG(${postAnalytics.likesCount})`,
+              avgComments: sql<number>`AVG(${postAnalytics.commentsCount})`,
+              avgEngagementRate: sql<number>`AVG(${postAnalytics.engagementRate})`,
+              postCount: sql<number>`COUNT(*)`,
+            })
+            .from(postAnalytics)
+            .where(inArray(postAnalytics.accountId, accountIds))
+        : [{ avgLikes: 0, avgComments: 0, avgEngagementRate: 0, postCount: 0 }];
+
+      // Model stats
+      const modelConditions = input.projectId
+        ? [eq(modelAccounts.projectId, input.projectId)]
+        : [];
+
+      const models = await db
+        .select()
+        .from(modelAccounts)
+        .where(modelConditions.length > 0 ? and(...modelConditions) : undefined);
+
+      const modelIds = models.map((m) => m.id);
+      const patterns = modelIds.length > 0
+        ? await db
+            .select()
+            .from(modelAccountBehaviorPatterns)
+            .where(inArray(modelAccountBehaviorPatterns.modelAccountId, modelIds))
+        : [];
+
+      const my = myStats[0];
+      const myLikes = Number(my?.avgLikes || 0);
+      const myComments = Number(my?.avgComments || 0);
+      const myEngRate = Number(my?.avgEngagementRate || 0) / 100;
+
+      const modelAvgEngRate = patterns.length > 0
+        ? patterns.reduce((s, p) => s + Number(p.avgEngagementRate || 0), 0) / patterns.length
+        : 0;
+
+      const gaps = [];
+
+      if (modelAvgEngRate > 0 && myEngRate < modelAvgEngRate) {
+        const gapPct = Math.round(((modelAvgEngRate - myEngRate) / modelAvgEngRate) * 100);
+        gaps.push({
+          metric: "エンゲージメント率",
+          myValue: Math.round(myEngRate * 100) / 100,
+          modelValue: Math.round(modelAvgEngRate * 100) / 100,
+          gapPercentage: gapPct,
+          recommendation: `モデルアカウントのエンゲージメント率は${modelAvgEngRate.toFixed(2)}%。コンテンツの質と投稿タイミングを改善しましょう。`,
+          priority: gapPct > 50 ? "high" : gapPct > 25 ? "medium" : "low",
+        });
+      }
+
+      if (myLikes < 10) {
+        gaps.push({
+          metric: "平均いいね数",
+          myValue: Math.round(myLikes),
+          modelValue: 0,
+          gapPercentage: 0,
+          recommendation: `いいね数を増やすため、ビジュアルコンテンツの質を上げましょう。`,
+          priority: "medium" as const,
+        });
+      }
+
+      if (myComments < 5) {
+        gaps.push({
+          metric: "平均コメント数",
+          myValue: Math.round(myComments),
+          modelValue: 0,
+          gapPercentage: 0,
+          recommendation: `質問形式や議論を促す投稿を増やし、コメントを獲得しましょう。`,
+          priority: "medium" as const,
+        });
+      }
+
+      const modelAvgPostsDay = patterns.length > 0
+        ? patterns.reduce((s, p) => s + Number(p.avgPostsPerDay || 0), 0) / patterns.length
+        : 0;
+      if (modelAvgPostsDay > 0) {
+        gaps.push({
+          metric: "投稿頻度",
+          myValue: Number(my?.postCount || 0),
+          modelValue: Math.round(modelAvgPostsDay * 7),
+          gapPercentage: 0,
+          recommendation: `モデルアカウントは1日平均${modelAvgPostsDay.toFixed(1)}回投稿。コンスタントな投稿を心がけましょう。`,
+          priority: "medium" as const,
+        });
+      }
+
+      return { gaps };
+    }),
+
+  /**
+   * Get funnel data for visualization
+   */
+  getFunnelData: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+        startDate: z.string(),
+        endDate: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      return await getFunnelData({
+        accountId: input.accountId,
+        projectId: input.projectId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+      });
+    }),
+
+  /**
+   * Get post-level funnel contribution
+   */
+  getPostFunnelContribution: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().optional(),
+        projectId: z.number().optional(),
+        limit: z.number().default(20),
+      })
+    )
+    .query(async ({ input }) => {
+      return await getPostFunnelContribution({
+        accountId: input.accountId,
+        projectId: input.projectId,
+        limit: input.limit,
+      });
     }),
 });

@@ -4,10 +4,11 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5001:3000"
+      - "5001:5000"
     volumes:
       - .:/app
       - /app/node_modules
+      - playwright_sessions:/app/data/playwright-sessions
     environment:
       - NODE_ENV=development
       - DATABASE_URL=mysql://user:password@db:3306/sns_automation
@@ -17,6 +18,7 @@ services:
       - VITE_OAUTH_PORTAL_URL=http://localhost:5001
       - OAUTH_SERVER_URL=http://localhost:5001
       - JWT_SECRET=dev-secret-key-for-local-development-only
+      - PORT=5000
       - TZ=Asia/Tokyo
     depends_on:
       db:
@@ -67,3 +69,4 @@ services:
 volumes:
   mysql_data:
   redis_data:
+  playwright_sessions:

@@ -5,7 +5,7 @@ const execAsync = promisify(exec);
 
 // Docker container paths
 const PYTHON_PATH = process.env.PYTHON_PATH || '/usr/bin/python3';
-const SCRIPTS_PATH = process.env.SCRIPTS_PATH || '/app/scripts/duoplus';
+const SCRIPTS_PATH = process.env.SCRIPTS_PATH || '/app/scripts';
 
 interface LikeResult {
   success: boolean;

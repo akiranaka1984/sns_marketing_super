@@ -116,9 +116,9 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
       .set({ status: 'processing' })
       .where(eq(interactions.id, interactionId));
 
-    const apiKey = process.env.DUOPLUS_API_KEY;
+    const apiKey = process.env.AUTOMATION_API_KEY || '';
     if (!apiKey) {
-      throw new Error('DUOPLUS_API_KEY is not configured');
+      throw new Error('AUTOMATION_API_KEY is not configured');
     }
 
     let result: { success: boolean; error?: string; comment?: string };

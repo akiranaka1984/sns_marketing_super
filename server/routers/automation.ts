@@ -2,7 +2,7 @@ import { router, protectedProcedure } from '../_core/trpc';
 import { z } from 'zod';
 import { executeLike, executeAiComment } from '../utils/python-runner';
 import { db } from '../db';
-import { automationTasks } from '../../drizzle/schema/automation_tasks';
+import { automationTasks } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 export const automationRouter = router({
@@ -13,7 +13,7 @@ export const automationRouter = router({
       deviceId: z.string(),
     }))
     .mutation(async ({ input, ctx }) => {
-      const apiKey = process.env.DUOPLUS_API_KEY!;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       
       // タスク記録
       const task = await db.insert(automationTasks).values({
@@ -48,7 +48,7 @@ export const automationRouter = router({
       persona: z.string().default('20代男性、AIとマーケティングに興味がある'),
     }))
     .mutation(async ({ input, ctx }) => {
-      const apiKey = process.env.DUOPLUS_API_KEY!;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       const openaiApiKey = process.env.OPENAI_API_KEY!;
       
       // タスク記録
@@ -107,14 +107,14 @@ export const automationRouter = router({
         
         if (interaction.action === 'like') {
           const result = await executeLike(
-            process.env.DUOPLUS_API_KEY!,
+            process.env.AUTOMATION_API_KEY || '',
             interaction.deviceId,
             input.postUrl
           );
           results.push({ deviceId: interaction.deviceId, action: 'like', result });
         } else {
           const result = await executeAiComment(
-            process.env.DUOPLUS_API_KEY!,
+            process.env.AUTOMATION_API_KEY || '',
             interaction.deviceId,
             input.postUrl,
             process.env.OPENAI_API_KEY!,

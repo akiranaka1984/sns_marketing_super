@@ -1,8 +1,8 @@
 # SNSマーケティング自動化プラットフォーム - プロジェクト設定
 
 ## プロジェクト概要
-究極のSNSマーケティング自動化プラットフォーム（バーチャル携帯統合版）
-DuoPlus APIを活用したバーチャルAndroidデバイスでSNS操作を自動化
+SNSマーケティング自動化プラットフォーム
+Playwrightブラウザ自動化でX/Twitterへの投稿を自動化
 
 ## 技術スタック
 
@@ -21,12 +21,11 @@ DuoPlus APIを活用したバーチャルAndroidデバイスでSNS操作を自�
 - Redis（キャッシュ/キュー）
 
 ### 外部サービス
-- DuoPlus API（バーチャルAndroidデバイス制御）
 - OpenAI API（GPT-4, GPT-4 Vision）
+- Playwright（ブラウザ自動化）
 
 ### インフラ
 - Docker + Docker Compose
-- Python（画像処理ワーカー）
 
 ## ディレクトリ構成
 
@@ -34,7 +33,6 @@ DuoPlus APIを活用したバーチャルAndroidデバイスでSNS操作を自�
 project-root/
 ├── docker-compose.yml      # Docker構成
 ├── Dockerfile              # Node.jsアプリ用
-├── Dockerfile.python       # Pythonワーカー用
 ├── .dockerignore
 ├── .env.example            # 環境変数サンプル
 │
@@ -43,12 +41,11 @@ project-root/
 │   │   ├── index.ts       # ルーター統合
 │   │   ├── accounts.ts    # アカウント管理
 │   │   ├── posts.ts       # 投稿管理
-│   │   ├── strategies.ts  # 戦略管理
-│   │   └── devices.ts     # デバイス操作
+│   │   └── strategies.ts  # 戦略管理
 │   ├── services/          # ビジネスロジック
-│   │   ├── duoplus.ts     # DuoPlus API連携
 │   │   ├── openai.ts      # AI戦略生成
 │   │   └── scheduler.ts   # スケジューラー
+│   ├── playwright/        # Playwright自動化
 │   ├── lib/               # ユーティリティ
 │   └── db/                # データベース関連
 │       ├── index.ts       # DB接続
@@ -68,11 +65,6 @@ project-root/
 │   ├── schema.ts
 │   └── migrations/
 │
-├── python/                # Python自動化スクリプト
-│   ├── template_matching.py
-│   ├── duoplus_client.py
-│   └── automation/
-│
 ├── scripts/               # 各種スクリプト
 └── tests/                 # テストファイル
 ```
@@ -81,13 +73,13 @@ project-root/
 
 ### コンテナ構成
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Docker Network                    │
-├──────────┬──────────┬──────────┬───────────────────┤
-│   app    │    db    │  redis   │  python-worker    │
-│  :5000   │  :3306   │  :6379   │                   │
-│  Node.js │  MySQL   │  Redis   │  OpenCV/Python    │
-└──────────┴──────────┴──────────┴───────────────────┘
+┌─────────────────────────────────────────┐
+│              Docker Network              │
+├──────────┬──────────┬──────────────────┤
+│   app    │    db    │      redis       │
+│  :5000   │  :3306   │      :6379       │
+│  Node.js │  MySQL   │      Redis       │
+└──────────┴──────────┴──────────────────┘
 ```
 
 ### 起動コマンド
@@ -141,22 +133,6 @@ docker compose exec app pnpm test --coverage
 - `any`禁止、型は明示的に定義
 - 共有型は`shared/types.ts`
 
-## DuoPlus API操作の注意点
-
-### 座標検出の鉄則
-1. **UIAutomator必須**: 推測座標は絶対使わない
-2. **閾値0.8以上**: テンプレートマッチング時
-3. **待機時間**: 操作間は最低1秒、画面遷移後は3秒
-4. **3回リトライ**: 失敗時は最大3回リトライ
-
-### 座標計算の重要ポイント
-```typescript
-// bounds形式: [left, top][right, bottom]
-// 中心座標の計算
-const centerX = (bounds[0] + bounds[2]) / 2;
-const centerY = (bounds[1] + bounds[3]) / 2;
-```
-
 ## 環境変数
 
 ```env
@@ -165,9 +141,6 @@ DATABASE_URL=mysql://user:password@db:3306/sns_automation
 
 # Redis
 REDIS_URL=redis://redis:6379
-
-# DuoPlus API
-DUOPLUS_API_KEY=your_api_key
 
 # OpenAI
 OPENAI_API_KEY=your_api_key
@@ -187,10 +160,14 @@ PORT=5000
 ### E2Eテスト
 - Dockerコンテナ内で実行
 - テストDBを使用
-- 実デバイス操作はスキップ可能
+
+## 計画ドキュメント管理
+
+- plan modeで作成した実装計画は必ず `docs/` ディレクトリに保存する
+- ファイル名形式: `PLAN_<機能名>.md`（例: `PLAN_AUTH_REFACTOR.md`）
+- 過去の計画を蓄積し、意思決定の経緯を残す
 
 ## 既知の問題・制約事項
 
-1. **DuoPlus API制限**: レート制限あり、連続操作に注意
-2. **テンプレート画像**: 解像度依存、複数パターン用意推奨
-3. **MySQL接続**: 初回起動時に接続待ちが必要な場合あり
+1. **X/Twitterのみ対応**: 現在はPlaywright経由でX/Twitterのみ自動投稿に対応
+2. **MySQL接続**: 初回起動時に接続待ちが必要な場合あり

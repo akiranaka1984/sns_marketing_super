@@ -14,7 +14,11 @@ import {
   postPerformanceFeedback
 } from "../drizzle/schema";
 import { eq, and, desc, gte, lte, sql, isNull, or } from "drizzle-orm";
-import { screenshot as getDeviceScreenshot } from "./duoplus";
+// Screenshot functionality removed (was device-dependent)
+async function getDeviceScreenshot(_deviceId: string): Promise<string | null> {
+  console.log("[EngagementCollector] Device screenshot not available");
+  return null;
+}
 import { invokeLLM } from "./_core/llm";
 
 // ============================================

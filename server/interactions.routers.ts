@@ -148,9 +148,9 @@ export const interactionsRouter = router({
       });
 
       // いいねを実行
-      const apiKey = process.env.DUOPLUS_API_KEY;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       if (!apiKey) {
-        return { success: false, error: "DUOPLUS_API_KEYが設定されていません。設定画面で設定後、サーバーを再起動してください。" };
+        return { success: false, error: "AUTOMATION_API_KEYが設定されていません。" };
       }
       const result = await executeLike(apiKey, input.fromDeviceId, postUrl.postUrl);
 
@@ -194,7 +194,7 @@ export const interactionsRouter = router({
       });
 
       // コメントを実行
-      const apiKey = process.env.DUOPLUS_API_KEY;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       const openaiApiKey = process.env.OPENAI_API_KEY;
       if (!apiKey || !openaiApiKey) {
         return { success: false, error: "API KEYが設定されていません。設定画面で設定後、サーバーを再起動してください。" };
@@ -247,9 +247,9 @@ export const interactionsRouter = router({
       });
 
       // リツイートを実行
-      const apiKey = process.env.DUOPLUS_API_KEY;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       if (!apiKey) {
-        return { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
+        return { success: false, error: "AUTOMATION_API_KEYが設定されていません" };
       }
       console.log(`[executeRetweet] PostUrlId: ${input.postUrlId}, URL: ${postUrl.postUrl}, Username: ${postUrl.username}`);
       const result = await executeRetweet(apiKey, input.fromDeviceId, postUrl.postUrl);
@@ -286,9 +286,9 @@ export const interactionsRouter = router({
       });
 
       // フォローを実行
-      const apiKey = process.env.DUOPLUS_API_KEY;
+      const apiKey = process.env.AUTOMATION_API_KEY || '';
       if (!apiKey) {
-        return { success: false, error: "DUOPLUS_API_KEYが設定されていません" };
+        return { success: false, error: "AUTOMATION_API_KEYが設定されていません" };
       }
       const result = await executeFollow(apiKey, input.fromDeviceId, input.targetUsername);
 

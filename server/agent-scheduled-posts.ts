@@ -31,6 +31,7 @@ interface ScheduledPostInput {
   mediaUrls?: string[];
   scheduledTime: Date;
   confidence: number;
+  usedLearningIds?: number[];
 }
 
 interface GenerateScheduledPostsResult {
@@ -78,9 +79,10 @@ export async function createAgentScheduledPost(input: ScheduledPostInput): Promi
     generatedByAgent: true,
     reviewStatus,
     contentConfidence: input.confidence,
+    usedLearningIds: input.usedLearningIds ? JSON.stringify(input.usedLearningIds) : null,
   });
 
-  console.log(`[AgentScheduledPosts] Created scheduled post ${result.insertId} for agent ${input.agentId} with reviewStatus: ${reviewStatus}`);
+  console.log(`[AgentScheduledPosts] Created scheduled post ${result.insertId} for agent ${input.agentId} with reviewStatus: ${reviewStatus}, learnings: ${input.usedLearningIds?.length || 0}`);
   return result.insertId;
 }
 
@@ -246,7 +248,7 @@ export async function generateScheduledPosts(
 
         recentContents.push(content.content);
 
-        // スケジュール投稿として登録
+        // スケジュール投稿として登録（使用した学習IDも記録）
         const postId = await createAgentScheduledPost({
           agentId,
           accountId: targetAccount.id,
@@ -255,6 +257,7 @@ export async function generateScheduledPosts(
           hashtags: content.hashtags,
           scheduledTime: postTime,
           confidence: content.confidence,
+          usedLearningIds: content.usedLearningIds,
         });
 
         createdPosts.push({

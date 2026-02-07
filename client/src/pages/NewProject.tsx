@@ -3,12 +3,10 @@ import { useLocation } from "wouter";
 import { ArrowLeft, Target, Calendar, TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function NewProject() {
   const [, setLocation] = useLocation();
@@ -64,7 +62,7 @@ export default function NewProject() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.objective) {
       toast.error("プロジェクト名と目的は必須です");
       return;
@@ -89,34 +87,34 @@ export default function NewProject() {
   };
 
   return (
-    <div className="container max-w-3xl py-8">
+    <div className="space-y-5 max-w-3xl">
       {/* Header */}
-      <div className="mb-8">
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => setLocation("/projects")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          プロジェクト一覧に戻る
-        </Button>
-        <h1 className="text-3xl font-bold text-slate-900">新規プロジェクト作成</h1>
-        <p className="text-slate-600 mt-1">マーケティングキャンペーンの基本情報を入力してください</p>
+      <div className="fade-in-up page-header">
+        <div>
+          <Button
+            variant="ghost"
+            className="mb-4"
+            onClick={() => setLocation("/projects")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            プロジェクト一覧に戻る
+          </Button>
+          <h1 className="page-title">新規プロジェクト作成</h1>
+          <p className="page-subtitle">マーケティングキャンペーンの基本情報を入力してください</p>
+        </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                基本情報
-              </CardTitle>
-              <CardDescription>プロジェクトの名前と目的を設定します</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+            <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1 flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              基本情報
+            </h3>
+            <p className="text-xs text-[#A3A3A3] mb-3">プロジェクトの名前と目的を設定します</p>
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">プロジェクト名 *</Label>
                 <Input
@@ -150,80 +148,73 @@ export default function NewProject() {
                   rows={4}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Period */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                実施期間
-              </CardTitle>
-              <CardDescription>プロジェクトの開始日と終了日を設定します</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">開始日</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">終了日</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  />
-                </div>
+          <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+            <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1 flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              実施期間
+            </h3>
+            <p className="text-xs text-[#A3A3A3] mb-3">プロジェクトの開始日と終了日を設定します</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">開始日</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                />
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="endDate">終了日</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Targets */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    目標設定
-                  </CardTitle>
-                  <CardDescription>達成したい数値目標を設定します</CardDescription>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSuggestKPIs}
-                  disabled={suggestKPIsMutation.isPending || !formData.objective.trim()}
-                >
-                  {suggestKPIsMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4 mr-2" />
-                  )}
-                  AIが提案
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+            <div className="flex items-start justify-between mb-1">
+              <h3 className="font-semibold text-sm text-[#1A1A1A] flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                目標設定
+              </h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-[#E5E5E5] text-[#1A1A1A]"
+                onClick={handleSuggestKPIs}
+                disabled={suggestKPIsMutation.isPending || !formData.objective.trim()}
+              >
+                {suggestKPIsMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                AIが提案
+              </Button>
+            </div>
+            <p className="text-xs text-[#A3A3A3] mb-3">達成したい数値目標を設定します</p>
+            <div className="space-y-4">
               {kpiRationale && (
-                <Alert className="mb-4 bg-blue-50 border-blue-200">
-                  <Sparkles className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
+                <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-lg p-3 flex gap-2">
+                  <Sparkles className="h-4 w-4 text-[#D4380D] mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-[#D4380D]">
                     <strong>AIの提案理由:</strong> {kpiRationale}
-                  </AlertDescription>
-                </Alert>
+                  </p>
+                </div>
               )}
-              <p className="text-sm text-slate-600 mb-4">設定したいKPIだけを入力してください（任意）</p>
+              <p className="text-sm text-[#737373]">設定したいKPIだけを入力してください（任意）</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="targetFollowers">目標フォロワー数</Label>
@@ -281,19 +272,20 @@ export default function NewProject() {
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3">
             <Button
               type="button"
               variant="outline"
+              className="border-[#E5E5E5] text-[#1A1A1A]"
               onClick={() => setLocation("/projects")}
             >
               キャンセル
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button type="submit" className="bg-[#D4380D] hover:bg-[#B8300B] text-white" disabled={createMutation.isPending}>
               {createMutation.isPending ? "作成中..." : "プロジェクトを作成"}
             </Button>
           </div>

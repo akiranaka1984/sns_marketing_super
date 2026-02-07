@@ -1,7 +1,7 @@
 /**
  * Scheduled Posts System
  *
- * Automatically publishes posts at scheduled times using DuoPlus API.
+ * Automatically publishes posts at scheduled times using Playwright browser automation.
  * Uses Bull queue for reliable job processing with retry support.
  */
 
@@ -12,7 +12,6 @@ import { detectFreeze, handleFreeze } from "./freeze-detection";
 import { buildAgentContext, generateContent } from "./agent-engine";
 import { isSimilar } from "./agent-scheduled-posts";
 import { postToSNS } from "./sns-posting";
-import { ensureDeviceReady } from "./ensure-device-ready";
 import { onPostSuccess } from "./post-success-hook";
 import { addScheduledPostJob, type ScheduledPostJob } from "./queue-manager";
 
@@ -61,7 +60,7 @@ export async function executeScheduledPosts() {
 }
 
 /**
- * Publish a single scheduled post using DuoPlus API
+ * Publish a single scheduled post via Playwright
  */
 export async function publishPost(postId: number): Promise<{
   success: boolean;
@@ -112,44 +111,8 @@ export async function publishPost(postId: number): Promise<{
       };
     }
 
-    // Check if device ID is set
-    if (!account.deviceId) {
-      await db
-        .update(scheduledPosts)
-        .set({
-          status: "failed",
-          errorMessage: "Device ID not configured for this account",
-        })
-        .where(eq(scheduledPosts.id, postId));
-
-      return {
-        success: false,
-        message: "Device ID not configured for this account",
-        postId,
-      };
-    }
-
-    // Ensure device is powered on (auto-start if stopped)
-    const deviceReady = await ensureDeviceReady(account.deviceId);
-    if (!deviceReady.ready) {
-      await db
-        .update(scheduledPosts)
-        .set({
-          status: "failed",
-          errorMessage: `デバイス起動失敗: ${deviceReady.message}`,
-        })
-        .where(eq(scheduledPosts.id, postId));
-
-      return {
-        success: false,
-        message: `デバイス起動失敗: ${deviceReady.message}`,
-        postId,
-      };
-    }
-
     console.log(`[ScheduledPosts] Publishing post ${postId} to ${account.platform} account ${account.username}`);
     console.log(`[ScheduledPosts] Content: ${post.content}`);
-    console.log(`[ScheduledPosts] Device: ${account.deviceId}`);
 
     // Build full content with hashtags
     let fullContent = post.content;
@@ -164,12 +127,12 @@ export async function publishPost(postId: number): Promise<{
       }
     }
 
-    // Post to SNS using DuoPlus API
+    // Post to SNS using Playwright
     const postResult = await postToSNS(
       account.platform,
-      account.deviceId,
       fullContent,
-      post.mediaUrls ? (typeof post.mediaUrls === 'string' ? JSON.parse(post.mediaUrls) : post.mediaUrls) : undefined
+      account.id,
+      post.mediaUrls ? (typeof post.mediaUrls === 'string' ? JSON.parse(post.mediaUrls) : post.mediaUrls) : undefined,
     );
 
     if (postResult.success) {

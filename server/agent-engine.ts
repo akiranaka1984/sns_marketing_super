@@ -37,6 +37,8 @@ import {
   getFailurePatternsForPrompt,
   BuzzPatternsForPrompt,
   formatWeightedLearningsForPrompt,
+  getWeightedLearningsForPrompt,
+  deactivateLearning,
 } from "./services/account-learning-service";
 import {
   searchTrendingHashtag,
@@ -117,6 +119,7 @@ interface GeneratedContent {
   mediaPrompt?: string;
   confidence: number;
   reasoning: string;
+  usedLearningIds?: number[]; // IDs of learnings used for content generation
 }
 
 interface PostResult {
@@ -468,16 +471,40 @@ export async function generateContent(
 
   // Get weighted learnings (time-decay prioritized, most recent and successful first)
   let weightedLearningPrompt = '';
+  let usedLearningIds: number[] = [];
   if (targetAccountId) {
     try {
       const projectId = context.agent.projectId || undefined;
+      // Get weighted learnings and track their IDs for feedback loop
+      const weightedLearnings = await getWeightedLearningsForPrompt(targetAccountId, {
+        projectId,
+        learningTypes: ['posting_style', 'success_pattern', 'hashtag_strategy', 'timing_pattern', 'topic_preference'],
+        minWeight: 0.15,
+        limit: 8,
+      });
+
+      // Collect IDs of learnings used in generation
+      usedLearningIds = weightedLearnings.map(l => l.id);
+
+      // Auto-deactivate low-performing learnings (successRate < 30% after 5+ uses)
+      for (const learning of weightedLearnings) {
+        if (learning.usageCount >= 5 && learning.successRate < 30) {
+          await deactivateLearning(learning.id);
+          console.log(`[AgentEngine] Auto-deactivated low-performing learning ${learning.id} (successRate=${learning.successRate}%, uses=${learning.usageCount})`);
+        }
+      }
+
+      // Filter out deactivated ones for prompt
+      const activeLearnings = weightedLearnings.filter(l => !(l.usageCount >= 5 && l.successRate < 30));
+      usedLearningIds = activeLearnings.map(l => l.id);
+
       weightedLearningPrompt = await formatWeightedLearningsForPrompt(targetAccountId, {
         projectId,
         forPostGeneration: true,
         limit: 8,
       });
       if (weightedLearningPrompt) {
-        console.log(`[AgentEngine] Loaded weighted learnings for account ${targetAccountId}`);
+        console.log(`[AgentEngine] Loaded ${usedLearningIds.length} weighted learnings for account ${targetAccountId}`);
       }
     } catch (error) {
       console.error(`[AgentEngine] Failed to get weighted learnings:`, error);
@@ -917,6 +944,7 @@ ${closingInstruction}`;
       mediaPrompt: result.mediaPrompt,
       confidence: result.confidence || 50,
       reasoning: result.reasoning || '',
+      usedLearningIds: usedLearningIds.length > 0 ? usedLearningIds : undefined,
     };
   } catch (error) {
     console.error('[AgentEngine] Content generation failed:', error);

@@ -2,7 +2,6 @@ import { useRoute, useLocation } from "wouter";
 import { ArrowLeft, Save, Loader2, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -44,12 +43,12 @@ export default function ProjectEdit() {
     if (project) {
       setName(project.name);
       setDescription(project.description || "");
-      
+
       // Parse targets JSON
       if (project.targets) {
         try {
-          const targets = typeof project.targets === 'string' 
-            ? JSON.parse(project.targets) 
+          const targets = typeof project.targets === 'string'
+            ? JSON.parse(project.targets)
             : project.targets;
           setFollowerTarget(targets.followers?.toString() || "");
           setEngagementTarget(targets.engagementRate?.toString() || "");
@@ -59,13 +58,13 @@ export default function ProjectEdit() {
           console.error("Failed to parse targets:", e);
         }
       }
-      
+
       // Set dates and status
       console.log('Setting dates - startDate:', project.startDate, 'endDate:', project.endDate, 'status:', project.status);
       if (project.startDate) {
         // Handle both Date objects and ISO strings
-        const dateStr = typeof project.startDate === 'string' 
-          ? project.startDate 
+        const dateStr = typeof project.startDate === 'string'
+          ? project.startDate
           : project.startDate.toISOString();
         const formattedDate = dateStr.split('T')[0];
         console.log('Setting startDate to:', formattedDate);
@@ -73,8 +72,8 @@ export default function ProjectEdit() {
       }
       if (project.endDate) {
         // Handle both Date objects and ISO strings
-        const dateStr = typeof project.endDate === 'string' 
-          ? project.endDate 
+        const dateStr = typeof project.endDate === 'string'
+          ? project.endDate
           : project.endDate.toISOString();
         const formattedDate = dateStr.split('T')[0];
         console.log('Setting endDate to:', formattedDate);
@@ -144,33 +143,29 @@ export default function ProjectEdit() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#D4380D]" />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>プロジェクトが見つかりません</CardTitle>
-            <CardDescription>指定されたプロジェクトは存在しません</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => setLocation("/projects")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              プロジェクト一覧に戻る
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="space-y-5 max-w-5xl">
+        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+          <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">プロジェクトが見つかりません</h3>
+          <p className="text-xs text-[#A3A3A3] mb-3">指定されたプロジェクトは存在しません</p>
+          <Button onClick={() => setLocation("/projects")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            プロジェクト一覧に戻る
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <div className="mb-6">
+    <div className="space-y-5 max-w-5xl">
+      <div>
         <Button
           variant="ghost"
           onClick={() => setLocation(`/projects/${projectId}`)}
@@ -179,21 +174,23 @@ export default function ProjectEdit() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           プロジェクト詳細に戻る
         </Button>
-        <h1 className="text-3xl font-bold">プロジェクトを編集</h1>
-        <p className="text-muted-foreground mt-2">
-          プロジェクトの基本情報とKPI目標を編集します
-        </p>
+        <div className="fade-in-up page-header">
+          <div>
+            <h1 className="page-title">プロジェクトを編集</h1>
+            <p className="page-subtitle">
+              プロジェクトの基本情報とKPI目標を編集します
+            </p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>基本情報</CardTitle>
-            <CardDescription>
-              プロジェクト名と説明を入力してください
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+          <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">基本情報</h3>
+          <p className="text-xs text-[#A3A3A3] mb-3">
+            プロジェクト名と説明を入力してください
+          </p>
+          <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">プロジェクト名 *</Label>
               <Input
@@ -252,17 +249,15 @@ export default function ProjectEdit() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>KPI目標</CardTitle>
-            <CardDescription>
-              達成したい目標値を設定してください（任意）
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4 mt-5">
+          <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">KPI目標</h3>
+          <p className="text-xs text-[#A3A3A3] mb-3">
+            達成したい目標値を設定してください（任意）
+          </p>
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="followerTarget">フォロワー目標数</Label>
@@ -314,14 +309,14 @@ export default function ProjectEdit() {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <div className="mt-6 flex gap-4">
+        <div className="mt-5 flex gap-4">
           <Button
             type="submit"
             disabled={updateMutation.isPending}
-            className="flex-1"
+            className="flex-1 bg-[#D4380D] hover:bg-[#B8300B] text-white"
           >
             {updateMutation.isPending ? (
               <>
@@ -345,33 +340,29 @@ export default function ProjectEdit() {
         </div>
       </form>
 
-      <Card className="mt-6 border-destructive">
-        <CardHeader>
-          <CardTitle className="text-destructive">危険なゾーン</CardTitle>
-          <CardDescription>
-            プロジェクトを削除すると、関連するすべてのデータが失われます。この操作は元に戻せません。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant="destructive"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={deleteMutation.isPending}
-          >
-            {deleteMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                削除中...
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 h-4 w-4" />
-                プロジェクトを削除
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="fade-in-up bg-white rounded-lg border border-red-200 p-4">
+        <h3 className="font-semibold text-sm text-red-700 mb-1">危険なゾーン</h3>
+        <p className="text-xs text-[#A3A3A3] mb-3">
+          プロジェクトを削除すると、関連するすべてのデータが失われます。この操作は元に戻せません。
+        </p>
+        <Button
+          variant="destructive"
+          onClick={() => setShowDeleteDialog(true)}
+          disabled={deleteMutation.isPending}
+        >
+          {deleteMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              削除中...
+            </>
+          ) : (
+            <>
+              <Trash2 className="mr-2 h-4 w-4" />
+              プロジェクトを削除
+            </>
+          )}
+        </Button>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

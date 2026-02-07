@@ -1,42 +1,79 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Plus, Trash2, RefreshCw, ExternalLink, Power, PowerOff, RotateCw, ArrowUpDown, Smartphone } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  ArrowUpDown,
+  MoreHorizontal,
+  Power,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
-import { useI18n } from "@/contexts/I18nContext";
 
 type Platform = "all" | "twitter" | "facebook" | "instagram" | "tiktok";
 type SortField = "username" | "status" | "createdAt";
 type SortOrder = "asc" | "desc";
 
+// Notion-style status tag
+function StatusTag({ status }: { status: string }) {
+  const config: Record<string, { bg: string; text: string; dot: string }> = {
+    active: { bg: "bg-[#DBEDDB]", text: "text-[#1F7A1F]", dot: "bg-[#1F7A1F]" },
+    pending: { bg: "bg-[#FADEC9]", text: "text-[#9F6B53]", dot: "bg-[#D9730D]" },
+    failed: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]", dot: "bg-[#E03E3E]" },
+    suspended: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]", dot: "bg-[#E03E3E]" },
+  };
+  const { bg, text, dot } = config[status] || config.pending;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[12px] ${bg} ${text}`}>
+      <span className={`w-[6px] h-[6px] rounded-full ${dot}`} />
+      {status}
+    </span>
+  );
+}
+
+// Notion-style plan tag
+function PlanTag({ plan }: { plan: string }) {
+  const config: Record<string, { bg: string; text: string }> = {
+    free: { bg: "bg-[#F1F1EF]", text: "text-[#787774]" },
+    premium: { bg: "bg-[#D3E5EF]", text: "text-[#2B6B8A]" },
+    premium_plus: { bg: "bg-[#FDECC8]", text: "text-[#9F6B53]" },
+  };
+  const labels: Record<string, string> = {
+    free: "Free",
+    premium: "Pro",
+    premium_plus: "Pro+",
+  };
+  const { bg, text } = config[plan] || config.free;
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-[3px] text-[12px] ${bg} ${text}`}>
+      {labels[plan] || plan}
+    </span>
+  );
+}
+
+// Notion-style property pill
+function PropertyPill({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex items-center gap-1.5 text-[13px]">
+      <span className="text-[#9B9A97]">{label}</span>
+      <span className="text-[#37352F] font-medium">{value}</span>
+    </div>
+  );
+}
+
 export default function Accounts() {
-  const { t } = useI18n();
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>("all");
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [assigningAccountId, setAssigningAccountId] = useState<number | null>(null);
-  const [deviceSelectDialogOpen, setDeviceSelectDialogOpen] = useState(false);
-  const [selectedAccountForDevice, setSelectedAccountForDevice] = useState<{id: number, username: string} | null>(null);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
-  // Fetch available devices from DuoPlus
-  const { data: duoplusDevices, isLoading: isLoadingDevices } = trpc.device.listDuoPlusDevices.useQuery(undefined, {
-    enabled: deviceSelectDialogOpen,
-  });
-  
   const { data: accounts, isLoading } = trpc.accounts.list.useQuery(undefined, {
-    refetchInterval: 60000, // Refetch every 60 seconds
+    refetchInterval: 60000,
   });
-  
+
   const deleteMutation = trpc.accounts.delete.useMutation({
     onSuccess: () => {
       toast.success("アカウントを削除しました");
@@ -44,48 +81,6 @@ export default function Accounts() {
     },
     onError: (error) => {
       toast.error(`削除失敗: ${error.message}`);
-    },
-  });
-
-  const registerMutation = trpc.accounts.register.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success("アカウント登録成功");
-      } else {
-        toast.error(`登録失敗: ${result.error}`);
-      }
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`登録失敗: ${error.message}`);
-    },
-  });
-
-  const syncDeviceIdsMutation = trpc.accounts.syncDeviceIds.useMutation({
-    onSuccess: (result) => {
-      // 同期成功したアカウント数を計算
-      const successCount = result.synced || 0;
-      const errorCount = result.errors?.length || 0;
-      
-      if (successCount > 0 && errorCount === 0) {
-        toast.success(result.message);
-      } else if (successCount > 0 && errorCount > 0) {
-        toast.success(`${successCount}件のアカウントを同期しました`);
-        // デバイス未設定のアカウントは警告として表示
-        toast.warning(`${errorCount}件のアカウントはデバイス未設定のためスキップされました`, {
-          description: 'アカウントを登録してデバイスを割り当ててください',
-        });
-      } else if (errorCount > 0) {
-        toast.warning(`同期対象のアカウントがありません`, {
-          description: `${errorCount}件のアカウントはデバイス未設定です`,
-        });
-      } else {
-        toast.info('同期対象のアカウントがありません');
-      }
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`同期失敗: ${error.message}`);
     },
   });
 
@@ -109,128 +104,26 @@ export default function Accounts() {
     },
   });
 
-  const assignDeviceMutation = trpc.accounts.assignDevice.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-      setAssigningAccountId(null);
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`デバイス割り当て失敗: ${error.message}`);
-      setAssigningAccountId(null);
-    },
-  });
-
-  const handleOpenDeviceSelectDialog = (account: {id: number, username: string}) => {
-    setSelectedAccountForDevice(account);
-    setSelectedDeviceId("");
-    setDeviceSelectDialogOpen(true);
-  };
-
-  const handleAssignSelectedDevice = () => {
-    if (!selectedAccountForDevice || !selectedDeviceId) return;
-    setAssigningAccountId(selectedAccountForDevice.id);
-    setDeviceSelectDialogOpen(false);
-    assignDeviceMutation.mutate({ 
-      accountId: selectedAccountForDevice.id,
-      deviceId: selectedDeviceId 
-    });
-  };
-
-  const startDeviceMutation = trpc.device.start.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`起動失敗: ${error.message}`);
-    },
-  });
-
-  const stopDeviceMutation = trpc.device.stop.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`停止失敗: ${error.message}`);
-    },
-  });
-
-  const restartDeviceMutation = trpc.device.restart.useMutation({
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`再起動失敗: ${error.message}`);
-    },
-  });
-
-  const updatePlanMutation = trpc.accounts.update.useMutation({
-    onSuccess: () => {
-      toast.success("プランを更新しました");
-      utils.accounts.list.invalidate();
-    },
-    onError: (error) => {
-      toast.error(`プラン更新失敗: ${error.message}`);
-    },
-  });
-
-  const handlePlanChange = (accountId: number, planType: 'free' | 'premium' | 'premium_plus') => {
-    updatePlanMutation.mutate({ accountId, planType });
-  };
-
-  const handleDelete = (accountId: number) => {
+  const handleDelete = (accountId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (confirm("このアカウントを削除してもよろしいですか？")) {
       deleteMutation.mutate({ accountId });
     }
   };
 
-  const handleRegister = (accountId: number) => {
-    registerMutation.mutate({ accountId });
-    toast.info("登録処理を開始しました...");
+  const handleActivate = (accountId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    activateMutation.mutate({ accountId });
   };
 
-  const handleStartDevice = (deviceId: string) => {
-    startDeviceMutation.mutate({ deviceId });
-    toast.info("デバイスを起動しています...");
-  };
-
-  const handleStopDevice = (deviceId: string) => {
-    stopDeviceMutation.mutate({ deviceId });
-    toast.info("デバイスを停止しています...");
-  };
-
-  const handleRestartDevice = (deviceId: string) => {
-    restartDeviceMutation.mutate({ deviceId });
-    toast.info("デバイスを再起動しています...");
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    const icons: Record<string, string> = {
+  const getPlatformEmoji = (platform: string) => {
+    const emojis: Record<string, string> = {
       twitter: "𝕏",
       tiktok: "🎵",
       instagram: "📷",
       facebook: "👥",
     };
-    return icons[platform] || "📱";
+    return emojis[platform] || "📱";
   };
 
   const getPlatformName = (platform: string) => {
@@ -241,11 +134,6 @@ export default function Accounts() {
       facebook: "Facebook",
     };
     return names[platform] || platform;
-  };
-
-  const openDuoPlusDashboard = (deviceId: string) => {
-    const url = `https://my.duoplus.net/images?keyword=${deviceId}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleSort = (field: SortField) => {
@@ -263,7 +151,6 @@ export default function Accounts() {
         .filter(account => selectedPlatform === "all" || account.platform === selectedPlatform)
         .sort((a, b) => {
           let comparison = 0;
-          
           switch (sortField) {
             case "username":
               comparison = a.username.localeCompare(b.username);
@@ -275,7 +162,6 @@ export default function Accounts() {
               comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
               break;
           }
-          
           return sortOrder === "asc" ? comparison : -comparison;
         })
     : [];
@@ -291,373 +177,214 @@ export default function Accounts() {
       }
     : { all: 0, twitter: 0, facebook: 0, instagram: 0, tiktok: 0 };
 
+  const activeCount = accounts?.filter(a => a.status === 'active').length || 0;
+  const pendingCount = accounts?.filter(a => a.status === 'pending').length || 0;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-[#9B9A97]" />
+          <span className="text-[13px] text-[#9B9A97]">読み込み中...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>アカウント</CardTitle>
-              <CardDescription>SNSアカウントを管理</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => batchActivateMutation.mutate()}
-                disabled={batchActivateMutation.isPending || !accounts?.some(a => a.status === 'pending')}
-                className="text-green-600 border-green-300 hover:bg-green-50"
+    <div className="min-h-full">
+      {/* Page Title - Notion style */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-[40px]">👥</span>
+          <h1 className="text-[32px] font-bold text-[#37352F]">アカウント</h1>
+        </div>
+        <p className="text-[14px] text-[#9B9A97]">
+          SNSアカウントの管理・監視
+        </p>
+      </div>
+
+      {/* Quick Stats - Notion callout style */}
+      <div className="bg-[#F7F6F3] rounded-[4px] p-4 mb-6">
+        <div className="flex items-center gap-6 flex-wrap">
+          <PropertyPill label="アカウント総数" value={platformCounts.all} />
+          <PropertyPill label="アクティブ" value={activeCount} />
+          <PropertyPill label="保留中" value={pendingCount} />
+          <div className="flex-1" />
+          {pendingCount > 0 && (
+            <button
+              onClick={() => batchActivateMutation.mutate()}
+              disabled={batchActivateMutation.isPending}
+              className="flex items-center gap-1 text-[13px] text-[#1F7A1F] hover:underline disabled:opacity-50"
+            >
+              <Power className="w-3.5 h-3.5" />
+              一括アクティブ化
+            </button>
+          )}
+          <Link href="/accounts/new" className="flex items-center gap-1 text-[13px] text-[#2383E2] hover:underline">
+            <Plus className="w-3.5 h-3.5" />
+            アカウント追加
+          </Link>
+        </div>
+      </div>
+
+      {/* Platform Filter Tabs - Notion style */}
+      <div className="flex items-center gap-1 mb-4">
+        {([
+          { key: "all" as Platform, label: "すべて", emoji: "📋" },
+          { key: "twitter" as Platform, label: "X", emoji: "𝕏" },
+          { key: "instagram" as Platform, label: "Instagram", emoji: "📷" },
+          { key: "tiktok" as Platform, label: "TikTok", emoji: "🎵" },
+          { key: "facebook" as Platform, label: "Facebook", emoji: "👥" },
+        ]).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setSelectedPlatform(tab.key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[13px] transition-colors ${
+              selectedPlatform === tab.key
+                ? "bg-[#EBEBEA] text-[#37352F] font-medium"
+                : "text-[#9B9A97] hover:bg-[#F7F6F3]"
+            }`}
+          >
+            <span>{tab.emoji}</span>
+            {tab.label}
+            <span className="text-[12px] text-[#9B9A97]">
+              {platformCounts[tab.key]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Database View - Notion style */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1">
+            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#9B9A97] hover:bg-[#EBEBEA] rounded-[4px] transition-colors">
+              <Filter className="w-3.5 h-3.5" />
+              フィルター
+            </button>
+            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#9B9A97] hover:bg-[#EBEBEA] rounded-[4px] transition-colors">
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              ソート
+            </button>
+          </div>
+        </div>
+
+        {/* Table View */}
+        <div className="border border-[#E9E9E7] rounded-[4px] overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] bg-[#F7F6F3] border-b border-[#E9E9E7]">
+            <button
+              onClick={() => handleSort("username")}
+              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+            >
+              名前
+              {sortField === "username" && <ArrowUpDown className="w-3 h-3" />}
+            </button>
+            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">プラットフォーム</div>
+            <button
+              onClick={() => handleSort("status")}
+              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+            >
+              ステータス
+              {sortField === "status" && <ArrowUpDown className="w-3 h-3" />}
+            </button>
+            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">プラン</div>
+            <button
+              onClick={() => handleSort("createdAt")}
+              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+            >
+              作成日
+              {sortField === "createdAt" && <ArrowUpDown className="w-3 h-3" />}
+            </button>
+            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]"></div>
+          </div>
+
+          {/* Rows */}
+          {filteredAndSortedAccounts.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-[13px] text-[#9B9A97] mb-3">アカウントがありません</p>
+              <Link
+                href="/accounts/new"
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#2383E2] text-white text-[13px] rounded-[4px] hover:bg-[#0B6BCB] transition-colors"
               >
-                {batchActivateMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Power className="h-4 w-4 mr-2" />
-                )}
-                一括アクティブ化
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => syncDeviceIdsMutation.mutate()}
-                disabled={syncDeviceIdsMutation.isPending}
-              >
-                {syncDeviceIdsMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                デバイスID同期
-              </Button>
-              <Link href="/accounts/add">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  アカウント追加
-                </Button>
+                <Plus className="w-3.5 h-3.5" />
+                新規作成
               </Link>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={selectedPlatform} onValueChange={(value) => setSelectedPlatform(value as Platform)}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="all">
-                すべて ({platformCounts.all})
-              </TabsTrigger>
-              <TabsTrigger value="twitter">
-                𝕏 X ({platformCounts.twitter})
-              </TabsTrigger>
-              <TabsTrigger value="facebook">
-                👥 Facebook ({platformCounts.facebook})
-              </TabsTrigger>
-              <TabsTrigger value="instagram">
-                📷 Instagram ({platformCounts.instagram})
-              </TabsTrigger>
-              <TabsTrigger value="tiktok">
-                🎵 TikTok ({platformCounts.tiktok})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={selectedPlatform} className="mt-6">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">プラットフォーム</TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort("username")}
-                          className="-ml-3"
-                        >
-                          ユーザー名
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </TableHead>
-                      <TableHead>X Handle</TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort("status")}
-                          className="-ml-3"
-                        >
-                          ステータス
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </TableHead>
-                      <TableHead>デバイスID</TableHead>
-                      <TableHead>プロキシ</TableHead>
-                      <TableHead>プラン</TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSort("createdAt")}
-                          className="-ml-3"
-                        >
-                          作成日時
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </TableHead>
-                      <TableHead className="text-right">アクション</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredAndSortedAccounts.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                          アカウントがありません
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredAndSortedAccounts.map((account) => (
-                        <TableRow
-                          key={account.id}
-                          onClick={() => navigate(`/accounts/${account.id}`)}
-                          className="cursor-pointer hover:bg-muted/50"
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl">{getPlatformIcon(account.platform)}</span>
-                              <span className="text-sm text-muted-foreground hidden sm:inline">
-                                {getPlatformName(account.platform)}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{account.username}</TableCell>
-                          <TableCell>
-                            {(account as any).xHandle ? (
-                              <code className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                                @{(account as any).xHandle}
-                              </code>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">未設定</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={account.status === "active" ? "default" : "secondary"}>
-                              {account.status === "active" ? "アクティブ" : "保留中"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {account.deviceId ? (
-                              <code className="text-xs bg-muted px-2 py-1 rounded">
-                                {account.deviceId}
-                              </code>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">未設定</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {account.proxyId ? (
-                              <code className="text-xs bg-muted px-2 py-1 rounded">
-                                {account.proxyId}
-                              </code>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {account.platform === 'twitter' ? (
-                              <Select
-                                value={(account as any).planType || 'free'}
-                                onValueChange={(value: 'free' | 'premium' | 'premium_plus') =>
-                                  handlePlanChange(account.id, value)
-                                }
-                                disabled={updatePlanMutation.isPending}
-                              >
-                                <SelectTrigger className="w-[130px] h-8 text-xs" onClick={(e) => e.stopPropagation()}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="free">
-                                    <span className="flex items-center gap-1.5">
-                                      <span className="w-2 h-2 rounded-full bg-gray-400" />
-                                      Free (280字)
-                                    </span>
-                                  </SelectItem>
-                                  <SelectItem value="premium">
-                                    <span className="flex items-center gap-1.5">
-                                      <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                      Premium (4000字)
-                                    </span>
-                                  </SelectItem>
-                                  <SelectItem value="premium_plus">
-                                    <span className="flex items-center gap-1.5">
-                                      <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                      Premium+ (25000字)
-                                    </span>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(account.createdAt).toLocaleString("ja-JP")}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              {account.status === 'pending' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => { e.stopPropagation(); activateMutation.mutate({ accountId: account.id }); }}
-                                  disabled={activateMutation.isPending}
-                                  title="アクティブ化"
-                                  className="text-green-600 border-green-300 hover:bg-green-50"
-                                >
-                                  {activateMutation.isPending ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                  ) : (
-                                    <Power className="h-4 w-4 mr-1" />
-                                  )}
-                                  アクティブ化
-                                </Button>
-                              )}
-                              {!account.deviceId && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => { e.stopPropagation(); handleOpenDeviceSelectDialog({id: account.id, username: account.username}); }}
-                                  disabled={assigningAccountId !== null}
-                                  title="デバイスを割り当て"
-                                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                                >
-                                  {assigningAccountId === account.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                  ) : (
-                                    <Smartphone className="h-4 w-4 mr-1" />
-                                  )}
-                                  デバイス割当
-                                </Button>
-                              )}
-                              {account.deviceId && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); handleStartDevice(account.deviceId!); }}
-                                    disabled={startDeviceMutation.isPending}
-                                    title="デバイスを起動"
-                                  >
-                                    <Power className="h-4 w-4 text-green-600" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); handleStopDevice(account.deviceId!); }}
-                                    disabled={stopDeviceMutation.isPending}
-                                    title="デバイスを停止"
-                                  >
-                                    <PowerOff className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); handleRestartDevice(account.deviceId!); }}
-                                    disabled={restartDeviceMutation.isPending}
-                                    title="デバイスを再起動"
-                                  >
-                                    <RotateCw className="h-4 w-4 text-blue-600" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => { e.stopPropagation(); openDuoPlusDashboard(account.deviceId!); }}
-                                    title="DuoPlusで表示"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => { e.stopPropagation(); handleDelete(account.id); }}
-                                disabled={deleteMutation.isPending}
-                                title="削除"
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
+          ) : (
+            filteredAndSortedAccounts.map((account) => (
+              <div
+                key={account.id}
+                onClick={() => navigate(`/accounts/${account.id}`)}
+                className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] border-b border-[#E9E9E7] last:border-b-0 hover:bg-[#F7F6F3] transition-colors cursor-pointer group"
+              >
+                <div className="px-3 py-2.5 flex items-center gap-2">
+                  <span className="text-[14px]">{getPlatformEmoji(account.platform)}</span>
+                  <div className="min-w-0">
+                    <span className="text-[14px] text-[#37352F] group-hover:text-[#2383E2] truncate block">
+                      {account.username}
+                    </span>
+                    {(account as any).xHandle && (
+                      <span className="text-[11px] text-[#9B9A97]">@{(account as any).xHandle}</span>
                     )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-      {/* Device Selection Dialog */}
-      <Dialog open={deviceSelectDialogOpen} onOpenChange={setDeviceSelectDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>デバイスを選択</DialogTitle>
-            <DialogDescription>
-              {selectedAccountForDevice?.username} に割り当てるデバイスを選択してください
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {isLoadingDevices ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">デバイスを読み込み中...</span>
-              </div>
-            ) : duoplusDevices && duoplusDevices.length > 0 ? (
-              <>
-                <Select value={selectedDeviceId} onValueChange={setSelectedDeviceId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="デバイスを選択..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {duoplusDevices.map((device) => (
-                      <SelectItem key={device.deviceId} value={device.deviceId}>
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${
-                            device.status === 'running' ? 'bg-green-500' : 
-                            device.status === 'stopped' ? 'bg-gray-400' : 'bg-yellow-500'
-                          }`} />
-                          <span>{device.name}</span>
-                          <span className="text-muted-foreground text-xs">({device.deviceId})</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setDeviceSelectDialogOpen(false)}>
-                    キャンセル
-                  </Button>
-                  <Button 
-                    onClick={handleAssignSelectedDevice}
-                    disabled={!selectedDeviceId}
-                  >
-                    割り当てる
-                  </Button>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Smartphone className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>利用可能なデバイスがありません</p>
-                <p className="text-sm">DuoPlusでデバイスを追加してください</p>
+                <div className="px-3 py-2.5 text-[13px] text-[#787774]">
+                  {getPlatformName(account.platform)}
+                </div>
+                <div className="px-3 py-2.5">
+                  <StatusTag status={account.status} />
+                </div>
+                <div className="px-3 py-2.5">
+                  {account.platform === 'twitter' ? (
+                    <PlanTag plan={(account as any).planType || 'free'} />
+                  ) : (
+                    <span className="text-[12px] text-[#9B9A97]">—</span>
+                  )}
+                </div>
+                <div className="px-3 py-2.5 text-[13px] text-[#9B9A97]">
+                  {new Date(account.createdAt).toLocaleDateString('ja-JP')}
+                </div>
+                <div className="px-3 py-2.5 flex items-center justify-end gap-1">
+                  {account.status === 'pending' && (
+                    <button
+                      onClick={(e) => handleActivate(account.id, e)}
+                      disabled={activateMutation.isPending}
+                      title="アクティブ化"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#DBEDDB] rounded-[4px] transition-all text-[#1F7A1F]"
+                    >
+                      <Power className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => handleDelete(account.id, e)}
+                    disabled={deleteMutation.isPending}
+                    title="削除"
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#FFE2DD] rounded-[4px] transition-all text-[#E03E3E]"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#EBEBEA] rounded-[4px] transition-all">
+                    <MoreHorizontal className="w-4 h-4 text-[#9B9A97]" />
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+            ))
+          )}
+
+          {/* Add Row */}
+          {filteredAndSortedAccounts.length > 0 && (
+            <Link
+              href="/accounts/new"
+              className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#9B9A97] hover:bg-[#F7F6F3] transition-colors border-t border-[#E9E9E7]"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              新規追加
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

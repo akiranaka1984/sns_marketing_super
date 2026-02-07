@@ -938,7 +938,7 @@ export default function AgentDetail() {
           <DialogHeader>
             <DialogTitle>アカウントをリンク</DialogTitle>
             <DialogDescription>
-              エージェントが投稿に使用するアカウントを選択します。アカウントに紐付けられたDuoPlusデバイスで投稿が実行されます。
+              エージェントが投稿に使用するアカウントを選択します。Playwrightブラウザ自動化で投稿が実行されます。
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -973,7 +973,7 @@ export default function AgentDetail() {
               </Select>
               {selectedAccountId && !availableAccounts.find((a: any) => a.id === selectedAccountId)?.deviceId && (
                 <p className="text-sm text-destructive mt-2">
-                  ※ このアカウントはDuoPlusデバイスに紐付けられていません。「デバイス管理」ページで紐付けを行ってください。
+                  ※ このアカウントにはPlaywrightセッションが設定されていません。アカウント詳細ページで設定を行ってください。
                 </p>
               )}
             </div>

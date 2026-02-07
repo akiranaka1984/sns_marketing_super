@@ -2,7 +2,7 @@ import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, mysqlEnum, varchar, text,
 import { sql } from "drizzle-orm"
 
 export const abTestLearnings = mysqlTable("ab_test_learnings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	testId: int().notNull(),
 	agentId: int().notNull(),
 	learningType: mysqlEnum(['tone_preference','length_preference','emoji_preference','hashtag_preference','media_preference','timing_preference','general']).notNull(),
@@ -14,11 +14,11 @@ export const abTestLearnings = mysqlTable("ab_test_learnings", {
 	confidence: int().default(50).notNull(),
 	isApplied: tinyint().default(0).notNull(),
 	appliedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const abTestVariations = mysqlTable("ab_test_variations", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	testId: int().notNull(),
 	variationName: varchar({ length: 50 }).notNull(),
 	content: text().notNull(),
@@ -37,12 +37,12 @@ export const abTestVariations = mysqlTable("ab_test_variations", {
 	engagementRate: int().default(0).notNull(),
 	performanceScore: int().default(0).notNull(),
 	isWinner: tinyint().default(0).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const abTests = mysqlTable("ab_tests", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	description: text(),
@@ -56,12 +56,12 @@ export const abTests = mysqlTable("ab_tests", {
 	confidenceLevel: int(),
 	startedAt: timestamp({ mode: 'string' }),
 	completedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const accounts = mysqlTable("accounts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	platform: mysqlEnum(['twitter','tiktok','instagram','facebook']).notNull(),
 	username: varchar({ length: 255 }).notNull(),
@@ -69,7 +69,7 @@ export const accounts = mysqlTable("accounts", {
 	status: mysqlEnum(['pending','active','suspended','failed']).default('active').notNull(),
 	deviceId: varchar({ length: 255 }),
 	lastLoginAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	proxyId: int(),
 	xHandle: varchar({ length: 255 }),
@@ -81,6 +81,10 @@ export const accounts = mysqlTable("accounts", {
 	// X (Twitter) plan type - determines character limit
 	// free: 280 chars, premium: 280 chars (articles separate), premium_plus: 25000 chars
 	planType: mysqlEnum(['free', 'premium', 'premium_plus']).default('free').notNull(),
+	// Posting method: playwright (browser automation)
+	postingMethod: mysqlEnum(['duoplus', 'playwright']).default('playwright').notNull(),
+	// Playwright session status
+	sessionStatus: mysqlEnum(['active', 'expired', 'needs_login']).default('needs_login').notNull(),
 	// Growth system fields - account leveling and experience points
 	experiencePoints: int().default(0).notNull(),
 	level: int().default(1).notNull(),
@@ -103,21 +107,21 @@ export const accountRelationships = mysqlTable("account_relationships", {
 	commentStyle: mysqlEnum(['supportive', 'curious', 'playful', 'professional', 'neutral']).default('neutral'),
 	notes: text(), // Optional notes about the relationship
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const agentAccounts = mysqlTable("agent_accounts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	accountId: int().notNull(),
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const agentExecutionLogs = mysqlTable("agent_execution_logs", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	accountId: int(),
 	executionType: mysqlEnum(['content_generation','post_execution','learning','analysis','optimization','scheduled_post_generation']).notNull(),
@@ -128,11 +132,11 @@ export const agentExecutionLogs = mysqlTable("agent_execution_logs", {
 	knowledgeGained: text(),
 	errorMessage: text(),
 	executionTimeMs: int(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const agentKnowledge = mysqlTable("agent_knowledge", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	knowledgeType: mysqlEnum(['success_pattern','failure_pattern','content_template','hashtag_strategy','timing_insight','audience_insight','engagement_tactic','general']).notNull(),
 	title: varchar({ length: 255 }).notNull(),
@@ -142,24 +146,24 @@ export const agentKnowledge = mysqlTable("agent_knowledge", {
 	usageCount: int().default(0).notNull(),
 	successRate: int().default(0).notNull(),
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const agentRules = mysqlTable("agent_rules", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	ruleType: mysqlEnum(['forbidden_word','required_element','content_limit','posting_limit','time_restriction','platform_specific','tone_guideline','custom']).notNull(),
 	ruleName: varchar({ length: 255 }).notNull(),
 	ruleValue: text().notNull(),
 	priority: int().default(50).notNull(),
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const agentSchedules = mysqlTable("agent_schedules", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	agentId: int().notNull(),
 	accountId: int().notNull(),
 	scheduleType: mysqlEnum(['daily','weekly','custom']).default('daily').notNull(),
@@ -169,12 +173,12 @@ export const agentSchedules = mysqlTable("agent_schedules", {
 	isActive: tinyint().default(1).notNull(),
 	lastExecutedAt: timestamp({ mode: 'string' }),
 	nextExecutionAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const agents = mysqlTable("agents", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	name: varchar({ length: 255 }).notNull(),
@@ -185,7 +189,7 @@ export const agents = mysqlTable("agents", {
 	targetAudience: text(),
 	contentFormat: text(),
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	postingFrequency: mysqlEnum(['daily','twice_daily','three_times_daily','weekly','custom']).default('daily'),
 	postingTimeSlots: text(),
@@ -194,7 +198,7 @@ export const agents = mysqlTable("agents", {
 });
 
 export const aiOptimizations = mysqlTable("ai_optimizations", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	agentId: int(),
@@ -205,12 +209,12 @@ export const aiOptimizations = mysqlTable("ai_optimizations", {
 	insights: text(),
 	status: mysqlEnum(['pending','applied','reverted']).default('pending').notNull(),
 	appliedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const alertHistory = mysqlTable("alert_history", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	alertType: mysqlEnum(['device_stopped','device_error','device_offline','consecutive_failures','posting_failed','engagement_drop','account_issue']).notNull(),
 	deviceId: varchar({ length: 100 }),
@@ -224,24 +228,24 @@ export const alertHistory = mysqlTable("alert_history", {
 	resolvedAt: timestamp({ mode: 'string' }),
 	notificationSent: tinyint().default(0).notNull(),
 	notificationSentAt: timestamp({ mode: 'string' }),
-	triggeredAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	triggeredAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const alertSettings = mysqlTable("alert_settings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	alertType: mysqlEnum(['device_stopped','device_error','device_offline','consecutive_failures','posting_failed','engagement_drop','account_issue']).notNull(),
 	isEnabled: tinyint().default(1).notNull(),
 	threshold: int().default(1).notNull(),
 	cooldownMinutes: int().default(60).notNull(),
 	notifyOwner: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const analytics = mysqlTable("analytics", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	accountId: int().notNull(),
 	followersCount: int().default(0).notNull(),
 	followingCount: int().default(0).notNull(),
@@ -250,12 +254,12 @@ export const analytics = mysqlTable("analytics", {
 	likesCount: int().default(0).notNull(),
 	commentsCount: int().default(0).notNull(),
 	sharesCount: int().default(0).notNull(),
-	recordedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const autoResponses = mysqlTable("auto_responses", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	freezeDetectionId: int().notNull(),
 	accountId: int().notNull(),
 	actionType: mysqlEnum(['change_ip','switch_device','pause_account','retry']).notNull(),
@@ -264,12 +268,12 @@ export const autoResponses = mysqlTable("auto_responses", {
 	status: mysqlEnum(['pending','success','failed']).default('pending').notNull(),
 	errorMessage: text(),
 	executedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const collectedContents = mysqlTable("collected_contents", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	platform: mysqlEnum(['twitter','tiktok','instagram','facebook','youtube','other']).notNull(),
@@ -282,13 +286,13 @@ export const collectedContents = mysqlTable("collected_contents", {
 	comments: int().default(0),
 	shares: int().default(0),
 	views: int().default(0),
-	collectedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	collectedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const collectionSchedules = mysqlTable("collection_schedules", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	platform: mysqlEnum(['twitter','tiktok','instagram','facebook','youtube','other']).notNull(),
@@ -300,12 +304,12 @@ export const collectionSchedules = mysqlTable("collection_schedules", {
 	isActive: tinyint().default(1).notNull(),
 	lastRunAt: timestamp({ mode: 'string' }),
 	nextRunAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const contentReviews = mysqlTable("content_reviews", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	contentRewriteId: int(),
@@ -313,12 +317,12 @@ export const contentReviews = mysqlTable("content_reviews", {
 	status: mysqlEnum(['pending','approved','rejected','revision_requested']).default('pending').notNull(),
 	feedback: text(),
 	reviewedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const contentRewrites = mysqlTable("content_rewrites", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	collectedContentId: int(),
@@ -329,12 +333,12 @@ export const contentRewrites = mysqlTable("content_rewrites", {
 	status: mysqlEnum(['pending','completed','failed']).default('pending').notNull(),
 	errorMessage: text(),
 	rewrittenAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const coordinateLearningData = mysqlTable("coordinate_learning_data", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	deviceId: varchar({ length: 100 }).notNull(),
 	resolution: varchar({ length: 50 }).notNull(),
 	element: varchar({ length: 50 }).notNull(),
@@ -343,11 +347,11 @@ export const coordinateLearningData = mysqlTable("coordinate_learning_data", {
 	source: varchar({ length: 20 }).notNull(), // 'learned', 'dynamic', 'default'
 	success: int().notNull(),
 	screenshotUrl: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const deviceMonitoringStatus = mysqlTable("device_monitoring_status", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	deviceId: varchar({ length: 100 }).notNull(),
 	deviceName: varchar({ length: 255 }),
 	currentStatus: mysqlEnum(['running','stopped','error','unknown']).default('unknown').notNull(),
@@ -359,7 +363,7 @@ export const deviceMonitoringStatus = mysqlTable("device_monitoring_status", {
 	isMonitored: tinyint().default(1).notNull(),
 	isPaused: tinyint().default(0).notNull(),
 	lastCheckedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -367,7 +371,7 @@ export const deviceMonitoringStatus = mysqlTable("device_monitoring_status", {
 ]);
 
 export const deviceStatusHistory = mysqlTable("device_status_history", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	deviceId: varchar({ length: 100 }).notNull(),
 	deviceName: varchar({ length: 255 }),
 	status: mysqlEnum(['running','stopped','error','unknown']).notNull(),
@@ -376,18 +380,18 @@ export const deviceStatusHistory = mysqlTable("device_status_history", {
 	osVersion: varchar({ length: 100 }),
 	errorMessage: text(),
 	errorCode: varchar({ length: 50 }),
-	detectedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	detectedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const devices = mysqlTable("devices", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	deviceId: varchar({ length: 255 }).notNull(),
 	deviceName: varchar({ length: 255 }),
 	status: mysqlEnum(['available','busy','offline']).default('available').notNull(),
 	proxyIp: varchar({ length: 255 }),
 	lastUsedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -395,7 +399,7 @@ export const devices = mysqlTable("devices", {
 ]);
 
 export const engagementLogs = mysqlTable("engagement_logs", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	taskId: int().notNull(),
 	accountId: int().notNull(),
 	taskType: mysqlEnum(['like','follow','comment','unfollow']).notNull(),
@@ -403,11 +407,11 @@ export const engagementLogs = mysqlTable("engagement_logs", {
 	targetPost: varchar({ length: 255 }),
 	status: mysqlEnum(['success','failed']).notNull(),
 	errorMessage: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const engagementTasks = mysqlTable("engagement_tasks", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int().notNull(),
 	accountId: int().notNull(),
 	taskType: mysqlEnum(['like','follow','comment','unfollow']).notNull(),
@@ -417,12 +421,12 @@ export const engagementTasks = mysqlTable("engagement_tasks", {
 	frequency: int().default(10).notNull(),
 	isActive: tinyint().default(1).notNull(),
 	lastExecutedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const freezeDetections = mysqlTable("freeze_detections", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	accountId: int().notNull(),
 	deviceId: varchar({ length: 255 }),
 	freezeType: mysqlEnum(['ip_block','device_block','account_freeze','unknown']).notNull(),
@@ -431,12 +435,12 @@ export const freezeDetections = mysqlTable("freeze_detections", {
 	detectionDetails: text(),
 	status: mysqlEnum(['detected','handling','resolved','failed']).default('detected').notNull(),
 	resolvedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const interactionSettings = mysqlTable("interaction_settings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int().notNull(),
 	isEnabled: tinyint().default(0),
 	likeEnabled: tinyint().default(1),
@@ -455,7 +459,7 @@ export const interactionSettings = mysqlTable("interaction_settings", {
 	followTargetUsers: text(), // JSON array: ["@user1", "@user2"] for external targets
 	reactionProbability: int().default(100), // 反応確率（0-100%）
 	maxReactingAccounts: int().default(0), // 最大反応アカウント数（0=無制限）
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -463,7 +467,7 @@ export const interactionSettings = mysqlTable("interaction_settings", {
 ]);
 
 export const interactions = mysqlTable("interactions", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	postUrlId: int(), // Nullable for follow tasks
 	fromAccountId: int().notNull(),
 	fromDeviceId: varchar({ length: 50 }).notNull(),
@@ -480,22 +484,22 @@ export const interactions = mysqlTable("interactions", {
 	afterScreenshotUrl: text(),
 	afterScreenshotKey: text(),
 	metadata: text(), // JSON: relationship data, comment style, etc.
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const logs = mysqlTable("logs", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	accountId: int(),
 	deviceId: varchar({ length: 255 }),
 	action: varchar({ length: 255 }).notNull(),
 	status: mysqlEnum(['success','failed','pending']).notNull(),
 	details: text(),
 	errorMessage: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const postAnalytics = mysqlTable("post_analytics", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	postId: int().notNull(),
 	accountId: int().notNull(),
 	platform: mysqlEnum(['twitter','tiktok','instagram','facebook']).notNull(),
@@ -508,12 +512,12 @@ export const postAnalytics = mysqlTable("post_analytics", {
 	engagementRate: int().default(0).notNull(),
 	reachCount: int().default(0).notNull(),
 	impressionsCount: int().default(0).notNull(),
-	recordedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const postPerformanceFeedback = mysqlTable("post_performance_feedback", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	postId: int().notNull(),
 	agentId: int().notNull(),
 	accountId: int().notNull(),
@@ -527,12 +531,12 @@ export const postPerformanceFeedback = mysqlTable("post_performance_feedback", {
 	improvementAreas: text(),
 	isProcessed: tinyint().default(0).notNull(),
 	processedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const postUrls = mysqlTable("post_urls", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int().notNull(),
 	scheduledPostId: int(),
 	accountId: int().notNull(),
@@ -540,11 +544,11 @@ export const postUrls = mysqlTable("post_urls", {
 	username: varchar({ length: 100 }).notNull(),
 	postUrl: varchar({ length: 500 }).notNull(),
 	postContent: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 export const posts = mysqlTable("posts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int(),
 	accountId: int(),
 	strategyId: int(),
@@ -559,21 +563,21 @@ export const posts = mysqlTable("posts", {
 	sharesCount: int().default(0),
 	reachCount: int().default(0),
 	engagementRate: int().default(0),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	agentId: int(),
 	platform: varchar({ length: 50 }),
 });
 
 export const projectAccounts = mysqlTable("project_accounts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int().notNull(),
 	accountId: int().notNull(),
 	personaRole: varchar({ length: 255 }),
 	personaTone: varchar({ length: 255 }),
 	personaCharacteristics: text(),
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
@@ -586,7 +590,7 @@ export const projectModelAccounts = mysqlTable("project_model_accounts", {
 	autoApplyLearnings: tinyint().default(0).notNull(), // Auto-apply new learnings to accounts
 	targetAccountIds: text(), // JSON array: specific accounts to apply learnings to (null = all)
 	lastSyncedAt: timestamp({ mode: 'string' }), // Last time learnings were synced
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -601,7 +605,7 @@ export const accountModelAccounts = mysqlTable("account_model_accounts", {
 	modelAccountId: int().notNull(), // FK to model_accounts.id
 	autoApplyLearnings: tinyint().default(0).notNull(), // Auto-apply new learnings
 	lastSyncedAt: timestamp({ mode: 'string' }), // Last time learnings were synced
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -610,7 +614,7 @@ export const accountModelAccounts = mysqlTable("account_model_accounts", {
 ]);
 
 export const projects = mysqlTable("projects", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	name: varchar({ length: 255 }).notNull(),
 	objective: text().notNull(),
@@ -619,13 +623,13 @@ export const projects = mysqlTable("projects", {
 	executionMode: mysqlEnum(['fullAuto','confirm','manual']).default('confirm').notNull(),
 	startDate: timestamp({ mode: 'string' }),
 	endDate: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	targets: text(),
 });
 
 export const proxies = mysqlTable("proxies", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	host: varchar({ length: 255 }).notNull(),
 	port: int().notNull(),
 	username: varchar({ length: 255 }).notNull(),
@@ -633,13 +637,13 @@ export const proxies = mysqlTable("proxies", {
 	status: mysqlEnum(['available','assigned','error']).default('available').notNull(),
 	assignedAccountId: int(),
 	lastUsedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	duoplusProxyId: varchar({ length: 255 }),
 });
 
 export const scheduledPosts = mysqlTable("scheduled_posts", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	projectId: int().notNull().references(() => projects.id, { onDelete: "cascade" } ),
 	accountId: int().notNull().references(() => accounts.id, { onDelete: "cascade" } ),
 	content: text().notNull(),
@@ -650,7 +654,7 @@ export const scheduledPosts = mysqlTable("scheduled_posts", {
 	status: mysqlEnum(['pending','posted','failed','cancelled']).default('pending').notNull(),
 	postedAt: timestamp({ mode: 'string' }),
 	errorMessage: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	agentId: int(),
 	generatedByAgent: tinyint().default(0).notNull(),
@@ -661,14 +665,15 @@ export const scheduledPosts = mysqlTable("scheduled_posts", {
 	contentConfidence: int(),
 	postUrl: text(),
 	screenshotUrl: text(),
+	usedLearningIds: text(), // JSON array of learning IDs used for content generation
 });
 
 export const settings = mysqlTable("settings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	key: varchar({ length: 255 }).notNull(),
 	value: text(),
 	description: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -676,7 +681,7 @@ export const settings = mysqlTable("settings", {
 ]);
 
 export const strategies = mysqlTable("strategies", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	accountId: int(),
 	objective: text().notNull(),
@@ -685,7 +690,7 @@ export const strategies = mysqlTable("strategies", {
 	postingSchedule: text(),
 	engagementStrategy: text(),
 	generatedContent: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	projectId: int(),
 
@@ -726,7 +731,7 @@ export const strategies = mysqlTable("strategies", {
 ]);
 
 export const tenantUsers = mysqlTable("tenant_users", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	tenantId: int().notNull(),
 	userId: int().notNull(),
 	role: mysqlEnum(['owner','admin','member','viewer']).default('member').notNull(),
@@ -734,12 +739,12 @@ export const tenantUsers = mysqlTable("tenant_users", {
 	invitedBy: int(),
 	invitedAt: timestamp({ mode: 'string' }),
 	joinedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const tenants = mysqlTable("tenants", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	name: varchar({ length: 255 }).notNull(),
 	slug: varchar({ length: 255 }).notNull(),
 	ownerId: int().notNull(),
@@ -749,7 +754,7 @@ export const tenants = mysqlTable("tenants", {
 	maxAgents: int().default(10),
 	settings: text(),
 	status: mysqlEnum(['active','suspended','cancelled']).default('active').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -757,22 +762,22 @@ export const tenants = mysqlTable("tenants", {
 ]);
 
 export const users = mysqlTable("users", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	openId: varchar({ length: 64 }).notNull(),
 	name: text(),
 	email: varchar({ length: 320 }),
 	loginMethod: varchar({ length: 64 }),
 	role: mysqlEnum(['user','admin']).default('user').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-	lastSignedIn: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	lastSignedIn: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("users_openId_unique").on(table.openId),
 ]);
 
 export const videoGenerations = mysqlTable("video_generations", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	agentId: int(),
@@ -786,12 +791,12 @@ export const videoGenerations = mysqlTable("video_generations", {
 	status: mysqlEnum(['pending','generating','completed','failed']).default('pending').notNull(),
 	errorMessage: text(),
 	generatedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const weeklyReviews = mysqlTable("weekly_reviews", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	projectId: int(),
 	weekStartDate: timestamp({ mode: 'string' }).notNull(),
@@ -804,12 +809,12 @@ export const weeklyReviews = mysqlTable("weekly_reviews", {
 	avgEngagementRate: int().default(0),
 	insights: text(),
 	recommendations: text(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 export const xApiSettings = mysqlTable("x_api_settings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	userId: int().notNull(),
 	apiKey: varchar({ length: 255 }),
 	apiSecret: varchar({ length: 500 }),
@@ -817,13 +822,13 @@ export const xApiSettings = mysqlTable("x_api_settings", {
 	isActive: tinyint().default(1),
 	lastTestedAt: timestamp({ mode: 'string' }),
 	testResult: varchar({ length: 50 }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
 
 // Account-specific learning data for consistent persona across posts and comments
 export const accountLearnings = mysqlTable("account_learnings", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	accountId: int().notNull(), // FK to accounts.id
 	projectId: int(), // Optional: project-specific learning
 	learningType: mysqlEnum([
@@ -846,7 +851,7 @@ export const accountLearnings = mysqlTable("account_learnings", {
 	successRate: int().default(0).notNull(), // 0-100
 	isActive: tinyint().default(1).notNull(),
 	expiresAt: timestamp({ mode: 'string' }), // Optional expiry for old learnings
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -855,7 +860,7 @@ export const accountLearnings = mysqlTable("account_learnings", {
 ]);
 
 export const automationTasks = mysqlTable("automation_tasks", {
-	id: int().autoincrement().notNull(),
+	id: int().autoincrement().notNull().primaryKey(),
 	postUrl: text().notNull(),
 	action: text().notNull(),
 	status: text().default('pending').notNull(),
@@ -864,7 +869,7 @@ export const automationTasks = mysqlTable("automation_tasks", {
 	generatedComment: text(),
 	result: text(),
 	executedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
 // ==========================================
@@ -901,7 +906,7 @@ export const modelAccounts = mysqlTable("model_accounts", {
 	nextCollectionAt: timestamp({ mode: 'string' }),
 	totalCollectedPosts: int().default(0),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -957,7 +962,7 @@ export const buzzPosts = mysqlTable("buzz_posts", {
 	analyzedAt: timestamp({ mode: 'string' }),
 	isUsedForLearning: tinyint().default(0).notNull(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1000,7 +1005,7 @@ export const buzzLearnings = mysqlTable("buzz_learnings", {
 	sampleSize: int().default(0), // number of posts analyzed
 
 	isActive: tinyint().default(1).notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1034,7 +1039,7 @@ export const profileAnalyses = mysqlTable("profile_analyses", {
 	avatarSuggestions: text(),
 	headerSuggestions: text(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("profile_analyses_target_idx").on(table.targetType, table.accountId),
@@ -1080,7 +1085,7 @@ export const modelAccountBehaviorPatterns = mysqlTable("model_account_behavior_p
 	sampleSize: int(), // Number of posts analyzed
 	lastAnalyzedAt: timestamp({ mode: 'string' }),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1115,8 +1120,8 @@ export const projectKpiTracking = mysqlTable("project_kpi_tracking", {
 	// History (JSON array)
 	valueHistory: text(), // [{date, value}, ...] historical data
 
-	recordedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1152,11 +1157,77 @@ export const engagementTrackingJobs = mysqlTable("engagement_tracking_jobs", {
 	// Learning trigger flag
 	learningTriggered: tinyint().default(0).notNull(), // Whether auto-learning was triggered from this job
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
 	index("engagement_tracking_jobs_status_idx").on(table.status, table.scheduledAt),
 	index("engagement_tracking_jobs_post_idx").on(table.postUrlId),
 	index("engagement_tracking_jobs_account_idx").on(table.accountId),
+]);
+
+// ==========================================
+// Learning Sync Log - Tracks buzz→account learning synchronization
+// ==========================================
+export const learningSyncLog = mysqlTable("learning_sync_log", {
+	id: int().autoincrement().notNull().primaryKey(),
+	sourceLearningType: mysqlEnum(['buzz_learning', 'agent_knowledge']).notNull(),
+	sourceLearningId: int().notNull(),
+	targetAccountId: int().notNull(),
+	accountLearningId: int(), // The created account learning ID
+	relevanceScore: int().default(50).notNull(), // 0-100
+	autoApplied: tinyint().default(1).notNull(),
+	syncedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+},
+(table) => [
+	index("learning_sync_log_source_idx").on(table.sourceLearningType, table.sourceLearningId),
+	index("learning_sync_log_target_idx").on(table.targetAccountId),
+]);
+
+// ==========================================
+// Hashtag Performance - Tracks hashtag-level analytics
+// ==========================================
+export const hashtagPerformance = mysqlTable("hashtag_performance", {
+	id: int().autoincrement().notNull().primaryKey(),
+	hashtag: varchar({ length: 255 }).notNull(),
+	accountId: int(),
+	projectId: int(),
+	usageCount: int().default(0).notNull(),
+	avgLikes: int().default(0).notNull(),
+	avgComments: int().default(0).notNull(),
+	avgShares: int().default(0).notNull(),
+	avgEngagementRate: int().default(0).notNull(), // * 100 for precision
+	bestPerformingPostId: int(),
+	trendScore: int().default(0).notNull(), // 0-100
+	lastUsedAt: timestamp({ mode: 'string' }),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+},
+(table) => [
+	index("hashtag_performance_hashtag_idx").on(table.hashtag),
+	index("hashtag_performance_account_idx").on(table.accountId),
+	index("hashtag_performance_project_idx").on(table.projectId),
+	index("hashtag_performance_trend_idx").on(table.trendScore),
+]);
+
+// ==========================================
+// Funnel Events - Tracks conversion funnel stages
+// ==========================================
+export const funnelEvents = mysqlTable("funnel_events", {
+	id: int().autoincrement().notNull().primaryKey(),
+	accountId: int().notNull(),
+	projectId: int(),
+	eventType: mysqlEnum(['impression', 'engagement', 'profile_visit', 'follow', 'conversion']).notNull(),
+	postId: int(),
+	sourceType: varchar({ length: 100 }),
+	value: int().default(0),
+	metadata: text(), // JSON
+	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+},
+(table) => [
+	index("funnel_events_account_idx").on(table.accountId),
+	index("funnel_events_project_idx").on(table.projectId),
+	index("funnel_events_type_idx").on(table.eventType, table.recordedAt),
 ]);

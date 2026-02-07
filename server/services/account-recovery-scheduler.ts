@@ -8,7 +8,9 @@
 import { db } from "../db";
 import { accounts, freezeDetections, autoResponses } from "../../drizzle/schema";
 import { eq, and, lte, sql } from "drizzle-orm";
-import { getAvailableDevice, assignDeviceToAccount } from "./device-pool-service";
+// Device pool service removed
+const getAvailableDevice = async () => null;
+const assignDeviceToAccount = async (_accountId: number, _deviceId: string) => ({ success: false, deviceId: null, message: "Device assignment not available" });
 
 // ============================================
 // Types

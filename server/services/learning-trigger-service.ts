@@ -9,7 +9,7 @@ import { db } from "../db";
 import { postUrls, postAnalytics, scheduledPosts, postPerformanceFeedback } from "../../drizzle/schema";
 import { eq, and, desc, gte } from "drizzle-orm";
 import { TweetMetrics } from "../x-api-service";
-import { addAccountLearning, LearningType } from "./account-learning-service";
+import { addAccountLearning, LearningType, updateLearningUsage } from "./account-learning-service";
 
 // Performance thresholds
 export interface PerformanceThresholds {
@@ -324,4 +324,75 @@ export function getAccountThresholds(accountId: number): PerformanceThresholds {
   // For now, return defaults
   // Future: Load from account settings or project configuration
   return { ...DEFAULT_THRESHOLDS };
+}
+
+/**
+ * Update learnings used to generate a post based on its performance
+ * This completes the reinforcement learning feedback loop:
+ * learning → content generation → post → metrics → learning update
+ */
+export async function updateUsedLearningsFromPerformance(
+  postUrlId: number,
+  evaluation: PerformanceEvaluation
+): Promise<{ updated: number; learningIds: number[] }> {
+  try {
+    // Get the post URL to find the scheduled post
+    const [postUrl] = await db
+      .select()
+      .from(postUrls)
+      .where(eq(postUrls.id, postUrlId));
+
+    if (!postUrl?.scheduledPostId) {
+      return { updated: 0, learningIds: [] };
+    }
+
+    // Get the scheduled post to find usedLearningIds
+    const [scheduledPost] = await db
+      .select()
+      .from(scheduledPosts)
+      .where(eq(scheduledPosts.id, postUrl.scheduledPostId));
+
+    if (!scheduledPost?.usedLearningIds) {
+      return { updated: 0, learningIds: [] };
+    }
+
+    // Parse the learning IDs
+    let learningIds: number[];
+    try {
+      learningIds = JSON.parse(scheduledPost.usedLearningIds);
+      if (!Array.isArray(learningIds) || learningIds.length === 0) {
+        return { updated: 0, learningIds: [] };
+      }
+    } catch {
+      return { updated: 0, learningIds: [] };
+    }
+
+    // Determine if the post was successful
+    const wasSuccessful = evaluation.performanceLevel === 'high';
+
+    // Update each learning's usage stats and confidence
+    let updated = 0;
+    for (const learningId of learningIds) {
+      try {
+        await updateLearningUsage(learningId, wasSuccessful);
+        updated++;
+        console.log(
+          `[LearningTrigger] Updated learning ${learningId}: wasSuccessful=${wasSuccessful} (${evaluation.reason})`
+        );
+      } catch (error) {
+        console.warn(`[LearningTrigger] Failed to update learning ${learningId}:`, error);
+      }
+    }
+
+    if (updated > 0) {
+      console.log(
+        `[LearningTrigger] Feedback loop: updated ${updated}/${learningIds.length} learnings for post ${postUrlId} (performance: ${evaluation.performanceLevel})`
+      );
+    }
+
+    return { updated, learningIds };
+  } catch (error) {
+    console.error(`[LearningTrigger] Error in feedback loop:`, error);
+    return { updated: 0, learningIds: [] };
+  }
 }

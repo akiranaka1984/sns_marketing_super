@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     numpy==1.26.4 \
     requests==2.31.0
 
+# Install Playwright Chromium browser and dependencies
+RUN npx playwright install chromium --with-deps
+
 # pnpm install
 RUN npm install -g pnpm
 

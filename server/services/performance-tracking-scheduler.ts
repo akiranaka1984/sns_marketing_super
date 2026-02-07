@@ -9,7 +9,7 @@ import { db } from "../db";
 import { engagementTrackingJobs, postUrls, postAnalytics, scheduledPosts } from "../../drizzle/schema";
 import { eq, and, lte, desc } from "drizzle-orm";
 import { getTweetMetrics, extractTweetIdFromUrl, TweetMetrics } from "../x-api-service";
-import { triggerLearningFromMetrics, evaluatePerformance } from "./learning-trigger-service";
+import { triggerLearningFromMetrics, evaluatePerformance, updateUsedLearningsFromPerformance } from "./learning-trigger-service";
 
 // Tracking intervals in hours
 export const TRACKING_INTERVALS = ['1h', '24h', '48h', '72h'] as const;
@@ -150,6 +150,12 @@ export async function processTrackingJob(jobId: number): Promise<{
           await triggerLearningFromMetrics(job.postUrlId, job.accountId, metrics, evaluation);
           learningTriggered = true;
           console.log(`[PerformanceTracker] Learning triggered for post ${job.postUrlId}: ${evaluation.reason}`);
+        }
+
+        // Feedback loop: update learnings used to generate this post
+        const feedbackResult = await updateUsedLearningsFromPerformance(job.postUrlId, evaluation);
+        if (feedbackResult.updated > 0) {
+          console.log(`[PerformanceTracker] Feedback loop: updated ${feedbackResult.updated} learnings for post ${job.postUrlId}`);
         }
       } catch (learningError) {
         console.error(`[PerformanceTracker] Learning trigger failed:`, learningError);
