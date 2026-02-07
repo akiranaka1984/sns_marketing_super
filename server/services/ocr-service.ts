@@ -49,7 +49,6 @@ export interface TextExtractionResult {
 export async function extractTextFromImage(imageUrl: string): Promise<TextExtractionResult> {
   try {
     const response = await invokeLLM({
-      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -105,7 +104,8 @@ Be thorough and include all visible text, including small text, watermarks, and 
       };
     }
 
-    const result = JSON.parse(content);
+    const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+    const result = JSON.parse(contentStr);
     return {
       success: true,
       text: result.text,
@@ -150,7 +150,6 @@ export async function extractPostFromScreenshot(
     };
 
     const response = await invokeLLM({
-      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -252,7 +251,8 @@ Note: Use null for any metrics that are not visible in the screenshot.`
       return null;
     }
 
-    const result = JSON.parse(content);
+    const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+    const result = JSON.parse(contentStr);
     return result as ExtractedPostData;
   } catch (error: any) {
     console.error("[OCR] Error extracting post from screenshot:", error);
@@ -270,7 +270,6 @@ export async function analyzeImageViralPotential(imageUrl: string): Promise<{
 }> {
   try {
     const response = await invokeLLM({
-      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -330,7 +329,8 @@ Return the result in the following JSON format:
       return { score: 0, factors: [], suggestions: [] };
     }
 
-    return JSON.parse(content);
+    const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+    return JSON.parse(contentStr);
   } catch (error: any) {
     console.error("[OCR] Error analyzing image viral potential:", error);
     return { score: 0, factors: [], suggestions: ["Unable to analyze image"] };

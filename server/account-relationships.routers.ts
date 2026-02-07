@@ -19,7 +19,7 @@ export const accountRelationshipsRouter = router({
       const relationships = await db.query.accountRelationships.findMany({
         where: and(
           eq(accountRelationships.projectId, input.projectId),
-          eq(accountRelationships.isActive, true)
+          eq(accountRelationships.isActive, 1)
         ),
         orderBy: [desc(accountRelationships.intimacyLevel)],
       });
@@ -62,7 +62,7 @@ export const accountRelationshipsRouter = router({
             eq(accountRelationships.fromAccountId, input.accountId),
             eq(accountRelationships.toAccountId, input.accountId)
           ),
-          eq(accountRelationships.isActive, true)
+          eq(accountRelationships.isActive, 1)
         ),
       });
 
@@ -106,7 +106,7 @@ export const accountRelationshipsRouter = router({
               : null,
             commentStyle: input.commentStyle || null,
             notes: input.notes || null,
-            isActive: true,
+            isActive: 1,
           })
           .where(eq(accountRelationships.id, existing.id));
 
@@ -125,7 +125,7 @@ export const accountRelationshipsRouter = router({
             : JSON.stringify(['like', 'comment']),
           commentStyle: input.commentStyle || 'neutral',
           notes: input.notes || null,
-          isActive: true,
+          isActive: 1,
         });
 
         return { id: Number(result.insertId), updated: false };
@@ -146,7 +146,7 @@ export const accountRelationshipsRouter = router({
       const projectAccountsList = await db.query.projectAccounts.findMany({
         where: and(
           eq(projectAccounts.projectId, input.projectId),
-          eq(projectAccounts.isActive, true)
+          eq(projectAccounts.isActive, 1)
         ),
       });
 
@@ -182,7 +182,7 @@ export const accountRelationshipsRouter = router({
               interactionProbability: 70,
               preferredReactionTypes: JSON.stringify(['like', 'comment']),
               commentStyle: 'neutral',
-              isActive: true,
+              isActive: 1,
             });
             created++;
           }
@@ -236,7 +236,7 @@ export const accountRelationshipsRouter = router({
     .mutation(async ({ input }) => {
       await db.update(accountRelationships)
         .set({
-          isActive: false,
+          isActive: 0,
         })
         .where(eq(accountRelationships.id, input.id));
 
@@ -253,7 +253,7 @@ export const accountRelationshipsRouter = router({
       const projectAccountsList = await db.query.projectAccounts.findMany({
         where: and(
           eq(projectAccounts.projectId, input.projectId),
-          eq(projectAccounts.isActive, true)
+          eq(projectAccounts.isActive, 1)
         ),
       });
 
@@ -270,7 +270,7 @@ export const accountRelationshipsRouter = router({
       const relationships = await db.query.accountRelationships.findMany({
         where: and(
           eq(accountRelationships.projectId, input.projectId),
-          eq(accountRelationships.isActive, true)
+          eq(accountRelationships.isActive, 1)
         ),
       });
 

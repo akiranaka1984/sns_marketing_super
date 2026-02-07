@@ -108,7 +108,7 @@ export default function AutoOptimizationSettings({ agentId }: AutoOptimizationSe
   const handleSaveSettings = () => {
     updateSettingsMutation.mutate({
       agentId,
-      settings: localSettings,
+      settings: localSettings as any,
     });
   };
 

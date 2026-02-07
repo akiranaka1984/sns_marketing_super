@@ -227,7 +227,7 @@ export async function createAbTest(
       contentLength: variation.config.contentLength,
       emojiUsage: variation.config.emojiUsage,
       hashtagCount: variation.config.hashtagCount,
-      hasMedia: variation.config.hasMedia
+      hasMedia: variation.config.hasMedia ? 1 : 0
     });
   }
 
@@ -242,7 +242,7 @@ export async function startAbTest(testId: number): Promise<void> {
   await db.update(abTests)
     .set({
       status: "running",
-      startedAt: new Date()
+      startedAt: new Date().toISOString()
     })
     .where(eq(abTests.id, testId));
 
@@ -408,7 +408,7 @@ export async function analyzeTestResults(testId: number): Promise<AnalysisResult
   // 勝者を更新
   await db.update(abTestVariations)
     .set({
-      isWinner: true,
+      isWinner: 1,
       performanceScore: winner.performanceScore
     })
     .where(eq(abTestVariations.id, winner.id));
@@ -425,9 +425,9 @@ export async function analyzeTestResults(testId: number): Promise<AnalysisResult
     .set({
       status: "completed",
       winnerId: winner.id,
-      winnerDeterminedAt: new Date(),
+      winnerDeterminedAt: new Date().toISOString(),
       confidenceLevel: confidence,
-      completedAt: new Date()
+      completedAt: new Date().toISOString()
     })
     .where(eq(abTests.id, testId));
 
@@ -524,7 +524,7 @@ export async function extractLearnings(testId: number): Promise<void> {
       confidence: test.confidenceLevel || 50,
       usageCount: 0,
       successRate: 100,
-      isActive: true
+      isActive: 1
     });
   }
 

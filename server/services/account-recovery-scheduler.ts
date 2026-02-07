@@ -9,7 +9,7 @@ import { db } from "../db";
 import { accounts, freezeDetections, autoResponses } from "../../drizzle/schema";
 import { eq, and, lte, sql } from "drizzle-orm";
 // Device pool service removed
-const getAvailableDevice = async () => null;
+const getAvailableDevice = async (): Promise<{ deviceId: string } | null> => null;
 const assignDeviceToAccount = async (_accountId: number, _deviceId: string) => ({ success: false, deviceId: null, message: "Device assignment not available" });
 
 // ============================================
@@ -143,7 +143,7 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
     await db.update(freezeDetections)
       .set({
         status: "resolved",
-        resolvedAt: new Date()
+        resolvedAt: new Date().toISOString()
       })
       .where(
         and(
@@ -168,7 +168,7 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
         newValue: "active",
         status: "success",
         errorMessage: undefined,
-        executedAt: new Date()
+        executedAt: new Date().toISOString()
       });
     }
 

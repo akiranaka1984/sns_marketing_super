@@ -21,7 +21,7 @@ export async function createUser(data: schema.InsertUser) {
 }
 
 export async function updateUserLastSignedIn(openId: string) {
-  await db.update(schema.users).set({ lastSignedIn: new Date() }).where(eq(schema.users.openId, openId));
+  await db.update(schema.users).set({ lastSignedIn: new Date().toISOString() }).where(eq(schema.users.openId, openId));
 }
 
 export async function upsertUser(data: schema.InsertUser) {
@@ -86,7 +86,7 @@ export async function updatePendingPostsReviewStatus(
 ) {
   await db
     .update(schema.scheduledPosts)
-    .set({ reviewStatus, updatedAt: new Date() })
+    .set({ reviewStatus, updatedAt: new Date().toISOString() })
     .where(and(
       eq(schema.scheduledPosts.projectId, projectId),
       eq(schema.scheduledPosts.status, 'pending'),
@@ -135,7 +135,7 @@ export async function updateProjectAccountPersona(
 ) {
   await db
     .update(schema.projectAccounts)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.projectAccounts.id, projectAccountId));
 }
 
@@ -203,14 +203,14 @@ export async function createAccount(data: schema.InsertAccount) {
 export async function updateAccount(accountId: number, data: Partial<schema.InsertAccount>) {
   await db
     .update(schema.accounts)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.accounts.id, accountId));
 }
 
 export async function updateAccountStatus(accountId: number, status: 'pending' | 'active' | 'suspended' | 'failed', deviceId?: string) {
-  const updateData: any = { status, updatedAt: new Date() };
+  const updateData: any = { status, updatedAt: new Date().toISOString() };
   if (status === 'active') {
-    updateData.lastLoginAt = new Date();
+    updateData.lastLoginAt = new Date().toISOString();
     if (deviceId) {
       updateData.deviceId = deviceId;
     }
@@ -221,7 +221,7 @@ export async function updateAccountStatus(accountId: number, status: 'pending' |
 export async function updateAccountDeviceId(accountId: number, deviceId: string | null) {
   await db
     .update(schema.accounts)
-    .set({ deviceId, updatedAt: new Date() })
+    .set({ deviceId, updatedAt: new Date().toISOString() })
     .where(eq(schema.accounts.id, accountId));
 }
 
@@ -296,7 +296,7 @@ export async function createStrategy(data: schema.InsertStrategy) {
 export async function updateStrategy(strategyId: number, data: Partial<schema.InsertStrategy>) {
   await db
     .update(schema.strategies)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.strategies.id, strategyId));
 }
 
@@ -307,7 +307,7 @@ export async function deleteStrategy(strategyId: number) {
 export async function linkStrategyToProject(strategyId: number, projectId: number) {
   await db
     .update(schema.strategies)
-    .set({ projectId, updatedAt: new Date() })
+    .set({ projectId, updatedAt: new Date().toISOString() })
     .where(eq(schema.strategies.id, strategyId));
 }
 
@@ -343,7 +343,7 @@ export async function createPost(data: schema.InsertScheduledPost) {
 export async function updatePost(postId: number, data: Partial<schema.InsertScheduledPost>) {
   await db
     .update(schema.scheduledPosts)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.scheduledPosts.id, postId));
 }
 
@@ -370,7 +370,7 @@ export async function getAvailableDevice() {
 export async function updateDeviceStatus(deviceId: string, status: 'available' | 'busy' | 'offline') {
   await db
     .update(schema.devices)
-    .set({ status, lastUsedAt: new Date(), updatedAt: new Date() })
+    .set({ status, lastUsedAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
     .where(eq(schema.devices.deviceId, deviceId));
 }
 
@@ -387,7 +387,7 @@ export async function createDevice(data: schema.InsertDevice) {
 export async function updateDevice(deviceId: string, data: Partial<schema.InsertDevice>) {
   await db
     .update(schema.devices)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.devices.deviceId, deviceId));
 }
 
@@ -474,7 +474,7 @@ export async function setSetting(key: string, value: string, description?: strin
     // Update existing setting
     await db
       .update(schema.settings)
-      .set({ value, description, updatedAt: new Date() })
+      .set({ value, description, updatedAt: new Date().toISOString() })
       .where(eq(schema.settings.key, key));
   } else {
     // Insert new setting
@@ -515,7 +515,7 @@ export async function createAgent(data: schema.InsertAgent) {
 export async function updateAgent(agentId: number, data: Partial<schema.InsertAgent>) {
   await db
     .update(schema.agents)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.agents.id, agentId));
 }
 
@@ -534,7 +534,7 @@ export async function getAgentKnowledge(agentId: number, type?: string) {
       .where(and(
         eq(schema.agentKnowledge.agentId, agentId),
         eq(schema.agentKnowledge.knowledgeType, type as any),
-        eq(schema.agentKnowledge.isActive, true)
+        eq(schema.agentKnowledge.isActive, 1)
       ))
       .orderBy(desc(schema.agentKnowledge.confidence));
   }
@@ -543,7 +543,7 @@ export async function getAgentKnowledge(agentId: number, type?: string) {
     .from(schema.agentKnowledge)
     .where(and(
       eq(schema.agentKnowledge.agentId, agentId),
-      eq(schema.agentKnowledge.isActive, true)
+      eq(schema.agentKnowledge.isActive, 1)
     ))
     .orderBy(desc(schema.agentKnowledge.confidence));
 }
@@ -556,14 +556,14 @@ export async function createAgentKnowledge(data: schema.InsertAgentKnowledge) {
 export async function updateAgentKnowledge(knowledgeId: number, data: Partial<schema.InsertAgentKnowledge>) {
   await db
     .update(schema.agentKnowledge)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentKnowledge.id, knowledgeId));
 }
 
 export async function deleteAgentKnowledge(knowledgeId: number) {
   await db
     .update(schema.agentKnowledge)
-    .set({ isActive: false, updatedAt: new Date() })
+    .set({ isActive: 0, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentKnowledge.id, knowledgeId));
 }
 
@@ -578,7 +578,7 @@ export async function getAgentRules(agentId: number, type?: string) {
       .where(and(
         eq(schema.agentRules.agentId, agentId),
         eq(schema.agentRules.ruleType, type as any),
-        eq(schema.agentRules.isActive, true)
+        eq(schema.agentRules.isActive, 1)
       ))
       .orderBy(desc(schema.agentRules.priority));
   }
@@ -587,7 +587,7 @@ export async function getAgentRules(agentId: number, type?: string) {
     .from(schema.agentRules)
     .where(and(
       eq(schema.agentRules.agentId, agentId),
-      eq(schema.agentRules.isActive, true)
+      eq(schema.agentRules.isActive, 1)
     ))
     .orderBy(desc(schema.agentRules.priority));
 }
@@ -600,14 +600,14 @@ export async function createAgentRule(data: schema.InsertAgentRule) {
 export async function updateAgentRule(ruleId: number, data: Partial<schema.InsertAgentRule>) {
   await db
     .update(schema.agentRules)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentRules.id, ruleId));
 }
 
 export async function deleteAgentRule(ruleId: number) {
   await db
     .update(schema.agentRules)
-    .set({ isActive: false, updatedAt: new Date() })
+    .set({ isActive: 0, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentRules.id, ruleId));
 }
 
@@ -627,7 +627,7 @@ export async function getAgentAccounts(agentId: number) {
     .leftJoin(schema.accounts, eq(schema.agentAccounts.accountId, schema.accounts.id))
     .where(and(
       eq(schema.agentAccounts.agentId, agentId),
-      eq(schema.agentAccounts.isActive, true)
+      eq(schema.agentAccounts.isActive, 1)
     ));
 }
 
@@ -645,7 +645,7 @@ export async function linkAgentToAccount(agentId: number, accountId: number) {
     // Reactivate if inactive
     await db
       .update(schema.agentAccounts)
-      .set({ isActive: true, updatedAt: new Date() })
+      .set({ isActive: 1, updatedAt: new Date().toISOString() })
       .where(eq(schema.agentAccounts.id, existing[0].id));
     return existing[0].id;
   }
@@ -653,7 +653,7 @@ export async function linkAgentToAccount(agentId: number, accountId: number) {
   const [result] = await db.insert(schema.agentAccounts).values({
     agentId,
     accountId,
-    isActive: true,
+    isActive: 1,
   });
   return result.insertId;
 }
@@ -661,7 +661,7 @@ export async function linkAgentToAccount(agentId: number, accountId: number) {
 export async function unlinkAgentFromAccount(agentId: number, accountId: number) {
   await db
     .update(schema.agentAccounts)
-    .set({ isActive: false, updatedAt: new Date() })
+    .set({ isActive: 0, updatedAt: new Date().toISOString() })
     .where(and(
       eq(schema.agentAccounts.agentId, agentId),
       eq(schema.agentAccounts.accountId, accountId)
@@ -694,7 +694,7 @@ export async function getAgentSchedules(agentId: number) {
     .from(schema.agentSchedules)
     .where(and(
       eq(schema.agentSchedules.agentId, agentId),
-      eq(schema.agentSchedules.isActive, true)
+      eq(schema.agentSchedules.isActive, 1)
     ))
     .orderBy(schema.agentSchedules.timeSlot);
 }
@@ -707,14 +707,14 @@ export async function createAgentSchedule(data: schema.InsertAgentSchedule) {
 export async function updateAgentSchedule(scheduleId: number, data: Partial<schema.InsertAgentSchedule>) {
   await db
     .update(schema.agentSchedules)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentSchedules.id, scheduleId));
 }
 
 export async function deleteAgentSchedule(scheduleId: number) {
   await db
     .update(schema.agentSchedules)
-    .set({ isActive: false, updatedAt: new Date() })
+    .set({ isActive: 0, updatedAt: new Date().toISOString() })
     .where(eq(schema.agentSchedules.id, scheduleId));
 }
 
@@ -727,8 +727,8 @@ export async function getActiveAgentSchedules() {
     .from(schema.agentSchedules)
     .innerJoin(schema.agents, eq(schema.agentSchedules.agentId, schema.agents.id))
     .where(and(
-      eq(schema.agentSchedules.isActive, true),
-      eq(schema.agents.isActive, true)
+      eq(schema.agentSchedules.isActive, 1),
+      eq(schema.agents.isActive, 1)
     ));
 }
 
@@ -751,7 +751,7 @@ export async function createPostPerformanceFeedback(data: schema.InsertPostPerfo
 export async function updatePostPerformanceFeedback(feedbackId: number, data: Partial<schema.InsertPostPerformanceFeedback>) {
   await db
     .update(schema.postPerformanceFeedback)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...data, updatedAt: new Date().toISOString() })
     .where(eq(schema.postPerformanceFeedback.id, feedbackId));
 }
 
@@ -759,7 +759,7 @@ export async function getUnprocessedFeedback(limit: number = 100) {
   return await db
     .select()
     .from(schema.postPerformanceFeedback)
-    .where(eq(schema.postPerformanceFeedback.isProcessed, false))
+    .where(eq(schema.postPerformanceFeedback.isProcessed, 0))
     .orderBy(schema.postPerformanceFeedback.createdAt)
     .limit(limit);
 }
@@ -781,7 +781,7 @@ export async function updateAccountPersona(
       personaRole: data.personaRole,
       personaTone: data.personaTone,
       personaCharacteristics: data.personaCharacteristics,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     })
     .where(eq(schema.accounts.id, accountId));
 }
@@ -830,7 +830,7 @@ export async function linkModelAccountToAccount(
       .update(schema.accountModelAccounts)
       .set({
         autoApplyLearnings: autoApplyLearnings ? 1 : 0,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(schema.accountModelAccounts.id, existing.id));
   } else {
@@ -866,7 +866,7 @@ export async function updateAccountModelAccountLink(
     .update(schema.accountModelAccounts)
     .set({
       autoApplyLearnings: data.autoApplyLearnings ? 1 : 0,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     })
     .where(
       and(

@@ -1231,3 +1231,247 @@ export const funnelEvents = mysqlTable("funnel_events", {
 	index("funnel_events_project_idx").on(table.projectId),
 	index("funnel_events_type_idx").on(table.eventType, table.recordedAt),
 ]);
+
+// ==========================================
+// Insert / Select Type Exports
+// ==========================================
+
+// abTestLearnings
+export type InsertAbTestLearning = typeof abTestLearnings.$inferInsert;
+export type SelectAbTestLearning = typeof abTestLearnings.$inferSelect;
+
+// abTestVariations
+export type InsertAbTestVariation = typeof abTestVariations.$inferInsert;
+export type SelectAbTestVariation = typeof abTestVariations.$inferSelect;
+
+// abTests
+export type InsertAbTest = typeof abTests.$inferInsert;
+export type SelectAbTest = typeof abTests.$inferSelect;
+
+// accounts
+export type InsertAccount = typeof accounts.$inferInsert;
+export type SelectAccount = typeof accounts.$inferSelect;
+
+// accountRelationships
+export type InsertAccountRelationship = typeof accountRelationships.$inferInsert;
+export type SelectAccountRelationship = typeof accountRelationships.$inferSelect;
+
+// agentAccounts
+export type InsertAgentAccount = typeof agentAccounts.$inferInsert;
+export type SelectAgentAccount = typeof agentAccounts.$inferSelect;
+
+// agentExecutionLogs
+export type InsertAgentExecutionLog = typeof agentExecutionLogs.$inferInsert;
+export type SelectAgentExecutionLog = typeof agentExecutionLogs.$inferSelect;
+
+// agentKnowledge
+export type InsertAgentKnowledge = typeof agentKnowledge.$inferInsert;
+export type SelectAgentKnowledge = typeof agentKnowledge.$inferSelect;
+
+// agentRules
+export type InsertAgentRule = typeof agentRules.$inferInsert;
+export type SelectAgentRule = typeof agentRules.$inferSelect;
+
+// agentSchedules
+export type InsertAgentSchedule = typeof agentSchedules.$inferInsert;
+export type SelectAgentSchedule = typeof agentSchedules.$inferSelect;
+
+// agents
+export type InsertAgent = typeof agents.$inferInsert;
+export type SelectAgent = typeof agents.$inferSelect;
+
+// aiOptimizations
+export type InsertAiOptimization = typeof aiOptimizations.$inferInsert;
+export type SelectAiOptimization = typeof aiOptimizations.$inferSelect;
+
+// alertHistory
+export type InsertAlertHistory = typeof alertHistory.$inferInsert;
+export type SelectAlertHistory = typeof alertHistory.$inferSelect;
+
+// alertSettings
+export type InsertAlertSetting = typeof alertSettings.$inferInsert;
+export type SelectAlertSetting = typeof alertSettings.$inferSelect;
+
+// analytics
+export type InsertAnalytics = typeof analytics.$inferInsert;
+export type SelectAnalytics = typeof analytics.$inferSelect;
+
+// autoResponses
+export type InsertAutoResponse = typeof autoResponses.$inferInsert;
+export type SelectAutoResponse = typeof autoResponses.$inferSelect;
+
+// collectedContents
+export type InsertCollectedContent = typeof collectedContents.$inferInsert;
+export type SelectCollectedContent = typeof collectedContents.$inferSelect;
+
+// collectionSchedules
+export type InsertCollectionSchedule = typeof collectionSchedules.$inferInsert;
+export type SelectCollectionSchedule = typeof collectionSchedules.$inferSelect;
+
+// contentReviews
+export type InsertContentReview = typeof contentReviews.$inferInsert;
+export type SelectContentReview = typeof contentReviews.$inferSelect;
+
+// contentRewrites
+export type InsertContentRewrite = typeof contentRewrites.$inferInsert;
+export type SelectContentRewrite = typeof contentRewrites.$inferSelect;
+
+// coordinateLearningData
+export type InsertCoordinateLearningData = typeof coordinateLearningData.$inferInsert;
+export type SelectCoordinateLearningData = typeof coordinateLearningData.$inferSelect;
+
+// deviceMonitoringStatus
+export type InsertDeviceMonitoringStatus = typeof deviceMonitoringStatus.$inferInsert;
+export type SelectDeviceMonitoringStatus = typeof deviceMonitoringStatus.$inferSelect;
+
+// deviceStatusHistory
+export type InsertDeviceStatusHistory = typeof deviceStatusHistory.$inferInsert;
+export type SelectDeviceStatusHistory = typeof deviceStatusHistory.$inferSelect;
+
+// devices
+export type InsertDevice = typeof devices.$inferInsert;
+export type SelectDevice = typeof devices.$inferSelect;
+
+// engagementLogs
+export type InsertEngagementLog = typeof engagementLogs.$inferInsert;
+export type SelectEngagementLog = typeof engagementLogs.$inferSelect;
+
+// engagementTasks
+export type InsertEngagementTask = typeof engagementTasks.$inferInsert;
+export type SelectEngagementTask = typeof engagementTasks.$inferSelect;
+
+// freezeDetections
+export type InsertFreezeDetection = typeof freezeDetections.$inferInsert;
+export type SelectFreezeDetection = typeof freezeDetections.$inferSelect;
+
+// interactionSettings
+export type InsertInteractionSetting = typeof interactionSettings.$inferInsert;
+export type SelectInteractionSetting = typeof interactionSettings.$inferSelect;
+
+// interactions
+export type InsertInteraction = typeof interactions.$inferInsert;
+export type SelectInteraction = typeof interactions.$inferSelect;
+
+// logs
+export type InsertLog = typeof logs.$inferInsert;
+export type SelectLog = typeof logs.$inferSelect;
+
+// postAnalytics
+export type InsertPostAnalytics = typeof postAnalytics.$inferInsert;
+export type SelectPostAnalytics = typeof postAnalytics.$inferSelect;
+
+// postPerformanceFeedback
+export type InsertPostPerformanceFeedback = typeof postPerformanceFeedback.$inferInsert;
+export type SelectPostPerformanceFeedback = typeof postPerformanceFeedback.$inferSelect;
+
+// postUrls
+export type InsertPostUrl = typeof postUrls.$inferInsert;
+export type SelectPostUrl = typeof postUrls.$inferSelect;
+
+// posts
+export type InsertPost = typeof posts.$inferInsert;
+export type SelectPost = typeof posts.$inferSelect;
+
+// projectAccounts
+export type InsertProjectAccount = typeof projectAccounts.$inferInsert;
+export type SelectProjectAccount = typeof projectAccounts.$inferSelect;
+
+// projectModelAccounts
+export type InsertProjectModelAccount = typeof projectModelAccounts.$inferInsert;
+export type SelectProjectModelAccount = typeof projectModelAccounts.$inferSelect;
+
+// accountModelAccounts
+export type InsertAccountModelAccount = typeof accountModelAccounts.$inferInsert;
+export type SelectAccountModelAccount = typeof accountModelAccounts.$inferSelect;
+
+// projects
+export type InsertProject = typeof projects.$inferInsert;
+export type SelectProject = typeof projects.$inferSelect;
+
+// proxies
+export type InsertProxy = typeof proxies.$inferInsert;
+export type SelectProxy = typeof proxies.$inferSelect;
+
+// scheduledPosts
+export type InsertScheduledPost = typeof scheduledPosts.$inferInsert;
+export type SelectScheduledPost = typeof scheduledPosts.$inferSelect;
+
+// settings
+export type InsertSetting = typeof settings.$inferInsert;
+export type SelectSetting = typeof settings.$inferSelect;
+
+// strategies
+export type InsertStrategy = typeof strategies.$inferInsert;
+export type SelectStrategy = typeof strategies.$inferSelect;
+
+// tenantUsers
+export type InsertTenantUser = typeof tenantUsers.$inferInsert;
+export type SelectTenantUser = typeof tenantUsers.$inferSelect;
+
+// tenants
+export type InsertTenant = typeof tenants.$inferInsert;
+export type SelectTenant = typeof tenants.$inferSelect;
+
+// users
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
+
+// videoGenerations
+export type InsertVideoGeneration = typeof videoGenerations.$inferInsert;
+export type SelectVideoGeneration = typeof videoGenerations.$inferSelect;
+
+// weeklyReviews
+export type InsertWeeklyReview = typeof weeklyReviews.$inferInsert;
+export type SelectWeeklyReview = typeof weeklyReviews.$inferSelect;
+
+// xApiSettings
+export type InsertXApiSetting = typeof xApiSettings.$inferInsert;
+export type SelectXApiSetting = typeof xApiSettings.$inferSelect;
+
+// accountLearnings
+export type InsertAccountLearning = typeof accountLearnings.$inferInsert;
+export type SelectAccountLearning = typeof accountLearnings.$inferSelect;
+
+// automationTasks
+export type InsertAutomationTask = typeof automationTasks.$inferInsert;
+export type SelectAutomationTask = typeof automationTasks.$inferSelect;
+
+// modelAccounts
+export type InsertModelAccount = typeof modelAccounts.$inferInsert;
+export type SelectModelAccount = typeof modelAccounts.$inferSelect;
+
+// buzzPosts
+export type InsertBuzzPost = typeof buzzPosts.$inferInsert;
+export type SelectBuzzPost = typeof buzzPosts.$inferSelect;
+
+// buzzLearnings
+export type InsertBuzzLearning = typeof buzzLearnings.$inferInsert;
+export type SelectBuzzLearning = typeof buzzLearnings.$inferSelect;
+
+// profileAnalyses
+export type InsertProfileAnalysis = typeof profileAnalyses.$inferInsert;
+export type SelectProfileAnalysis = typeof profileAnalyses.$inferSelect;
+
+// modelAccountBehaviorPatterns
+export type InsertModelAccountBehaviorPattern = typeof modelAccountBehaviorPatterns.$inferInsert;
+export type SelectModelAccountBehaviorPattern = typeof modelAccountBehaviorPatterns.$inferSelect;
+
+// projectKpiTracking
+export type InsertProjectKpiTracking = typeof projectKpiTracking.$inferInsert;
+export type SelectProjectKpiTracking = typeof projectKpiTracking.$inferSelect;
+
+// engagementTrackingJobs
+export type InsertEngagementTrackingJob = typeof engagementTrackingJobs.$inferInsert;
+export type SelectEngagementTrackingJob = typeof engagementTrackingJobs.$inferSelect;
+
+// learningSyncLog
+export type InsertLearningSyncLog = typeof learningSyncLog.$inferInsert;
+export type SelectLearningSyncLog = typeof learningSyncLog.$inferSelect;
+
+// hashtagPerformance
+export type InsertHashtagPerformance = typeof hashtagPerformance.$inferInsert;
+export type SelectHashtagPerformance = typeof hashtagPerformance.$inferSelect;
+
+// funnelEvents
+export type InsertFunnelEvent = typeof funnelEvents.$inferInsert;
+export type SelectFunnelEvent = typeof funnelEvents.$inferSelect;

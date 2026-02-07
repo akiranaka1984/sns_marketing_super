@@ -200,7 +200,7 @@ export async function checkAndRunScheduledAgents(): Promise<{
           eq(agentExecutionLogs.agentId, agent.id),
           eq(agentExecutionLogs.executionType, "content_generation"),
           eq(agentExecutionLogs.status, "success"),
-          gte(agentExecutionLogs.createdAt, thirtyMinutesAgo)
+          gte(agentExecutionLogs.createdAt, thirtyMinutesAgo.toISOString())
         ),
         orderBy: [desc(agentExecutionLogs.createdAt)],
       });
@@ -251,7 +251,7 @@ export async function updateAgentSchedule(
     .set({
       postingFrequency: frequency as any,
       postingTimeSlots: JSON.stringify(timeSlots),
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     })
     .where(eq(agents.id, agentId));
 }

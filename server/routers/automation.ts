@@ -16,24 +16,24 @@ export const automationRouter = router({
       const apiKey = process.env.AUTOMATION_API_KEY || '';
       
       // タスク記録
-      const task = await db.insert(automationTasks).values({
+      const [task] = await db.insert(automationTasks).values({
         postUrl: input.postUrl,
         action: 'like',
         status: 'pending',
         deviceId: input.deviceId,
       });
-      
+
       const taskId = Number(task.insertId);
-      
+
       // 実行
       const result = await executeLike(apiKey, input.deviceId, input.postUrl);
-      
+
       // 結果更新
       await db.update(automationTasks)
         .set({
           status: result.success ? 'success' : 'failed',
           result: result as any,
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
         })
         .where(eq(automationTasks.id, taskId));
       
@@ -52,16 +52,16 @@ export const automationRouter = router({
       const openaiApiKey = process.env.OPENAI_API_KEY!;
       
       // タスク記録
-      const task = await db.insert(automationTasks).values({
+      const [task] = await db.insert(automationTasks).values({
         postUrl: input.postUrl,
         action: 'comment',
         status: 'pending',
         deviceId: input.deviceId,
         persona: input.persona,
       });
-      
+
       const taskId = Number(task.insertId);
-      
+
       // 実行
       const result = await executeAiComment(
         apiKey,
@@ -70,14 +70,14 @@ export const automationRouter = router({
         openaiApiKey,
         input.persona
       );
-      
+
       // 結果更新
       await db.update(automationTasks)
         .set({
           status: result.success ? 'success' : 'failed',
           generatedComment: result.comment,
           result: result as any,
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
         })
         .where(eq(automationTasks.id, taskId));
       

@@ -228,8 +228,8 @@ export const tenantRouter = router({
         userId: input.userId,
         role: input.role,
         invitedBy: ctx.user.id,
-        invitedAt: new Date(),
-        joinedAt: new Date(),
+        invitedAt: new Date().toISOString(),
+        joinedAt: new Date().toISOString(),
       });
 
       return { success: true };

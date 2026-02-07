@@ -60,7 +60,7 @@ export const contentReviewRouter = router({
         .set({
           status: "approved",
           feedback: input.feedback ?? null,
-          reviewedAt: new Date(),
+          reviewedAt: new Date().toISOString(),
         })
         .where(
           and(
@@ -86,7 +86,7 @@ export const contentReviewRouter = router({
         .set({
           status: "rejected",
           feedback: input.feedback,
-          reviewedAt: new Date(),
+          reviewedAt: new Date().toISOString(),
         })
         .where(
           and(
@@ -112,7 +112,7 @@ export const contentReviewRouter = router({
         .set({
           status: "revision_requested",
           feedback: input.feedback,
-          reviewedAt: new Date(),
+          reviewedAt: new Date().toISOString(),
         })
         .where(
           and(

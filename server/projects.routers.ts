@@ -248,7 +248,7 @@ export const projectsRouter = router({
         personaRole: input.personaRole,
         personaTone: input.personaTone,
         personaCharacteristics: input.personaCharacteristics,
-        isActive: true,
+        isActive: 1,
       });
 
       return { id: projectAccountId };
@@ -313,7 +313,7 @@ export const projectsRouter = router({
         content: input.content,
         mediaUrls: input.mediaUrls,
         hashtags: input.hashtags,
-        scheduledTime: input.scheduledAt ? new Date(input.scheduledAt) : new Date(),
+        scheduledTime: input.scheduledAt ? new Date(input.scheduledAt).toISOString() : new Date().toISOString(),
         status: 'pending',
       });
 

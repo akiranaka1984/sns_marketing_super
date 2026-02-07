@@ -87,7 +87,7 @@ export const scheduledPostsRouter = router({
         content: input.content,
         mediaUrls: input.mediaUrls ? JSON.stringify(input.mediaUrls) : null,
         hashtags: input.hashtags,
-        scheduledTime: input.scheduledTime,
+        scheduledTime: input.scheduledTime.toISOString(),
         repeatInterval: input.repeatInterval,
         status: "pending",
       });
@@ -110,7 +110,12 @@ export const scheduledPostsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const { id, ...updates } = input;
+      const { id, scheduledTime, ...rest } = input;
+
+      const updates: Record<string, any> = { ...rest };
+      if (scheduledTime !== undefined) {
+        updates.scheduledTime = scheduledTime.toISOString();
+      }
 
       await db
         .update(scheduledPosts)
@@ -279,7 +284,7 @@ export const scheduledPostsRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(scheduledPosts.createdAt, startDate)];
+      const conditions = [gte(scheduledPosts.createdAt, startDate.toISOString())];
       if (input.projectId) {
         conditions.push(eq(scheduledPosts.projectId, input.projectId));
       }

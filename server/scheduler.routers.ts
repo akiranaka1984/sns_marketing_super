@@ -51,7 +51,7 @@ export const schedulerRouter = router({
         .where(
           and(
             eq(interactions.status, "completed"),
-            gte(interactions.executedAt, oneDayAgo)
+            gte(interactions.executedAt, oneDayAgo.toISOString())
           )
         );
 
@@ -61,7 +61,7 @@ export const schedulerRouter = router({
         .where(
           and(
             eq(interactions.status, "failed"),
-            gte(interactions.createdAt, oneDayAgo)
+            gte(interactions.createdAt, oneDayAgo.toISOString())
           )
         );
 
@@ -88,7 +88,7 @@ export const schedulerRouter = router({
         .where(
           and(
             sql`${interactions.status} IN ('completed', 'failed')`,
-            gte(interactions.executedAt, oneDayAgo)
+            gte(interactions.executedAt, oneDayAgo.toISOString())
           )
         )
         .orderBy(desc(interactions.executedAt))

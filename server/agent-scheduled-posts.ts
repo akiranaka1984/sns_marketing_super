@@ -72,11 +72,11 @@ export async function createAgentScheduledPost(input: ScheduledPostInput): Promi
     originalContent: fullContent,
     mediaUrls: input.mediaUrls ? JSON.stringify(input.mediaUrls) : null,
     hashtags: JSON.stringify(input.hashtags),
-    scheduledTime: input.scheduledTime,
+    scheduledTime: input.scheduledTime.toISOString(),
     repeatInterval: "none",
     status: "pending",
     agentId: input.agentId,
-    generatedByAgent: true,
+    generatedByAgent: 1,
     reviewStatus,
     contentConfidence: input.confidence,
     usedLearningIds: input.usedLearningIds ? JSON.stringify(input.usedLearningIds) : null,
@@ -195,7 +195,7 @@ export async function generateScheduledPosts(
     const schedule = await db.query.agentSchedules.findFirst({
       where: and(
         eq(agentSchedules.agentId, agentId),
-        eq(agentSchedules.isActive, true)
+        eq(agentSchedules.isActive, 1)
       ),
     });
 
@@ -226,7 +226,7 @@ export async function generateScheduledPosts(
         const existingPost = await db.query.scheduledPosts.findFirst({
           where: and(
             eq(scheduledPosts.accountId, targetAccount.id),
-            eq(scheduledPosts.scheduledTime, postTime),
+            eq(scheduledPosts.scheduledTime, postTime.toISOString()),
             eq(scheduledPosts.status, "pending")
           ),
         });
@@ -351,7 +351,7 @@ export async function approveScheduledPost(postId: number, notes?: string): Prom
   await db.update(scheduledPosts)
     .set({
       reviewStatus: "approved",
-      reviewedAt: new Date(),
+      reviewedAt: new Date().toISOString(),
       reviewNotes: notes,
     })
     .where(eq(scheduledPosts.id, postId));
@@ -367,7 +367,7 @@ export async function rejectScheduledPost(postId: number, reason: string): Promi
     .set({
       reviewStatus: "rejected",
       status: "cancelled",
-      reviewedAt: new Date(),
+      reviewedAt: new Date().toISOString(),
       reviewNotes: reason,
     })
     .where(eq(scheduledPosts.id, postId));
@@ -445,7 +445,7 @@ export async function getAgentScheduledPosts(
 ): Promise<(typeof scheduledPosts.$inferSelect)[]> {
   const conditions = [
     eq(scheduledPosts.agentId, agentId),
-    eq(scheduledPosts.generatedByAgent, true),
+    eq(scheduledPosts.generatedByAgent, 1),
   ];
 
   if (options?.reviewStatus) {
@@ -470,7 +470,7 @@ export async function getPendingReviewPosts(
   limit: number = 50
 ): Promise<(typeof scheduledPosts.$inferSelect)[]> {
   const conditions = [
-    eq(scheduledPosts.generatedByAgent, true),
+    eq(scheduledPosts.generatedByAgent, 1),
     eq(scheduledPosts.reviewStatus, "pending_review"),
     eq(scheduledPosts.status, "pending"),
   ];

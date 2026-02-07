@@ -618,12 +618,12 @@ export async function generatePersonaCharacteristics(
 150文字程度で簡潔にまとめてください。改行は入れず、1つの段落として記述してください。`;
 
   try {
-    const result = await invokeLLM(prompt, {
-      model: "gpt-4o-mini",
+    const result = await invokeLLM({
+      messages: [{ role: "user", content: prompt }],
       max_tokens: 300,
-      temperature: 0.7,
     });
-    return result.trim();
+    const content = result.choices?.[0]?.message?.content;
+    return (typeof content === 'string' ? content : '').trim();
   } catch (error) {
     console.error("Failed to generate persona characteristics:", error);
     // Fallback to a simple template

@@ -35,7 +35,7 @@ export const engagementRouter = router({
         conditions.push(eq(engagementTasks.taskType, input.taskType));
       }
       if (input.isActive !== undefined) {
-        conditions.push(eq(engagementTasks.isActive, input.isActive));
+        conditions.push(eq(engagementTasks.isActive, input.isActive ? 1 : 0));
       }
 
       const tasks = await db.query.engagementTasks.findMany({
@@ -92,7 +92,7 @@ export const engagementRouter = router({
         targetPost: input.targetPost,
         commentText: input.commentText,
         frequency: input.frequency,
-        isActive: input.isActive,
+        isActive: input.isActive ? 1 : 0,
       });
 
       return task;
@@ -113,11 +113,14 @@ export const engagementRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const { id, ...updates } = input;
+      const { id, isActive, ...updates } = input;
 
       await db
         .update(engagementTasks)
-        .set(updates)
+        .set({
+          ...updates,
+          ...(isActive !== undefined ? { isActive: isActive ? 1 : 0 } : {}),
+        })
         .where(eq(engagementTasks.id, id));
 
       return { success: true };
@@ -142,7 +145,7 @@ export const engagementRouter = router({
     .mutation(async ({ input }) => {
       await db
         .update(engagementTasks)
-        .set({ isActive: input.isActive })
+        .set({ isActive: input.isActive ? 1 : 0 })
         .where(eq(engagementTasks.id, input.id));
 
       return { success: true };
@@ -196,7 +199,7 @@ export const engagementRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(engagementLogs.createdAt, startDate)];
+      const conditions = [gte(engagementLogs.createdAt, startDate.toISOString())];
       if (input.accountId) {
         conditions.push(eq(engagementLogs.accountId, input.accountId));
       }

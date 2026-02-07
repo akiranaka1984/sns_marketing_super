@@ -45,7 +45,7 @@ export const aiOptimizationRouter = router({
       const performanceData = await db
         .select()
         .from(postAnalytics)
-        .where(gte(postAnalytics.recordedAt, dateThreshold));
+        .where(gte(postAnalytics.recordedAt, dateThreshold.toISOString()));
 
       // Calculate average metrics
       const avgEngagement = performanceData.length > 0
@@ -183,7 +183,7 @@ Format the response as JSON with the following structure:
           userId: ctx.user.id,
           projectId: input.projectId ?? null,
           agentId: input.agentId,
-          optimizationType: "tone_adjustment",
+          type: "tone_adjustment",
           beforeParams: JSON.stringify(beforeParams),
           afterParams: JSON.stringify(afterParams),
           performanceImprovement: Math.round(suggestions.expectedImprovement * 100),
@@ -246,7 +246,7 @@ Format the response as JSON with the following structure:
         .update(aiOptimizations)
         .set({
           status: "applied",
-          appliedAt: new Date(),
+          appliedAt: new Date().toISOString(),
         })
         .where(eq(aiOptimizations.id, input.optimizationId));
 

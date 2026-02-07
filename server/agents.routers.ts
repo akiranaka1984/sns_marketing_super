@@ -52,7 +52,7 @@ export const agentsRouter = router({
         .leftJoin(accounts, eq(agentAccounts.accountId, accounts.id))
         .where(and(
           eq(agentAccounts.agentId, input.id),
-          eq(agentAccounts.isActive, true)
+          eq(agentAccounts.isActive, 1)
         ));
 
       // Get knowledge count
@@ -61,7 +61,7 @@ export const agentsRouter = router({
         .from(agentKnowledge)
         .where(and(
           eq(agentKnowledge.agentId, input.id),
-          eq(agentKnowledge.isActive, true)
+          eq(agentKnowledge.isActive, 1)
         ));
 
       // Get rules count
@@ -70,7 +70,7 @@ export const agentsRouter = router({
         .from(agentRules)
         .where(and(
           eq(agentRules.agentId, input.id),
-          eq(agentRules.isActive, true)
+          eq(agentRules.isActive, 1)
         ));
 
       // Get recent execution logs
@@ -120,7 +120,7 @@ export const agentsRouter = router({
           projectId: input.projectId || null,
           postingFrequency: input.postingFrequency || "daily",
           postingTimeSlots: input.postingTimeSlots ? JSON.stringify(input.postingTimeSlots) : JSON.stringify(["09:00"]),
-          skipReview: input.skipReview || false,
+          skipReview: input.skipReview ? 1 : 0,
         })
         .$returningId();
 
@@ -243,7 +243,7 @@ export const agentsRouter = router({
         // Reactivate if inactive
         await db
           .update(agentAccounts)
-          .set({ isActive: true, updatedAt: new Date() })
+          .set({ isActive: 1, updatedAt: new Date().toISOString() })
           .where(eq(agentAccounts.id, existing[0].id));
         return { success: true, id: existing[0].id };
       }
@@ -251,7 +251,7 @@ export const agentsRouter = router({
       const [result] = await db.insert(agentAccounts).values({
         agentId: input.agentId,
         accountId: input.accountId,
-        isActive: true,
+        isActive: 1,
       });
 
       return { success: true, id: result.insertId };
@@ -277,7 +277,7 @@ export const agentsRouter = router({
 
       await db
         .update(agentAccounts)
-        .set({ isActive: false, updatedAt: new Date() })
+        .set({ isActive: 0, updatedAt: new Date().toISOString() })
         .where(and(
           eq(agentAccounts.agentId, input.agentId),
           eq(agentAccounts.accountId, input.accountId)
@@ -312,7 +312,7 @@ export const agentsRouter = router({
         .leftJoin(accounts, eq(agentAccounts.accountId, accounts.id))
         .where(and(
           eq(agentAccounts.agentId, input.agentId),
-          eq(agentAccounts.isActive, true)
+          eq(agentAccounts.isActive, 1)
         ));
     }),
 
@@ -343,7 +343,7 @@ export const agentsRouter = router({
         .from(agentKnowledge)
         .where(and(
           eq(agentKnowledge.agentId, input.agentId),
-          eq(agentKnowledge.isActive, true)
+          eq(agentKnowledge.isActive, 1)
         ))
         .orderBy(desc(agentKnowledge.confidence));
 
@@ -354,7 +354,7 @@ export const agentsRouter = router({
           .where(and(
             eq(agentKnowledge.agentId, input.agentId),
             eq(agentKnowledge.knowledgeType, input.type as any),
-            eq(agentKnowledge.isActive, true)
+            eq(agentKnowledge.isActive, 1)
           ))
           .orderBy(desc(agentKnowledge.confidence));
       }
@@ -398,7 +398,7 @@ export const agentsRouter = router({
         title: input.title,
         content: input.content,
         confidence: input.confidence || 50,
-        isActive: true,
+        isActive: 1,
       });
 
       return { success: true, id: result.insertId };
@@ -424,7 +424,7 @@ export const agentsRouter = router({
 
       if (Object.keys(cleanedData).length > 0) {
         await db.update(agentKnowledge)
-          .set({ ...cleanedData, updatedAt: new Date() })
+          .set({ ...cleanedData, updatedAt: new Date().toISOString() })
           .where(eq(agentKnowledge.id, id));
       }
 
@@ -436,7 +436,7 @@ export const agentsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await db.update(agentKnowledge)
-        .set({ isActive: false, updatedAt: new Date() })
+        .set({ isActive: 0, updatedAt: new Date().toISOString() })
         .where(eq(agentKnowledge.id, input.id));
 
       return { success: true };
@@ -469,7 +469,7 @@ export const agentsRouter = router({
         .from(agentRules)
         .where(and(
           eq(agentRules.agentId, input.agentId),
-          eq(agentRules.isActive, true)
+          eq(agentRules.isActive, 1)
         ))
         .orderBy(desc(agentRules.priority));
 
@@ -480,7 +480,7 @@ export const agentsRouter = router({
           .where(and(
             eq(agentRules.agentId, input.agentId),
             eq(agentRules.ruleType, input.type as any),
-            eq(agentRules.isActive, true)
+            eq(agentRules.isActive, 1)
           ))
           .orderBy(desc(agentRules.priority));
       }
@@ -524,7 +524,7 @@ export const agentsRouter = router({
         ruleName: input.ruleName,
         ruleValue: input.ruleValue,
         priority: input.priority || 50,
-        isActive: true,
+        isActive: 1,
       });
 
       return { success: true, id: result.insertId };
@@ -550,7 +550,7 @@ export const agentsRouter = router({
 
       if (Object.keys(cleanedData).length > 0) {
         await db.update(agentRules)
-          .set({ ...cleanedData, updatedAt: new Date() })
+          .set({ ...cleanedData, updatedAt: new Date().toISOString() })
           .where(eq(agentRules.id, id));
       }
 
@@ -562,7 +562,7 @@ export const agentsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await db.update(agentRules)
-        .set({ isActive: false, updatedAt: new Date() })
+        .set({ isActive: 0, updatedAt: new Date().toISOString() })
         .where(eq(agentRules.id, input.id));
 
       return { success: true };
@@ -757,7 +757,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
             description: agent.description,
             postingFrequency: agent.postingFrequency as any,
             postingTimeSlots: JSON.stringify(agent.postingTimeSlots),
-            isActive: true,
+            isActive: 1,
           })
           .$returningId();
         
@@ -801,7 +801,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         updateData.postingTimeSlots = JSON.stringify(input.postingTimeSlots);
       }
       if (input.isActive !== undefined) {
-        updateData.isActive = input.isActive;
+        updateData.isActive = input.isActive ? 1 : 0;
       }
 
       if (Object.keys(updateData).length > 0) {

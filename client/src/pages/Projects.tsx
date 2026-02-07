@@ -52,7 +52,7 @@ export default function Projects() {
     return labels[status] || status;
   };
 
-  const formatDate = (date: Date | null | undefined) => {
+  const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "未設定";
     return new Date(date).toLocaleDateString("ja-JP", {
       year: "numeric",

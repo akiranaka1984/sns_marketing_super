@@ -182,8 +182,8 @@ export const abTestingRouter = router({
     .mutation(async ({ input }) => {
       await db.update(abTestLearnings)
         .set({
-          isApplied: true,
-          appliedAt: new Date()
+          isApplied: 1,
+          appliedAt: new Date().toISOString()
         })
         .where(eq(abTestLearnings.id, input.learningId));
       return { success: true };

@@ -661,7 +661,7 @@ export const profileOptimizationRouter = router({
           contentLength: "medium",
           emojiUsage: "none",
           hashtagCount: 0,
-          hasMedia: false,
+          hasMedia: 0,
         });
 
         // Create variations for test bios
@@ -676,7 +676,7 @@ export const profileOptimizationRouter = router({
             contentLength: bio.content.length > 150 ? "long" : bio.content.length > 80 ? "medium" : "short",
             emojiUsage: "none",
             hashtagCount: 0,
-            hasMedia: false,
+            hasMedia: 0,
           });
         }
 
@@ -750,7 +750,7 @@ export const profileOptimizationRouter = router({
         await db.update(abTests)
           .set({
             status: "running",
-            startedAt: new Date(),
+            startedAt: new Date().toISOString(),
           })
           .where(eq(abTests.id, input.testId));
 

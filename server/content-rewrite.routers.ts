@@ -82,7 +82,7 @@ Rewritten content:`;
           rewrittenContent: rewrittenContent.trim(),
           rewritePrompt: prompt,
           status: "completed",
-          rewrittenAt: new Date(),
+          rewrittenAt: new Date().toISOString(),
         });
 
         return {
@@ -194,7 +194,7 @@ Rewritten content:`;
             rewrittenContent: rewrittenContent.trim(),
             rewritePrompt: prompt,
             status: "completed",
-            rewrittenAt: new Date(),
+            rewrittenAt: new Date().toISOString(),
           });
 
           results.push({

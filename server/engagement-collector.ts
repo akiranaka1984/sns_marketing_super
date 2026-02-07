@@ -303,7 +303,7 @@ export async function collectPostEngagement(postId: number): Promise<CollectionR
         sharesCount: engagementData.sharesCount,
         reachCount: engagementData.reachCount,
         engagementRate: engagementData.engagementRate,
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
       })
       .where(eq(posts.id, postId));
 
@@ -321,7 +321,7 @@ export async function collectPostEngagement(postId: number): Promise<CollectionR
       engagementRate: engagementData.engagementRate,
       reachCount: engagementData.reachCount,
       impressionsCount: engagementData.impressionsCount,
-      recordedAt: new Date()
+      recordedAt: new Date().toISOString()
     });
 
     console.log(`[EngagementCollector] Collected engagement for post ${postId}: likes=${engagementData.likesCount}, comments=${engagementData.commentsCount}`);
@@ -357,7 +357,7 @@ export async function collectAllPendingEngagements(): Promise<{
         eq(posts.status, "published"),
         or(
           isNull(posts.updatedAt),
-          lte(posts.updatedAt, oneHourAgo)
+          lte(posts.updatedAt, oneHourAgo.toISOString())
         )
       )
     )
@@ -516,7 +516,7 @@ ${isHighPerformer ? "なぜ成功したのか" : "なぜ失敗したのか"}を�
       confidence: knowledge.confidence,
       usageCount: 0,
       successRate: isHighPerformer ? 100 : 0,
-      isActive: true
+      isActive: 1
     });
 
     console.log(`[EngagementCollector] Generated knowledge for post ${postId}: ${knowledge.title}`);
@@ -541,8 +541,8 @@ ${isHighPerformer ? "なぜ成功したのか" : "なぜ失敗したのか"}を�
       viralityScore: Math.round((((post.sharesCount || 0) / (avgLikes || 1)) * 100)),
       successFactors: isHighPerformer ? JSON.stringify({ content: post.content?.substring(0, 100), hashtags: post.hashtags }) : null,
       improvementAreas: isLowPerformer ? JSON.stringify({ suggestion: "コンテンツの改善が必要" }) : null,
-      isProcessed: true,
-      processedAt: new Date()
+      isProcessed: 1,
+      processedAt: new Date().toISOString()
     });
 
   } catch (error) {
@@ -561,7 +561,7 @@ export async function updateKnowledgeConfidence(agentId: number): Promise<void> 
       .where(
         and(
           eq(agentKnowledge.agentId, agentId),
-          eq(agentKnowledge.isActive, true)
+          eq(agentKnowledge.isActive, 1)
         )
       );
 
@@ -597,7 +597,7 @@ export async function updateKnowledgeConfidence(agentId: number): Promise<void> 
           confidence: newConfidence,
           successRate: newSuccessRate,
           usageCount: knowledge.usageCount + 1,
-          updatedAt: new Date()
+          updatedAt: new Date().toISOString()
         })
         .where(eq(agentKnowledge.id, knowledge.id));
     }
@@ -638,8 +638,8 @@ export async function runScheduledCollection(): Promise<void> {
       .where(
         and(
           eq(posts.status, "published"),
-          gte(posts.publishedAt, windowStart),
-          lte(posts.publishedAt, windowEnd)
+          gte(posts.publishedAt, windowStart.toISOString()),
+          lte(posts.publishedAt, windowEnd.toISOString())
         )
       );
 

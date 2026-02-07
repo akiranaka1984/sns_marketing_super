@@ -82,7 +82,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       .where(
         and(
           gte(posts.createdAt, sevenDaysAgo.toISOString()),
-          eq(posts.status, "posted")
+          eq(posts.status, "published")
         )
       )
       .orderBy(desc(posts.createdAt))
@@ -91,7 +91,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
     for (const post of recentPosts) {
       // Check if already registered as buzz
       const existingBuzz = await db.query.buzzPosts.findFirst({
-        where: eq(buzzPosts.sourceUrl, post.postId || "")
+        where: eq(buzzPosts.postUrl, `post:${post.id}`)
       });
 
       if (existingBuzz) continue;
@@ -100,7 +100,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       const likes = post.likesCount || 0;
       const comments = post.commentsCount || 0;
       const shares = post.sharesCount || 0;
-      const views = post.viewsCount || 1;
+      const views = (post.reachCount ?? 0) || 1;
 
       const engagementRate = calculateEngagementRate(likes, comments, shares, views);
       const viralityScore = calculateViralityScore(likes, comments, shares, views);
@@ -109,8 +109,8 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       if (viralityScore >= VIRALITY_THRESHOLD || engagementRate >= ENGAGEMENT_RATE_THRESHOLD) {
         detectedPosts.push({
           postId: post.id,
-          accountId: post.accountId,
-          platform: post.platform,
+          accountId: post.accountId ?? 0,
+          platform: post.platform ?? '',
           content: post.content || "",
           viralityScore,
           engagementRate,
@@ -135,7 +135,7 @@ export async function scanModelAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
     // Get all active model accounts
     const models = await db.select()
       .from(modelAccounts)
-      .where(eq(modelAccounts.isActive, true));
+      .where(eq(modelAccounts.isActive, 1));
 
     for (const model of models) {
       // Get existing buzz posts from this model
@@ -164,17 +164,18 @@ export async function registerBuzzPosts(detectedPosts: DetectedBuzzPost[]): Prom
   for (const post of detectedPosts) {
     try {
       await db.insert(buzzPosts).values({
-        accountId: post.accountId,
-        platform: post.platform,
+        userId: 1,
+        sourceType: 'own_account',
+        sourceAccountId: post.accountId,
+        platform: post.platform as 'twitter' | 'tiktok' | 'instagram' | 'facebook',
         content: post.content,
-        sourceUrl: `post:${post.postId}`,
+        postUrl: `post:${post.postId}`,
         likesCount: post.metrics.likes,
         commentsCount: post.metrics.comments,
         sharesCount: post.metrics.shares,
         viewsCount: post.metrics.views,
         viralityScore: post.viralityScore,
-        category: null,
-        isAnalyzed: false
+        isAnalyzed: 0
       });
       registered++;
       console.log(`[BuzzDetection] Registered buzz post ${post.postId} with score ${post.viralityScore}`);
@@ -312,7 +313,7 @@ export async function detectBuzzForAccount(accountId: number): Promise<DetectedB
         and(
           eq(posts.accountId, accountId),
           gte(posts.createdAt, sevenDaysAgo.toISOString()),
-          eq(posts.status, "posted")
+          eq(posts.status, "published")
         )
       )
       .orderBy(desc(posts.createdAt))
@@ -322,7 +323,7 @@ export async function detectBuzzForAccount(accountId: number): Promise<DetectedB
       const likes = post.likesCount || 0;
       const comments = post.commentsCount || 0;
       const shares = post.sharesCount || 0;
-      const views = post.viewsCount || 1;
+      const views = (post.reachCount ?? 0) || 1;
 
       const engagementRate = calculateEngagementRate(likes, comments, shares, views);
       const viralityScore = calculateViralityScore(likes, comments, shares, views);
@@ -330,8 +331,8 @@ export async function detectBuzzForAccount(accountId: number): Promise<DetectedB
       if (viralityScore >= VIRALITY_THRESHOLD || engagementRate >= ENGAGEMENT_RATE_THRESHOLD) {
         detectedPosts.push({
           postId: post.id,
-          accountId: post.accountId,
-          platform: post.platform,
+          accountId: post.accountId ?? 0,
+          platform: post.platform ?? '',
           content: post.content || "",
           viralityScore,
           engagementRate,

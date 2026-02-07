@@ -62,20 +62,12 @@ export default function ProjectEdit() {
       // Set dates and status
       console.log('Setting dates - startDate:', project.startDate, 'endDate:', project.endDate, 'status:', project.status);
       if (project.startDate) {
-        // Handle both Date objects and ISO strings
-        const dateStr = typeof project.startDate === 'string'
-          ? project.startDate
-          : project.startDate.toISOString();
-        const formattedDate = dateStr.split('T')[0];
+        const formattedDate = project.startDate.split('T')[0];
         console.log('Setting startDate to:', formattedDate);
         setStartDate(formattedDate);
       }
       if (project.endDate) {
-        // Handle both Date objects and ISO strings
-        const dateStr = typeof project.endDate === 'string'
-          ? project.endDate
-          : project.endDate.toISOString();
-        const formattedDate = dateStr.split('T')[0];
+        const formattedDate = project.endDate.split('T')[0];
         console.log('Setting endDate to:', formattedDate);
         setEndDate(formattedDate);
       }

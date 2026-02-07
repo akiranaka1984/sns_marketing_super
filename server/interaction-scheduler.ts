@@ -109,7 +109,7 @@ async function processScheduledInteractions(): Promise<{
     .where(
       and(
         eq(interactions.status, "pending"),
-        lte(interactions.scheduledAt, now)
+        lte(interactions.scheduledAt, now.toISOString())
       )
     )
     .orderBy(interactions.scheduledAt)
@@ -181,7 +181,7 @@ async function processScheduledInteractions(): Promise<{
         await db.update(interactions)
           .set({
             status: "completed",
-            executedAt: new Date(),
+            executedAt: new Date().toISOString(),
             commentContent: (execResult as any).comment || null,
           })
           .where(eq(interactions.id, task.interaction.id));
@@ -193,7 +193,7 @@ async function processScheduledInteractions(): Promise<{
 
         // リトライの場合は5分後に再スケジュール
         const nextScheduledAt = newStatus === "pending"
-          ? new Date(now.getTime() + 5 * 60 * 1000)
+          ? new Date(now.getTime() + 5 * 60 * 1000).toISOString()
           : null;
 
         await db.update(interactions)
@@ -244,7 +244,7 @@ export async function enqueuePendingInteractions(): Promise<number> {
     .where(
       and(
         eq(interactions.status, "pending"),
-        lte(interactions.scheduledAt, now)
+        lte(interactions.scheduledAt, now.toISOString())
       )
     )
     .orderBy(interactions.scheduledAt)

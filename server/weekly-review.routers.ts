@@ -81,8 +81,8 @@ export const weeklyReviewRouter = router({
       if (input.projectId) {
         conditions.push(eq(posts.projectId, input.projectId));
       }
-      conditions.push(gte(posts.createdAt, input.weekStartDate));
-      conditions.push(lte(posts.createdAt, input.weekEndDate));
+      conditions.push(gte(posts.createdAt, input.weekStartDate.toISOString()));
+      conditions.push(lte(posts.createdAt, input.weekEndDate.toISOString()));
 
       const weekPosts = await db
         .select()
@@ -95,8 +95,8 @@ export const weeklyReviewRouter = router({
         .from(postAnalytics)
         .where(
           and(
-            gte(postAnalytics.recordedAt, input.weekStartDate),
-            lte(postAnalytics.recordedAt, input.weekEndDate)
+            gte(postAnalytics.recordedAt, input.weekStartDate.toISOString()),
+            lte(postAnalytics.recordedAt, input.weekEndDate.toISOString())
           )
         );
 
@@ -214,8 +214,8 @@ Format as JSON array of strings.`;
       await db.insert(weeklyReviews).values({
         userId: ctx.user.id,
         projectId: input.projectId ?? null,
-        weekStartDate: input.weekStartDate,
-        weekEndDate: input.weekEndDate,
+        weekStartDate: input.weekStartDate.toISOString(),
+        weekEndDate: input.weekEndDate.toISOString(),
         totalPosts,
         totalViews,
         totalLikes,

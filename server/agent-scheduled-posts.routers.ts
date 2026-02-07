@@ -173,7 +173,7 @@ export const agentScheduledPostsRouter = router({
       const conditions = [];
       
       if (input?.generatedByAgent !== undefined) {
-        conditions.push(eq(scheduledPosts.generatedByAgent, input.generatedByAgent));
+        conditions.push(eq(scheduledPosts.generatedByAgent, input.generatedByAgent ? 1 : 0));
       }
       if (input?.reviewStatus) {
         conditions.push(eq(scheduledPosts.reviewStatus, input.reviewStatus));

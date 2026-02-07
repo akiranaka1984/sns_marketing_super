@@ -156,11 +156,23 @@ export const interactionSettingsRouter = router({
         await db.update(interactionSettings)
           .set({
             ...input,
-            updatedAt: new Date(),
+            isEnabled: input.isEnabled ? 1 : 0,
+            likeEnabled: input.likeEnabled ? 1 : 0,
+            commentEnabled: input.commentEnabled ? 1 : 0,
+            retweetEnabled: input.retweetEnabled ? 1 : 0,
+            followEnabled: input.followEnabled ? 1 : 0,
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(interactionSettings.id, existing.id));
       } else {
-        await db.insert(interactionSettings).values(input);
+        await db.insert(interactionSettings).values({
+          ...input,
+          isEnabled: input.isEnabled ? 1 : 0,
+          likeEnabled: input.likeEnabled ? 1 : 0,
+          commentEnabled: input.commentEnabled ? 1 : 0,
+          retweetEnabled: input.retweetEnabled ? 1 : 0,
+          followEnabled: input.followEnabled ? 1 : 0,
+        });
       }
 
       return { success: true };
@@ -238,18 +250,18 @@ export const interactionSettingsRouter = router({
         // Build settings object
         const settings = {
           projectId: input.projectId,
-          isEnabled: true,
-          likeEnabled: parsedStrategy.likeEnabled,
+          isEnabled: 1 as number,
+          likeEnabled: parsedStrategy.likeEnabled ? 1 : 0,
           likeDelayMinMin: parsedStrategy.likeDelayMin,
           likeDelayMinMax: parsedStrategy.likeDelayMax,
-          commentEnabled: parsedStrategy.commentEnabled,
+          commentEnabled: parsedStrategy.commentEnabled ? 1 : 0,
           commentDelayMinMin: parsedStrategy.commentDelayMin,
           commentDelayMinMax: parsedStrategy.commentDelayMax,
           defaultPersona: parsedStrategy.commentPersona,
-          retweetEnabled: parsedStrategy.retweetEnabled,
+          retweetEnabled: parsedStrategy.retweetEnabled ? 1 : 0,
           retweetDelayMinMin: parsedStrategy.retweetDelayMin,
           retweetDelayMinMax: parsedStrategy.retweetDelayMax,
-          followEnabled: parsedStrategy.followEnabled,
+          followEnabled: parsedStrategy.followEnabled ? 1 : 0,
           followDelayMinMin: parsedStrategy.followDelayMin,
           followDelayMinMax: parsedStrategy.followDelayMax,
           followTargetUsers: null,
@@ -264,7 +276,7 @@ export const interactionSettingsRouter = router({
 
         if (existing) {
           await db.update(interactionSettings)
-            .set({ ...settings, updatedAt: new Date() })
+            .set({ ...settings, updatedAt: new Date().toISOString() })
             .where(eq(interactionSettings.id, existing.id));
         } else {
           await db.insert(interactionSettings).values(settings);

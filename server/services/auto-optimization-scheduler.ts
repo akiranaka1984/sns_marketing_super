@@ -77,7 +77,7 @@ async function runOptimizationCheck(): Promise<void> {
   try {
     // Get all active agents with auto-optimization enabled
     const activeAgents = await db.query.agents.findMany({
-      where: eq(agents.isActive, true),
+      where: eq(agents.isActive, 1),
     });
 
     for (const agent of activeAgents) {

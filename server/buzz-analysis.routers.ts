@@ -580,13 +580,13 @@ export const buzzAnalysisRouter = router({
           userId: ctx.user.id,
           platform: input.platform,
           content: postData.content,
-          sourceUrl: input.imageUrl,
+          postUrl: input.imageUrl,
           likesCount: postData.engagementMetrics?.likes || 0,
           commentsCount: postData.engagementMetrics?.comments || 0,
           sharesCount: postData.engagementMetrics?.shares || 0,
           viewsCount: postData.engagementMetrics?.views || 0,
           sourceType: 'model_account',
-          isAnalyzed: false,
+          isAnalyzed: 0,
         });
       }
 

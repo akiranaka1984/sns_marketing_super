@@ -129,7 +129,7 @@ export const freezeRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(freezeDetections.createdAt, startDate)];
+      const conditions = [gte(freezeDetections.createdAt, startDate.toISOString())];
       if (input.accountId) {
         conditions.push(eq(freezeDetections.accountId, input.accountId));
       }
@@ -177,7 +177,7 @@ export const freezeRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(autoResponses.createdAt, startDate)];
+      const conditions = [gte(autoResponses.createdAt, startDate.toISOString())];
       if (input.accountId) {
         conditions.push(eq(autoResponses.accountId, input.accountId));
       }

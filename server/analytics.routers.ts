@@ -46,13 +46,13 @@ export const analyticsRouter = router({
       if (input.startDate) {
         dateFilter = and(
           dateFilter,
-          gte(postAnalytics.recordedAt, new Date(input.startDate))
+          gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString())
         )!;
       }
       if (input.endDate) {
         dateFilter = and(
           dateFilter,
-          lte(postAnalytics.recordedAt, new Date(input.endDate))
+          lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString())
         )!;
       }
 
@@ -169,8 +169,8 @@ export const analyticsRouter = router({
         .from(postAnalytics)
         .where(
           and(
-            gte(postAnalytics.recordedAt, new Date(input.startDate)),
-            lte(postAnalytics.recordedAt, new Date(input.endDate)),
+            gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString()),
+            lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString()),
             input.accountId
               ? eq(postAnalytics.accountId, input.accountId)
               : undefined
@@ -338,7 +338,7 @@ export const analyticsRouter = router({
         engagementRate,
         reachCount: input.reach,
         impressionsCount: input.impressions,
-        recordedAt: new Date(),
+        recordedAt: new Date().toISOString(),
       });
 
       return { success: true };
@@ -372,10 +372,10 @@ export const analyticsRouter = router({
 
       const conditions = [inArray(postAnalytics.accountId, accountIds)];
       if (input.startDate) {
-        conditions.push(gte(postAnalytics.recordedAt, new Date(input.startDate)));
+        conditions.push(gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString()));
       }
       if (input.endDate) {
-        conditions.push(lte(postAnalytics.recordedAt, new Date(input.endDate)));
+        conditions.push(lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString()));
       }
 
       // Group by day of week and hour

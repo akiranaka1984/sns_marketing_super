@@ -55,7 +55,7 @@ async function processScheduledPosts() {
       .where(
         and(
           eq(scheduledPosts.status, "pending"),
-          lte(scheduledPosts.scheduledTime, new Date())
+          lte(scheduledPosts.scheduledTime, new Date().toISOString())
         )
       );
 
@@ -156,7 +156,7 @@ export async function createScheduledPostsFromApprovedContent() {
         .from(agents)
         .where(eq(agents.id, rewrite.agentId));
 
-      if (!agent || !agent.isActive) {
+      if (!agent || !Number(agent.isActive)) {
         continue;
       }
 

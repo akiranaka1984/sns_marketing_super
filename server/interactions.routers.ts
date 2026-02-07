@@ -158,7 +158,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));
@@ -211,7 +211,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
           commentContent: result.comment || null,
           errorMessage: result.error || null,
         })
@@ -258,7 +258,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));
@@ -296,7 +296,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));

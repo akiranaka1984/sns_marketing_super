@@ -115,7 +115,7 @@ export async function onPostSuccess(
           eq(accountRelationships.projectId, projectId),
           eq(accountRelationships.toAccountId, accountId), // Relationships TO the posting account
           inArray(accountRelationships.fromAccountId, otherAccounts.map(a => a.id)),
-          eq(accountRelationships.isActive, true)
+          eq(accountRelationships.isActive, 1)
         )
       );
 
@@ -185,7 +185,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "like",
           status: "pending",
-          scheduledAt: likeScheduledAt,
+          scheduledAt: likeScheduledAt.toISOString(),
         });
         tasksCreated++;
 
@@ -211,7 +211,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "comment",
           status: "pending",
-          scheduledAt: commentScheduledAt,
+          scheduledAt: commentScheduledAt.toISOString(),
           metadata,
         });
         tasksCreated++;
@@ -233,7 +233,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "retweet",
           status: "pending",
-          scheduledAt: retweetScheduledAt,
+          scheduledAt: retweetScheduledAt.toISOString(),
         });
         tasksCreated++;
 
@@ -252,7 +252,7 @@ export async function onPostSuccess(
           interactionType: "follow",
           targetUsername: username, // The posting user
           status: "pending",
-          scheduledAt: followScheduledAt,
+          scheduledAt: followScheduledAt.toISOString(),
         });
         tasksCreated++;
 
@@ -285,7 +285,7 @@ export async function onPostSuccess(
                 interactionType: "follow",
                 targetUsername: cleanUsername,
                 status: "pending",
-                scheduledAt: followScheduledAt,
+                scheduledAt: followScheduledAt.toISOString(),
               });
               tasksCreated++;
 

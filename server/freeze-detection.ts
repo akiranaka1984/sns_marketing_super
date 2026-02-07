@@ -173,14 +173,14 @@ export async function handleFreeze(
       newValue: actionResult.newValue,
       status: actionResult.success ? "success" : "failed",
       errorMessage: actionResult.success ? undefined : actionResult.message,
-      executedAt: new Date(),
+      executedAt: new Date().toISOString(),
     });
 
     // Update freeze detection status
     if (actionResult.success) {
       await db
         .update(freezeDetections)
-        .set({ status: "resolved", resolvedAt: new Date() })
+        .set({ status: "resolved", resolvedAt: new Date().toISOString() })
         .where(eq(freezeDetections.id, freezeDetectionId));
     } else {
       await db

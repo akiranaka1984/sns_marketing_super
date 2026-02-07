@@ -131,6 +131,9 @@ export default function AccountRelationships({ projectId }: AccountRelationships
     updateMutation.mutate({
       id: selectedRelationship.id,
       ...editForm,
+      relationshipType: editForm.relationshipType as any,
+      commentStyle: editForm.commentStyle as any,
+      preferredReactionTypes: editForm.preferredReactionTypes as any,
     });
   };
 
@@ -245,7 +248,7 @@ export default function AccountRelationships({ projectId }: AccountRelationships
                     </td>
                     {matrixData.accounts.map((toAccount: any) => {
                       // JSON serialization converts numeric keys to strings
-                      const relationship = matrixData.matrix[String(fromAccount.id)]?.[String(toAccount.id)];
+                      const relationship = (matrixData.matrix as any)[String(fromAccount.id)]?.[String(toAccount.id)];
                       return (
                         <td
                           key={toAccount.id}

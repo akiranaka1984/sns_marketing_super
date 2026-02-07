@@ -333,7 +333,7 @@ export async function saveInsightsToKnowledge(
         title: insight.title,
         content: insight.content,
         confidence: insight.confidence,
-        isActive: true,
+        isActive: 1,
       });
     }
   }

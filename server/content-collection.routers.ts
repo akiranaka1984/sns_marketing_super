@@ -34,8 +34,8 @@ export const contentCollectionRouter = router({
         searchAccounts: input.searchAccounts ? JSON.stringify(input.searchAccounts) : null,
         frequency: input.frequency,
         maxItemsPerRun: input.maxItemsPerRun,
-        isActive: true,
-        nextRunAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+        isActive: 1,
+        nextRunAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
       });
 
       return {
@@ -203,8 +203,8 @@ export const contentCollectionRouter = router({
       await db
         .update(collectionSchedules)
         .set({
-          lastRunAt: new Date(),
-          nextRunAt: new Date(Date.now() + getNextRunDelay(schedule.frequency)),
+          lastRunAt: new Date().toISOString(),
+          nextRunAt: new Date(Date.now() + getNextRunDelay(schedule.frequency)).toISOString(),
         })
         .where(eq(collectionSchedules.id, input.scheduleId));
 

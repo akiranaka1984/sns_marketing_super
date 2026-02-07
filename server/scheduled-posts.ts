@@ -27,7 +27,7 @@ export async function executeScheduledPosts() {
     where: and(
       eq(scheduledPosts.status, "pending"),
       eq(scheduledPosts.reviewStatus, "approved"),
-      lte(scheduledPosts.scheduledTime, now)
+      lte(scheduledPosts.scheduledTime, now.toISOString())
     ),
   });
 
@@ -141,7 +141,7 @@ export async function publishPost(postId: number): Promise<{
         .update(scheduledPosts)
         .set({
           status: "posted",
-          postedAt: new Date(),
+          postedAt: new Date().toISOString(),
           postUrl: postResult.postUrl || null,
           screenshotUrl: postResult.screenshotUrl || null,
         })
@@ -336,7 +336,7 @@ async function createNextScheduledPost(post: any) {
   const existing = await db.query.scheduledPosts.findFirst({
     where: and(
       eq(scheduledPosts.accountId, post.accountId),
-      eq(scheduledPosts.scheduledTime, nextTime),
+      eq(scheduledPosts.scheduledTime, nextTime.toISOString()),
       eq(scheduledPosts.status, "pending")
     ),
   });
@@ -351,11 +351,11 @@ async function createNextScheduledPost(post: any) {
     content,
     hashtags,
     mediaUrls: post.mediaUrls,
-    scheduledTime: nextTime,
+    scheduledTime: nextTime.toISOString(),
     repeatInterval: post.repeatInterval,
     status: "pending",
     agentId: post.agentId || null,
-    generatedByAgent: post.agentId ? true : false,
+    generatedByAgent: post.agentId ? 1 : 0,
     reviewStatus: post.agentId ? "approved" : "draft",
   });
 
@@ -420,7 +420,7 @@ export async function enqueuePendingPosts(): Promise<number> {
     where: and(
       eq(scheduledPosts.status, "pending"),
       eq(scheduledPosts.reviewStatus, "approved"),
-      lte(scheduledPosts.scheduledTime, now)
+      lte(scheduledPosts.scheduledTime, now.toISOString())
     ),
   });
 
@@ -436,7 +436,7 @@ export async function enqueuePendingPosts(): Promise<number> {
       const jobData: ScheduledPostJob = {
         postId: post.id,
         accountId: post.accountId,
-        scheduledTime: post.scheduledTime.toISOString(),
+        scheduledTime: post.scheduledTime,
       };
 
       await addScheduledPostJob(jobData);

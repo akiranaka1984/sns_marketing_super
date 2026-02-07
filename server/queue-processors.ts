@@ -182,7 +182,7 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
       await db.update(interactions)
         .set({
           status: 'completed',
-          executedAt: new Date(),
+          executedAt: new Date().toISOString(),
           commentContent: result.comment || null,
         })
         .where(eq(interactions.id, interactionId));

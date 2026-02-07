@@ -45,8 +45,8 @@ export const autoContentGenerationRouter = router({
             platform: "twitter", // Default platform, can be customized
             status: agent.skipReview ? "approved" : "pending_review",
             agentId,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           });
           const newPost = { content, platform: "twitter", status: agent.skipReview ? "approved" : "pending_review", agentId };
 
@@ -70,7 +70,7 @@ export const autoContentGenerationRouter = router({
     .mutation(async () => {
       // Get all active agents
       const activeAgents = await db.query.agents.findMany({
-        where: eq(agents.isActive, true),
+        where: eq(agents.isActive, 1),
       });
 
       const results = [];
@@ -86,8 +86,8 @@ export const autoContentGenerationRouter = router({
             platform: "twitter",
             status: agent.skipReview ? "approved" : "pending_review",
             agentId: agent.id,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           });
           const newPost = { content, platform: "twitter", status: agent.skipReview ? "approved" : "pending_review", agentId: agent.id };
 

@@ -312,6 +312,6 @@ export async function getAccountLearningsWithDetails(
       confidence: l.confidence,
       xpValue: getXPForLearningType(l.learningType),
       createdAt: l.createdAt,
-      source: l.source,
+      source: l.sourceType,
     }));
 }
