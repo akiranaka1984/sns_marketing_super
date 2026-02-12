@@ -778,9 +778,9 @@ export default function GrowthDashboard() {
                           <Badge
                             variant="outline"
                             className={`text-xs capitalize ${
-                              trend.status === "active"
+                              trend.status === "responding" || trend.status === "responded"
                                 ? "text-emerald-600 border-emerald-300"
-                                : trend.status === "expired"
+                                : trend.status === "expired" || trend.status === "ignored"
                                   ? "text-gray-400 border-gray-300"
                                   : "text-blue-600 border-blue-300"
                             }`}

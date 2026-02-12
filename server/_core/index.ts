@@ -17,6 +17,9 @@ import { closeQueues } from "../queue-manager";
 import { startScheduler } from "../agent-scheduler";
 import { attachWebSocketServer } from "../playwright/ws-preview";
 import { startAutoOptimizationScheduler } from "../services/auto-optimization-scheduler";
+import { startAccountHealthMonitor, stopAccountHealthMonitor } from "../services/account-health-manager";
+import { startTrendMonitor, stopTrendMonitor } from "../services/trend-monitor";
+import { startGrowthLoopOrchestrator, stopGrowthLoopOrchestrator } from "../services/growth-loop-orchestrator";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -115,6 +118,16 @@ async function startServer() {
     startAutoOptimizationScheduler();
     console.log('[AutoOptimization] Auto-optimization scheduler started');
 
+    // Start growth services
+    startAccountHealthMonitor();
+    console.log('[Growth] Account health monitor started');
+
+    startTrendMonitor();
+    console.log('[Growth] Trend monitor started');
+
+    startGrowthLoopOrchestrator();
+    console.log('[Growth] Growth loop orchestrator started');
+
     console.log('[Automation] All background executors started');
   });
 
@@ -128,6 +141,12 @@ async function startServer() {
 
       // Close queue connections
       await closeQueues();
+
+      // Stop growth services
+      stopAccountHealthMonitor();
+      stopTrendMonitor();
+      stopGrowthLoopOrchestrator();
+
 
       console.log('[Server] Graceful shutdown complete');
       process.exit(0);
