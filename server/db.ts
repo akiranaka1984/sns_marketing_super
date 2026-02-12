@@ -4,6 +4,11 @@ import { eq, and, desc, gte, inArray, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema";
 import type { BuzzLearningInput, ModelPatternInput } from "./aiEngine";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 const connection = mysql.createPool(process.env.DATABASE_URL!);
 export const db = drizzle(connection, { schema, mode: "default" });
 
@@ -21,7 +26,7 @@ export async function createUser(data: schema.InsertUser) {
 }
 
 export async function updateUserLastSignedIn(openId: string) {
-  await db.update(schema.users).set({ lastSignedIn: new Date().toISOString() }).where(eq(schema.users.openId, openId));
+  await db.update(schema.users).set({ lastSignedIn: toMySQLTimestamp(new Date()) }).where(eq(schema.users.openId, openId));
 }
 
 export async function upsertUser(data: schema.InsertUser) {
@@ -86,7 +91,7 @@ export async function updatePendingPostsReviewStatus(
 ) {
   await db
     .update(schema.scheduledPosts)
-    .set({ reviewStatus, updatedAt: new Date().toISOString() })
+    .set({ reviewStatus, updatedAt: toMySQLTimestamp(new Date()) })
     .where(and(
       eq(schema.scheduledPosts.projectId, projectId),
       eq(schema.scheduledPosts.status, 'pending'),
@@ -135,7 +140,7 @@ export async function updateProjectAccountPersona(
 ) {
   await db
     .update(schema.projectAccounts)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.projectAccounts.id, projectAccountId));
 }
 
@@ -203,14 +208,14 @@ export async function createAccount(data: schema.InsertAccount) {
 export async function updateAccount(accountId: number, data: Partial<schema.InsertAccount>) {
   await db
     .update(schema.accounts)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.accounts.id, accountId));
 }
 
 export async function updateAccountStatus(accountId: number, status: 'pending' | 'active' | 'suspended' | 'failed', deviceId?: string) {
-  const updateData: any = { status, updatedAt: new Date().toISOString() };
+  const updateData: any = { status, updatedAt: toMySQLTimestamp(new Date()) };
   if (status === 'active') {
-    updateData.lastLoginAt = new Date().toISOString();
+    updateData.lastLoginAt = toMySQLTimestamp(new Date());
     if (deviceId) {
       updateData.deviceId = deviceId;
     }
@@ -221,7 +226,7 @@ export async function updateAccountStatus(accountId: number, status: 'pending' |
 export async function updateAccountDeviceId(accountId: number, deviceId: string | null) {
   await db
     .update(schema.accounts)
-    .set({ deviceId, updatedAt: new Date().toISOString() })
+    .set({ deviceId, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.accounts.id, accountId));
 }
 
@@ -296,7 +301,7 @@ export async function createStrategy(data: schema.InsertStrategy) {
 export async function updateStrategy(strategyId: number, data: Partial<schema.InsertStrategy>) {
   await db
     .update(schema.strategies)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.strategies.id, strategyId));
 }
 
@@ -307,7 +312,7 @@ export async function deleteStrategy(strategyId: number) {
 export async function linkStrategyToProject(strategyId: number, projectId: number) {
   await db
     .update(schema.strategies)
-    .set({ projectId, updatedAt: new Date().toISOString() })
+    .set({ projectId, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.strategies.id, strategyId));
 }
 
@@ -343,7 +348,7 @@ export async function createPost(data: schema.InsertScheduledPost) {
 export async function updatePost(postId: number, data: Partial<schema.InsertScheduledPost>) {
   await db
     .update(schema.scheduledPosts)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.scheduledPosts.id, postId));
 }
 
@@ -370,7 +375,7 @@ export async function getAvailableDevice() {
 export async function updateDeviceStatus(deviceId: string, status: 'available' | 'busy' | 'offline') {
   await db
     .update(schema.devices)
-    .set({ status, lastUsedAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
+    .set({ status, lastUsedAt: toMySQLTimestamp(new Date()), updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.devices.deviceId, deviceId));
 }
 
@@ -387,7 +392,7 @@ export async function createDevice(data: schema.InsertDevice) {
 export async function updateDevice(deviceId: string, data: Partial<schema.InsertDevice>) {
   await db
     .update(schema.devices)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.devices.deviceId, deviceId));
 }
 
@@ -474,7 +479,7 @@ export async function setSetting(key: string, value: string, description?: strin
     // Update existing setting
     await db
       .update(schema.settings)
-      .set({ value, description, updatedAt: new Date().toISOString() })
+      .set({ value, description, updatedAt: toMySQLTimestamp(new Date()) })
       .where(eq(schema.settings.key, key));
   } else {
     // Insert new setting
@@ -515,7 +520,7 @@ export async function createAgent(data: schema.InsertAgent) {
 export async function updateAgent(agentId: number, data: Partial<schema.InsertAgent>) {
   await db
     .update(schema.agents)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agents.id, agentId));
 }
 
@@ -556,14 +561,14 @@ export async function createAgentKnowledge(data: schema.InsertAgentKnowledge) {
 export async function updateAgentKnowledge(knowledgeId: number, data: Partial<schema.InsertAgentKnowledge>) {
   await db
     .update(schema.agentKnowledge)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentKnowledge.id, knowledgeId));
 }
 
 export async function deleteAgentKnowledge(knowledgeId: number) {
   await db
     .update(schema.agentKnowledge)
-    .set({ isActive: 0, updatedAt: new Date().toISOString() })
+    .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentKnowledge.id, knowledgeId));
 }
 
@@ -600,14 +605,14 @@ export async function createAgentRule(data: schema.InsertAgentRule) {
 export async function updateAgentRule(ruleId: number, data: Partial<schema.InsertAgentRule>) {
   await db
     .update(schema.agentRules)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentRules.id, ruleId));
 }
 
 export async function deleteAgentRule(ruleId: number) {
   await db
     .update(schema.agentRules)
-    .set({ isActive: 0, updatedAt: new Date().toISOString() })
+    .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentRules.id, ruleId));
 }
 
@@ -645,7 +650,7 @@ export async function linkAgentToAccount(agentId: number, accountId: number) {
     // Reactivate if inactive
     await db
       .update(schema.agentAccounts)
-      .set({ isActive: 1, updatedAt: new Date().toISOString() })
+      .set({ isActive: 1, updatedAt: toMySQLTimestamp(new Date()) })
       .where(eq(schema.agentAccounts.id, existing[0].id));
     return existing[0].id;
   }
@@ -661,7 +666,7 @@ export async function linkAgentToAccount(agentId: number, accountId: number) {
 export async function unlinkAgentFromAccount(agentId: number, accountId: number) {
   await db
     .update(schema.agentAccounts)
-    .set({ isActive: 0, updatedAt: new Date().toISOString() })
+    .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
     .where(and(
       eq(schema.agentAccounts.agentId, agentId),
       eq(schema.agentAccounts.accountId, accountId)
@@ -707,14 +712,14 @@ export async function createAgentSchedule(data: schema.InsertAgentSchedule) {
 export async function updateAgentSchedule(scheduleId: number, data: Partial<schema.InsertAgentSchedule>) {
   await db
     .update(schema.agentSchedules)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentSchedules.id, scheduleId));
 }
 
 export async function deleteAgentSchedule(scheduleId: number) {
   await db
     .update(schema.agentSchedules)
-    .set({ isActive: 0, updatedAt: new Date().toISOString() })
+    .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.agentSchedules.id, scheduleId));
 }
 
@@ -751,7 +756,7 @@ export async function createPostPerformanceFeedback(data: schema.InsertPostPerfo
 export async function updatePostPerformanceFeedback(feedbackId: number, data: Partial<schema.InsertPostPerformanceFeedback>) {
   await db
     .update(schema.postPerformanceFeedback)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: toMySQLTimestamp(new Date()) })
     .where(eq(schema.postPerformanceFeedback.id, feedbackId));
 }
 
@@ -781,7 +786,7 @@ export async function updateAccountPersona(
       personaRole: data.personaRole,
       personaTone: data.personaTone,
       personaCharacteristics: data.personaCharacteristics,
-      updatedAt: new Date().toISOString(),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(schema.accounts.id, accountId));
 }
@@ -830,7 +835,7 @@ export async function linkModelAccountToAccount(
       .update(schema.accountModelAccounts)
       .set({
         autoApplyLearnings: autoApplyLearnings ? 1 : 0,
-        updatedAt: new Date().toISOString(),
+        updatedAt: toMySQLTimestamp(new Date()),
       })
       .where(eq(schema.accountModelAccounts.id, existing.id));
   } else {
@@ -866,7 +871,7 @@ export async function updateAccountModelAccountLink(
     .update(schema.accountModelAccounts)
     .set({
       autoApplyLearnings: data.autoApplyLearnings ? 1 : 0,
-      updatedAt: new Date().toISOString(),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(
       and(

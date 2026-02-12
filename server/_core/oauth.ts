@@ -4,6 +4,10 @@ import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
   return typeof value === "string" ? value : undefined;
@@ -24,7 +28,7 @@ export function registerOAuthRoutes(app: Express) {
           name: testName,
           email: "dev@test.local",
           loginMethod: "dev",
-          lastSignedIn: new Date().toISOString(),
+          lastSignedIn: toMySQLTimestamp(new Date()),
         });
 
         // Create session token
@@ -70,7 +74,7 @@ export function registerOAuthRoutes(app: Express) {
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: new Date().toISOString(),
+        lastSignedIn: toMySQLTimestamp(new Date()),
       });
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {

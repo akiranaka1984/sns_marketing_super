@@ -284,7 +284,7 @@ class SDKServer {
               name: ENV.ownerName || 'Owner',
               email: null,
               loginMethod: 'system',
-              lastSignedIn: new Date().toISOString(),
+              lastSignedIn: new Date().toISOString().slice(0, 19).replace("T", " "),
             });
             user = await db.getUserByOpenId(ownerOpenId);
           }
@@ -302,7 +302,7 @@ class SDKServer {
     }
 
     const sessionUserId = session.openId;
-    const signedInAt = new Date().toISOString();
+    const signedInAt = new Date().toISOString().slice(0, 19).replace("T", " ");
     let user = await db.getUserByOpenId(sessionUserId);
 
     // If user not in DB, sync from OAuth server automatically
