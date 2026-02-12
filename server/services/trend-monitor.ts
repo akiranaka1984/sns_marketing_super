@@ -28,6 +28,11 @@ import { generateContent, buildAgentContext } from "../agent-engine";
 
 const LOG_PREFIX = "[TrendMonitor]";
 const MONITOR_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
 const HASHTAG_TRENDING_THRESHOLD = 3; // Minimum occurrences to consider trending
 const RELEVANCE_THRESHOLD = 70; // Minimum score to trigger a response
 const FAST_TRACK_MINUTES = 30; // Schedule trend response within 30 minutes
@@ -131,7 +136,7 @@ export async function detectTrendsFromBuzzPosts(userId: number): Promise<number>
             .set({
               trendingScore: Math.min(100, data.count * 15),
               volumeEstimate: data.count,
-              updatedAt: new Date().toISOString(),
+              updatedAt: toMySQLTimestamp(new Date()),
             })
             .where(eq(trackedTrends.id, existingTrend.id));
           continue;
@@ -277,7 +282,7 @@ export async function detectTrendsFromModelAccounts(userId: number): Promise<num
             .set({
               trendingScore: Math.min(100, modelSet.size * 25),
               volumeEstimate: modelSet.size,
-              updatedAt: new Date().toISOString(),
+              updatedAt: toMySQLTimestamp(new Date()),
             })
             .where(eq(trackedTrends.id, existingTrend.id));
           continue;
@@ -370,7 +375,7 @@ export async function scoreTrendRelevance(
     // Update status to evaluating
     await db
       .update(trackedTrends)
-      .set({ status: "evaluating", updatedAt: new Date().toISOString() })
+      .set({ status: "evaluating", updatedAt: toMySQLTimestamp(new Date()) })
       .where(eq(trackedTrends.id, trendId));
 
     // Use LLM to score relevance
@@ -445,7 +450,7 @@ Respond in JSON:
       .set({
         relevanceScore: score,
         status: "detected", // Reset to detected after evaluation
-        updatedAt: new Date().toISOString(),
+        updatedAt: toMySQLTimestamp(new Date()),
       })
       .where(eq(trackedTrends.id, trendId));
 
@@ -461,7 +466,7 @@ Respond in JSON:
     try {
       await db
         .update(trackedTrends)
-        .set({ status: "detected", updatedAt: new Date().toISOString() })
+        .set({ status: "detected", updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(trackedTrends.id, trendId));
     } catch {
       // Ignore cleanup error
@@ -511,7 +516,7 @@ export async function respondToTrend(
     // Update status to responding
     await db
       .update(trackedTrends)
-      .set({ status: "responding", updatedAt: new Date().toISOString() })
+      .set({ status: "responding", updatedAt: toMySQLTimestamp(new Date()) })
       .where(eq(trackedTrends.id, trendId));
 
     // Get the project's active agent
@@ -526,7 +531,7 @@ export async function respondToTrend(
     if (!projectAgent) {
       await db
         .update(trackedTrends)
-        .set({ status: "detected", updatedAt: new Date().toISOString() })
+        .set({ status: "detected", updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(trackedTrends.id, trendId));
       return { success: false, error: "No active agent found for project" };
     }
@@ -536,7 +541,7 @@ export async function respondToTrend(
     if (!context) {
       await db
         .update(trackedTrends)
-        .set({ status: "detected", updatedAt: new Date().toISOString() })
+        .set({ status: "detected", updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(trackedTrends.id, trendId));
       return { success: false, error: "Failed to build agent context" };
     }
@@ -545,7 +550,7 @@ export async function respondToTrend(
     if (context.accounts.length === 0) {
       await db
         .update(trackedTrends)
-        .set({ status: "detected", updatedAt: new Date().toISOString() })
+        .set({ status: "detected", updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(trackedTrends.id, trendId));
       return { success: false, error: "No accounts linked to agent" };
     }
@@ -610,8 +615,8 @@ export async function respondToTrend(
       .update(trackedTrends)
       .set({
         status: "responded",
-        respondedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        respondedAt: toMySQLTimestamp(new Date()),
+        updatedAt: toMySQLTimestamp(new Date()),
       })
       .where(eq(trackedTrends.id, trendId));
 
@@ -627,7 +632,7 @@ export async function respondToTrend(
     try {
       await db
         .update(trackedTrends)
-        .set({ status: "detected", updatedAt: new Date().toISOString() })
+        .set({ status: "detected", updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(trackedTrends.id, trendId));
     } catch {
       // Ignore cleanup error
@@ -761,11 +766,11 @@ async function runTrendMonitorCycle(): Promise<void> {
     const expiredThreshold = new Date();
     await db
       .update(trackedTrends)
-      .set({ status: "expired", updatedAt: new Date().toISOString() })
+      .set({ status: "expired", updatedAt: toMySQLTimestamp(new Date()) })
       .where(
         and(
           inArray(trackedTrends.status, ["detected", "evaluating"]),
-          sql`${trackedTrends.expiresAt} IS NOT NULL AND ${trackedTrends.expiresAt} < ${expiredThreshold.toISOString()}`
+          sql`${trackedTrends.expiresAt} IS NOT NULL AND ${trackedTrends.expiresAt} < ${toMySQLTimestamp(expiredThreshold)}`
         )
       );
 

@@ -19,6 +19,11 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, gte, desc, sql, count } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -469,7 +474,7 @@ async function computeLoginSuccessRate(accountId: number): Promise<number> {
     .where(
       and(
         eq(agentExecutionLogs.accountId, accountId),
-        gte(agentExecutionLogs.createdAt, thirtyDaysAgo.toISOString())
+        gte(agentExecutionLogs.createdAt, toMySQLTimestamp(thirtyDaysAgo))
       )
     );
 
@@ -494,7 +499,7 @@ async function computePostSuccessRate(accountId: number): Promise<number> {
     .where(
       and(
         eq(posts.accountId, accountId),
-        gte(posts.createdAt, thirtyDaysAgo.toISOString())
+        gte(posts.createdAt, toMySQLTimestamp(thirtyDaysAgo))
       )
     );
 
@@ -525,7 +530,7 @@ async function computeEngagementNaturalness(accountId: number): Promise<number> 
     .where(
       and(
         eq(interactions.fromAccountId, accountId),
-        gte(interactions.createdAt, sevenDaysAgo.toISOString())
+        gte(interactions.createdAt, toMySQLTimestamp(sevenDaysAgo))
       )
     );
 
@@ -568,7 +573,7 @@ async function computeFreezeRiskScore(accountId: number): Promise<number> {
     .where(
       and(
         eq(freezeDetections.accountId, accountId),
-        gte(freezeDetections.createdAt, thirtyDaysAgo.toISOString())
+        gte(freezeDetections.createdAt, toMySQLTimestamp(thirtyDaysAgo))
       )
     );
 

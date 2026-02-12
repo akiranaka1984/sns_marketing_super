@@ -38,6 +38,8 @@ import {
   Zap,
   BarChart3,
   Users,
+  DollarSign,
+  Target,
 } from "lucide-react";
 import {
   LineChart,
@@ -170,6 +172,7 @@ function SkeletonCard() {
 
 export default function GrowthDashboard() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [reportPeriod, setReportPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   // --- Queries ---
   const { data: projectsList, isLoading: projectsLoading } = trpc.projects.list.useQuery();
@@ -197,6 +200,16 @@ export default function GrowthDashboard() {
   const { data: calendarPreview, isLoading: calendarLoading } = trpc.growthDashboard.getCalendarPreview.useQuery(
     { projectId: selectedProjectId! },
     { enabled: !!selectedProjectId, refetchInterval: 60000 }
+  );
+
+  const { data: roiMetrics, isLoading: roiLoading } = trpc.growthDashboard.getROIMetrics.useQuery(
+    { projectId: selectedProjectId! },
+    { enabled: !!selectedProjectId, refetchInterval: 60000 }
+  );
+
+  const { data: report, isLoading: reportLoading } = trpc.growthDashboard.generateReport.useQuery(
+    { projectId: selectedProjectId!, period: reportPeriod },
+    { enabled: !!selectedProjectId }
   );
 
   // --- Mutations ---
@@ -812,6 +825,186 @@ export default function GrowthDashboard() {
                   <div className="text-center py-8">
                     <Flame className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm text-gray-500">No active trends detected</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ---- ROI Metrics + Performance Report ---- */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* ROI Metrics */}
+            <div className="fade-in-up animation-delay-800 lg:col-span-2">
+              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-emerald-500/10">
+                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900">ROI Metrics</h3>
+                    <p className="text-sm text-gray-500">Campaign performance and returns</p>
+                  </div>
+                </div>
+
+                {roiLoading ? (
+                  <div className="animate-pulse space-y-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="h-12 bg-gray-50 rounded" />
+                    ))}
+                  </div>
+                ) : roiMetrics && roiMetrics.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Campaign</TableHead>
+                        <TableHead>Goal</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Budget</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">ROI</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {roiMetrics.map((campaign) => (
+                        <TableRow key={campaign.id}>
+                          <TableCell>
+                            <span className="font-medium text-gray-900">
+                              {campaign.name}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-gray-600">
+                              {campaign.goal || "--"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={`text-xs border capitalize ${
+                                campaign.status === "active"
+                                  ? "bg-emerald-500/20 text-emerald-600 border-emerald-500/30"
+                                  : campaign.status === "completed"
+                                    ? "bg-blue-500/20 text-blue-600 border-blue-500/30"
+                                    : "bg-gray-500/20 text-gray-500 border-gray-500/30"
+                              }`}
+                            >
+                              {campaign.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-gray-700">
+                            {campaign.budget > 0 ? `¥${campaign.budget.toLocaleString()}` : "--"}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-gray-700">
+                            {campaign.revenue > 0 ? `¥${campaign.revenue.toLocaleString()}` : "--"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className={`text-sm font-bold ${
+                                campaign.roi > 0
+                                  ? "text-emerald-600"
+                                  : campaign.roi < 0
+                                    ? "text-red-500"
+                                    : "text-gray-500"
+                              }`}
+                            >
+                              {campaign.roi > 0 ? "+" : ""}
+                              {campaign.roi}%
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8">
+                    <DollarSign className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No campaigns found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Performance Report */}
+            <div className="fade-in-up animation-delay-900 lg:col-span-1">
+              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-[#8b5cf6]/10">
+                    <FileText className="w-5 h-5 text-[#8b5cf6]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900">Performance Report</h3>
+                    <p className="text-sm text-gray-500">Period summary</p>
+                  </div>
+                </div>
+
+                {/* Period selector */}
+                <div className="flex gap-1 mb-5 bg-gray-100 rounded-lg p-1">
+                  {(["daily", "weekly", "monthly"] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setReportPeriod(p)}
+                      className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors capitalize ${
+                        reportPeriod === p
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      {p === "daily" ? "Daily" : p === "weekly" ? "Weekly" : "Monthly"}
+                    </button>
+                  ))}
+                </div>
+
+                {reportLoading ? (
+                  <div className="animate-pulse space-y-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="h-12 bg-gray-50 rounded-xl" />
+                    ))}
+                  </div>
+                ) : report ? (
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-xl bg-gray-50">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">Total Posts</span>
+                        <Send className="w-3.5 h-3.5 text-[#3db9cf]" />
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {report.metrics.totalPosts.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-gray-50">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">Avg Likes</span>
+                        <Heart className="w-3.5 h-3.5 text-[#e5484d]" />
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {report.metrics.avgLikes.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-gray-50">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">Total Engagement</span>
+                        <Target className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {report.metrics.totalEngagement.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-gray-50">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">Automation Actions</span>
+                        <Zap className="w-3.5 h-3.5 text-[#e5a000]" />
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {report.automationActions.toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-400 text-center pt-2">
+                      {new Date(report.startDate).toLocaleDateString("ja-JP")} ~ {new Date(report.endDate).toLocaleDateString("ja-JP")}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No data available</p>
                   </div>
                 )}
               </div>

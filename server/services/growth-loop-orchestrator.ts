@@ -57,6 +57,11 @@ const INTERVALS = {
 const POOR_STRATEGY_THRESHOLD = 40; // Score below this triggers regeneration
 const DECLINING_THRESHOLD = 3;      // Consecutive declines before escalation
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Scheduler State
 // ============================================
@@ -272,7 +277,7 @@ async function ensureLoopState(projectId: number): Promise<void> {
   } else if (!existing.isRunning) {
     await db
       .update(growthLoopState)
-      .set({ isRunning: 1, updatedAt: new Date().toISOString() })
+      .set({ isRunning: 1, updatedAt: toMySQLTimestamp(new Date()) })
       .where(eq(growthLoopState.id, existing.id));
   }
 }
@@ -319,7 +324,7 @@ async function logAction(params: {
     executionMode: params.executionMode,
     status: params.status || "executed",
     executedAt:
-      params.status === "pending" ? null : new Date().toISOString(),
+      params.status === "pending" ? null : toMySQLTimestamp(new Date()),
     resultData: params.resultData
       ? JSON.stringify(params.resultData)
       : null,
@@ -406,14 +411,14 @@ async function runKpiCheck(
       await db
         .update(growthLoopState)
         .set({
-          lastKpiCheckAt: new Date().toISOString(),
+          lastKpiCheckAt: toMySQLTimestamp(new Date()),
           currentKpiSummary: JSON.stringify(kpiSummary),
           consecutiveDeclines: newConsecutiveDeclines,
           escalationNeeded: needsEscalation ? 1 : 0,
           escalationReason: needsEscalation
             ? `KPI declining for ${newConsecutiveDeclines} consecutive checks`
             : null,
-          updatedAt: new Date().toISOString(),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(growthLoopState.id, loopState.id));
 
@@ -526,8 +531,8 @@ async function runPerformanceUpdate(
       await db
         .update(growthLoopState)
         .set({
-          lastPerformanceUpdateAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          lastPerformanceUpdateAt: toMySQLTimestamp(new Date()),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(growthLoopState.id, loopState.id));
     }
@@ -601,7 +606,7 @@ async function runStrategyEvaluation(
       where: and(
         eq(posts.projectId, projectId),
         eq(posts.status, "published"),
-        gte(posts.publishedAt, sevenDaysAgo.toISOString())
+        gte(posts.publishedAt, toMySQLTimestamp(sevenDaysAgo))
       ),
       orderBy: [desc(posts.publishedAt)],
     });
@@ -647,7 +652,7 @@ async function runStrategyEvaluation(
       .set({
         effectivenessScore,
         avgPostPerformance: Math.round(avgEngagement),
-        updatedAt: new Date().toISOString(),
+        updatedAt: toMySQLTimestamp(new Date()),
       })
       .where(eq(strategies.id, activeStrategy.id));
 
@@ -657,9 +662,9 @@ async function runStrategyEvaluation(
       await db
         .update(growthLoopState)
         .set({
-          lastStrategyEvaluationAt: new Date().toISOString(),
+          lastStrategyEvaluationAt: toMySQLTimestamp(new Date()),
           currentStrategyScore: effectivenessScore,
-          updatedAt: new Date().toISOString(),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(growthLoopState.id, loopState.id));
     }
@@ -988,7 +993,7 @@ JSON形式で回答してください:
       if (activeStrategy) {
         await db
           .update(strategies)
-          .set({ isActive: 0, updatedAt: new Date().toISOString() })
+          .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
           .where(eq(strategies.id, activeStrategy.id));
       }
 
@@ -1011,12 +1016,12 @@ JSON形式で回答してください:
       await db
         .update(growthLoopState)
         .set({
-          lastStrategyRegenerationAt: new Date().toISOString(),
+          lastStrategyRegenerationAt: toMySQLTimestamp(new Date()),
           currentStrategyScore: 50,
           consecutiveDeclines: 0,
           escalationNeeded: 0,
           escalationReason: null,
-          updatedAt: new Date().toISOString(),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(growthLoopState.id, loopState.id));
 
@@ -1169,7 +1174,7 @@ async function runFullReview(
     const recentActions = await db.query.growthLoopActions.findMany({
       where: and(
         eq(growthLoopActions.projectId, projectId),
-        gte(growthLoopActions.createdAt, oneDayAgo.toISOString())
+        gte(growthLoopActions.createdAt, toMySQLTimestamp(oneDayAgo))
       ),
       orderBy: [desc(growthLoopActions.createdAt)],
     });
@@ -1272,8 +1277,8 @@ JSON形式で回答:
       await db
         .update(growthLoopState)
         .set({
-          lastFullReviewAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          lastFullReviewAt: toMySQLTimestamp(new Date()),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(growthLoopState.id, loopState.id));
     }

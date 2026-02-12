@@ -17,6 +17,11 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, gte, desc, sql, sum, count } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 const LOG_PREFIX = "[ConversionTracker]";
 
 // ==========================================
@@ -485,7 +490,7 @@ export async function getROIReport(
     campaignList.map(async (campaign) => {
       const conditions = [eq(conversionEvents.campaignId, campaign.id)];
       if (dateRange?.start) {
-        conditions.push(gte(conversionEvents.occurredAt, dateRange.start.toISOString()));
+        conditions.push(gte(conversionEvents.occurredAt, toMySQLTimestamp(dateRange.start)));
       }
 
       const [eventStats] = await db
@@ -532,7 +537,7 @@ export async function getROIReport(
           )})`,
           sql`${conversionEvents.accountId} IS NOT NULL`,
           ...(dateRange?.start
-            ? [gte(conversionEvents.occurredAt, dateRange.start.toISOString())]
+            ? [gte(conversionEvents.occurredAt, toMySQLTimestamp(dateRange.start))]
             : [])
         )
       )
@@ -586,7 +591,7 @@ export async function getROIReport(
             sql`, `
           )})`,
           ...(dateRange?.start
-            ? [gte(conversionEvents.occurredAt, dateRange.start.toISOString())]
+            ? [gte(conversionEvents.occurredAt, toMySQLTimestamp(dateRange.start))]
             : [])
         )
       )

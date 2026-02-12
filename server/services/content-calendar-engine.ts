@@ -24,6 +24,11 @@ import { eq, and, gte, lte, desc, sql, count, between, inArray } from "drizzle-o
 import { invokeLLM } from "../_core/llm";
 import { generateContent, buildAgentContext } from "../agent-engine";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -206,7 +211,7 @@ export async function generateWeeklyCalendar(
     projectId,
     accountId: defaultAccountId,
     agentId: defaultAgentId,
-    scheduledDate: slot.date.toISOString(),
+    scheduledDate: toMySQLTimestamp(slot.date),
     timeSlot: slot.timeSlot,
     contentType: slot.contentType as typeof contentCalendar.$inferInsert["contentType"],
     topic: slot.topic,
@@ -224,8 +229,8 @@ export async function generateWeeklyCalendar(
   const generated = await db.query.contentCalendar.findMany({
     where: and(
       eq(contentCalendar.projectId, projectId),
-      gte(contentCalendar.scheduledDate, weekStartDate.toISOString()),
-      lte(contentCalendar.scheduledDate, weekEndDate.toISOString())
+      gte(contentCalendar.scheduledDate, toMySQLTimestamp(weekStartDate)),
+      lte(contentCalendar.scheduledDate, toMySQLTimestamp(weekEndDate))
     ),
     orderBy: [contentCalendar.scheduledDate, contentCalendar.timeSlot],
   });
@@ -475,8 +480,8 @@ export async function ensureDiversity(
   const weekSlots = await db.query.contentCalendar.findMany({
     where: and(
       eq(contentCalendar.projectId, projectId),
-      gte(contentCalendar.scheduledDate, weekStartDate.toISOString()),
-      lte(contentCalendar.scheduledDate, weekEndDate.toISOString())
+      gte(contentCalendar.scheduledDate, toMySQLTimestamp(weekStartDate)),
+      lte(contentCalendar.scheduledDate, toMySQLTimestamp(weekEndDate))
     ),
   });
 
@@ -635,7 +640,7 @@ export async function fillCalendarSlot(
       agentId,
       content: generated.content,
       hashtags: JSON.stringify(generated.hashtags),
-      scheduledTime: scheduledDate.toISOString(),
+      scheduledTime: toMySQLTimestamp(scheduledDate),
       status: "pending",
       generatedByAgent: 1,
       reviewStatus: "pending_review",
@@ -680,8 +685,8 @@ export async function fillPendingSlots(
     where: and(
       eq(contentCalendar.projectId, projectId),
       eq(contentCalendar.status, "planned"),
-      gte(contentCalendar.scheduledDate, now.toISOString()),
-      lte(contentCalendar.scheduledDate, cutoff.toISOString())
+      gte(contentCalendar.scheduledDate, toMySQLTimestamp(now)),
+      lte(contentCalendar.scheduledDate, toMySQLTimestamp(cutoff))
     ),
     orderBy: [contentCalendar.scheduledDate, contentCalendar.timeSlot],
   });
@@ -778,8 +783,8 @@ export async function analyzeContentGaps(
   const calendarEntries = await db.query.contentCalendar.findMany({
     where: and(
       eq(contentCalendar.projectId, projectId),
-      gte(contentCalendar.scheduledDate, now.toISOString()),
-      lte(contentCalendar.scheduledDate, endDate.toISOString())
+      gte(contentCalendar.scheduledDate, toMySQLTimestamp(now)),
+      lte(contentCalendar.scheduledDate, toMySQLTimestamp(endDate))
     ),
     orderBy: contentCalendar.scheduledDate,
   });
@@ -897,8 +902,8 @@ export async function getCalendar(
   const entries = await db.query.contentCalendar.findMany({
     where: and(
       eq(contentCalendar.projectId, projectId),
-      gte(contentCalendar.scheduledDate, startDate.toISOString()),
-      lte(contentCalendar.scheduledDate, endDate.toISOString())
+      gte(contentCalendar.scheduledDate, toMySQLTimestamp(startDate)),
+      lte(contentCalendar.scheduledDate, toMySQLTimestamp(endDate))
     ),
     orderBy: [contentCalendar.scheduledDate, contentCalendar.timeSlot],
   });

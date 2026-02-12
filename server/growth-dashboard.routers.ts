@@ -25,6 +25,11 @@ import {
 } from '../drizzle/schema';
 import { eq, and, gte, desc, sql, count, lte } from 'drizzle-orm';
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const growthDashboardRouter = router({
   /**
    * Get KPI summary for a project - real-time metrics
@@ -56,7 +61,7 @@ export const growthDashboardRouter = router({
           and(
             eq(posts.projectId, projectId),
             eq(posts.status, 'published'),
-            gte(posts.publishedAt, weekAgo.toISOString())
+            gte(posts.publishedAt, toMySQLTimestamp(weekAgo))
           )
         );
 
@@ -156,7 +161,7 @@ export const growthDashboardRouter = router({
       await db.update(growthLoopActions)
         .set({
           status: approved ? 'approved' : 'rejected',
-          approvedAt: approved ? new Date().toISOString() : undefined,
+          approvedAt: approved ? toMySQLTimestamp(new Date()) : undefined,
         })
         .where(eq(growthLoopActions.id, actionId));
 
@@ -242,7 +247,7 @@ export const growthDashboardRouter = router({
 
       const trends = await db.query.trackedTrends.findMany({
         where: and(
-          gte(trackedTrends.detectedAt, dayAgo.toISOString()),
+          gte(trackedTrends.detectedAt, toMySQLTimestamp(dayAgo)),
         ),
         orderBy: [desc(trackedTrends.relevanceScore)],
         limit: 20,
@@ -273,8 +278,8 @@ export const growthDashboardRouter = router({
       const entries = await db.query.contentCalendar.findMany({
         where: and(
           eq(contentCalendar.projectId, projectId),
-          gte(contentCalendar.scheduledDate, now.toISOString()),
-          lte(contentCalendar.scheduledDate, weekLater.toISOString())
+          gte(contentCalendar.scheduledDate, toMySQLTimestamp(now)),
+          lte(contentCalendar.scheduledDate, toMySQLTimestamp(weekLater))
         ),
         orderBy: [contentCalendar.scheduledDate],
       });
@@ -319,7 +324,7 @@ export const growthDashboardRouter = router({
           and(
             eq(posts.projectId, projectId),
             eq(posts.status, 'published'),
-            gte(posts.publishedAt, startDate.toISOString())
+            gte(posts.publishedAt, toMySQLTimestamp(startDate))
           )
         );
 
@@ -330,7 +335,7 @@ export const growthDashboardRouter = router({
         .where(
           and(
             eq(growthLoopActions.projectId, projectId),
-            gte(growthLoopActions.createdAt, startDate.toISOString())
+            gte(growthLoopActions.createdAt, toMySQLTimestamp(startDate))
           )
         );
 
