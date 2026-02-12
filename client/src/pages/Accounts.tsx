@@ -8,6 +8,13 @@ import {
   Power,
   Trash2,
   Loader2,
+  Users,
+  Twitter,
+  Camera,
+  Music2,
+  Smartphone,
+  ClipboardList,
+  type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
@@ -116,14 +123,14 @@ export default function Accounts() {
     activateMutation.mutate({ accountId });
   };
 
-  const getPlatformEmoji = (platform: string) => {
-    const emojis: Record<string, string> = {
-      twitter: "𝕏",
-      tiktok: "🎵",
-      instagram: "📷",
-      facebook: "👥",
+  const getPlatformIcon = (platform: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      twitter: Twitter,
+      tiktok: Music2,
+      instagram: Camera,
+      facebook: Users,
     };
-    return emojis[platform] || "📱";
+    return icons[platform] || Smartphone;
   };
 
   const getPlatformName = (platform: string) => {
@@ -196,7 +203,7 @@ export default function Accounts() {
       {/* Page Title - Notion style */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-[40px]">👥</span>
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
           <h1 className="text-[32px] font-bold text-[#37352F]">アカウント</h1>
         </div>
         <p className="text-[14px] text-[#9B9A97]">
@@ -231,12 +238,14 @@ export default function Accounts() {
       {/* Platform Filter Tabs - Notion style */}
       <div className="flex items-center gap-1 mb-4">
         {([
-          { key: "all" as Platform, label: "すべて", emoji: "📋" },
-          { key: "twitter" as Platform, label: "X", emoji: "𝕏" },
-          { key: "instagram" as Platform, label: "Instagram", emoji: "📷" },
-          { key: "tiktok" as Platform, label: "TikTok", emoji: "🎵" },
-          { key: "facebook" as Platform, label: "Facebook", emoji: "👥" },
-        ]).map((tab) => (
+          { key: "all" as Platform, label: "すべて", icon: ClipboardList },
+          { key: "twitter" as Platform, label: "X", icon: Twitter },
+          { key: "instagram" as Platform, label: "Instagram", icon: Camera },
+          { key: "tiktok" as Platform, label: "TikTok", icon: Music2 },
+          { key: "facebook" as Platform, label: "Facebook", icon: Users },
+        ]).map((tab) => {
+          const TabIcon = tab.icon;
+          return (
           <button
             key={tab.key}
             onClick={() => setSelectedPlatform(tab.key)}
@@ -246,13 +255,14 @@ export default function Accounts() {
                 : "text-[#9B9A97] hover:bg-[#F7F6F3]"
             }`}
           >
-            <span>{tab.emoji}</span>
+            <TabIcon className="w-3.5 h-3.5" />
             {tab.label}
             <span className="text-[12px] text-[#9B9A97]">
               {platformCounts[tab.key]}
             </span>
           </button>
-        ))}
+        );
+        })}
       </div>
 
       {/* Database View - Notion style */}
@@ -320,7 +330,7 @@ export default function Accounts() {
                 className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] border-b border-[#E9E9E7] last:border-b-0 hover:bg-[#F7F6F3] transition-colors cursor-pointer group"
               >
                 <div className="px-3 py-2.5 flex items-center gap-2">
-                  <span className="text-[14px]">{getPlatformEmoji(account.platform)}</span>
+                  {(() => { const PIcon = getPlatformIcon(account.platform); return <PIcon className="w-4 h-4 text-muted-foreground" />; })()}
                   <div className="min-w-0">
                     <span className="text-[14px] text-[#37352F] group-hover:text-[#2383E2] truncate block">
                       {account.username}

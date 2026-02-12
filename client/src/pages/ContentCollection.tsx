@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Play, Trash2, Calendar, Hash, User } from "lucide-react";
+import { Plus, Play, Trash2, Calendar, Hash, User, Eye, Heart, MessageCircle, RefreshCw } from "lucide-react";
 
 export default function ContentCollection() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -305,10 +305,10 @@ export default function ContentCollection() {
                   </div>
                 )}
                 <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>👁️ {content.views?.toLocaleString() || 0}</span>
-                  <span>❤️ {content.likes?.toLocaleString() || 0}</span>
-                  <span>💬 {content.comments?.toLocaleString() || 0}</span>
-                  <span>🔄 {content.shares?.toLocaleString() || 0}</span>
+                  <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {content.views?.toLocaleString() || 0}</span>
+                  <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" /> {content.likes?.toLocaleString() || 0}</span>
+                  <span className="flex items-center gap-1"><MessageCircle className="w-3.5 h-3.5" /> {content.comments?.toLocaleString() || 0}</span>
+                  <span className="flex items-center gap-1"><RefreshCw className="w-3.5 h-3.5" /> {content.shares?.toLocaleString() || 0}</span>
                 </div>
               </CardContent>
             </Card>

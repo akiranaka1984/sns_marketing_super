@@ -6,6 +6,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
+  Zap,
+  Wrench,
+  BarChart3,
 } from "lucide-react";
 
 // Notion-style property pill
@@ -43,7 +46,7 @@ export default function Automation() {
       {/* Page Title - Notion style */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-[40px]">⚡</span>
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Zap className="w-6 h-6 text-primary" /></div>
           <h1 className="text-[32px] font-bold text-[#37352F]">自動化管理</h1>
         </div>
         <p className="text-[14px] text-[#9B9A97]">
@@ -65,7 +68,7 @@ export default function Automation() {
       {/* Automation Features - Notion list style */}
       <div className="mb-8">
         <h2 className="text-[16px] font-semibold text-[#37352F] flex items-center gap-2 mb-3">
-          <span>🔧</span>
+          <Wrench className="w-4 h-4 text-muted-foreground" />
           自動化機能
         </h2>
 
@@ -162,7 +165,7 @@ export default function Automation() {
       {/* System Status - Notion database style */}
       <div className="mb-8">
         <h2 className="text-[16px] font-semibold text-[#37352F] flex items-center gap-2 mb-3">
-          <span>📊</span>
+          <BarChart3 className="w-4 h-4 text-muted-foreground" />
           システムステータス
         </h2>
 

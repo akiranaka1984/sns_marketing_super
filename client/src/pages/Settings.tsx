@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, XCircle, Loader2, ExternalLink, Save, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ExternalLink, Save, Eye, EyeOff, Settings as SettingsIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -125,7 +125,7 @@ export default function Settings() {
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#64748B]/10 to-[#475569]/10 flex items-center justify-center">
-            <span className="text-[28px]">⚙️</span>
+            <SettingsIcon className="w-6 h-6 text-muted-foreground" />
           </div>
           <div>
             <h1 className="text-[26px] font-bold text-[#1A1D21] tracking-tight">API設定</h1>

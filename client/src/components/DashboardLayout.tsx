@@ -15,6 +15,29 @@ import {
   Search,
   Settings,
   MoreHorizontal,
+  LayoutDashboard,
+  Inbox,
+  Users,
+  FolderKanban,
+  Bot,
+  Zap,
+  CheckSquare,
+  CalendarClock,
+  BarChart3,
+  TrendingUp,
+  Sparkles,
+  FlaskConical,
+  GraduationCap,
+  Flame,
+  BrainCircuit,
+  Hash,
+  Trophy,
+  Rocket,
+  ShieldAlert,
+  MessageCircle,
+  Lightbulb,
+  ScrollText,
+  type LucideIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useLocation } from "wouter";
@@ -35,16 +58,16 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#F8FAFC] via-white to-[#EEF2FF]">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center max-w-sm w-full px-4">
-          <div className="mb-5 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#5C5CFF] to-[#7C3AED] shadow-lg">
-            <span className="text-white font-bold text-lg">S</span>
+          <div className="mb-5 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#0F172A]">
+            <span className="text-white font-bold text-sm">SA</span>
           </div>
-          <h1 className="text-[18px] font-bold text-[#1A1D21] mb-1 tracking-tight">SNS Marketing</h1>
-          <p className="text-[13px] text-[#6B7280] mb-6">Automation Platform</p>
+          <h1 className="text-[18px] font-bold text-foreground mb-1 tracking-tight">SNS Autosystem</h1>
+          <p className="text-[13px] text-muted-foreground mb-6">Marketing Automation</p>
           <Button
             onClick={() => { window.location.href = getLoginUrl(); }}
-            className="w-full bg-gradient-to-r from-[#5C5CFF] to-[#4747CC] hover:from-[#4747CC] hover:to-[#3737A8] text-white h-10 text-[13px] font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+            className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white h-10 text-[13px] font-medium rounded-lg transition-colors"
           >
             ログイン
           </Button>
@@ -53,13 +76,13 @@ export default function DashboardLayout({
     );
   }
 
-  return <NotionLayout>{children}</NotionLayout>;
+  return <AppLayout>{children}</AppLayout>;
 }
 
 type NavItem = {
   label: string;
   path: string;
-  emoji: string;
+  icon: LucideIcon;
 };
 
 type NavSection = {
@@ -68,7 +91,7 @@ type NavSection = {
   defaultOpen?: boolean;
 };
 
-function NotionLayout({ children }: { children: React.ReactNode }) {
+function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -81,8 +104,8 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
   });
 
   const privatePages: NavItem[] = [
-    { emoji: "🏠", label: "ホーム", path: "/" },
-    { emoji: "📥", label: "受信トレイ", path: "/inbox" },
+    { icon: LayoutDashboard, label: "ホーム", path: "/" },
+    { icon: Inbox, label: "受信トレイ", path: "/inbox" },
   ];
 
   const sections: NavSection[] = [
@@ -90,47 +113,47 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
       title: "管理",
       defaultOpen: true,
       items: [
-        { emoji: "👥", label: "アカウント", path: "/accounts" },
-        { emoji: "📁", label: "プロジェクト", path: "/projects" },
-        { emoji: "🤖", label: "エージェント", path: "/agents" },
+        { icon: Users, label: "アカウント", path: "/accounts" },
+        { icon: FolderKanban, label: "プロジェクト", path: "/projects" },
+        { icon: Bot, label: "エージェント", path: "/agents" },
       ],
     },
     {
       title: "自動化",
       items: [
-        { emoji: "⚡", label: "自動化設定", path: "/automation" },
-        { emoji: "✅", label: "投稿レビュー", path: "/post-review" },
-        { emoji: "📅", label: "スケジュール", path: "/scheduled-posts" },
+        { icon: Zap, label: "自動化設定", path: "/automation" },
+        { icon: CheckSquare, label: "投稿レビュー", path: "/post-review" },
+        { icon: CalendarClock, label: "スケジュール", path: "/scheduled-posts" },
       ],
     },
     {
       title: "分析",
       items: [
-        { emoji: "📊", label: "分析", path: "/analytics" },
-        { emoji: "📈", label: "週次レビュー", path: "/weekly-review" },
-        { emoji: "✨", label: "AI最適化", path: "/ai-optimization" },
-        { emoji: "🧪", label: "A/Bテスト", path: "/ab-testing" },
-        { emoji: "🎓", label: "モデル", path: "/model-accounts" },
-        { emoji: "🔥", label: "バズ分析", path: "/buzz-analysis" },
-        { emoji: "🧠", label: "学習インサイト", path: "/learning-insights" },
-        { emoji: "#️⃣", label: "ハッシュタグ", path: "/hashtag-analytics" },
-        { emoji: "🏆", label: "競合比較", path: "/competitor-benchmark" },
-        { emoji: "🚀", label: "グロース", path: "/growth" },
+        { icon: BarChart3, label: "分析", path: "/analytics" },
+        { icon: TrendingUp, label: "週次レビュー", path: "/weekly-review" },
+        { icon: Sparkles, label: "AI最適化", path: "/ai-optimization" },
+        { icon: FlaskConical, label: "A/Bテスト", path: "/ab-testing" },
+        { icon: GraduationCap, label: "モデル", path: "/model-accounts" },
+        { icon: Flame, label: "バズ分析", path: "/buzz-analysis" },
+        { icon: BrainCircuit, label: "学習インサイト", path: "/learning-insights" },
+        { icon: Hash, label: "ハッシュタグ", path: "/hashtag-analytics" },
+        { icon: Trophy, label: "競合比較", path: "/competitor-benchmark" },
+        { icon: Rocket, label: "グロース", path: "/growth" },
       ],
     },
     {
       title: "監視",
       items: [
-        { emoji: "⚠️", label: "凍結検知", path: "/freeze-detection" },
-        { emoji: "💬", label: "エンゲージメント", path: "/engagement" },
+        { icon: ShieldAlert, label: "凍結検知", path: "/freeze-detection" },
+        { icon: MessageCircle, label: "エンゲージメント", path: "/engagement" },
       ],
     },
   ];
 
   const bottomItems: NavItem[] = [
-    { emoji: "💡", label: "戦略", path: "/strategies" },
-    { emoji: "📝", label: "ログ", path: "/logs" },
-    { emoji: "⚙️", label: "設定", path: "/settings" },
+    { icon: Lightbulb, label: "戦略", path: "/strategies" },
+    { icon: ScrollText, label: "ログ", path: "/logs" },
+    { icon: Settings, label: "設定", path: "/settings" },
   ];
 
   const handleNavigate = useCallback((path: string) => {
@@ -148,26 +171,27 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
 
   const NavItemRow = ({ item }: { item: NavItem }) => {
     const active = isActive(item.path);
+    const Icon = item.icon;
     return (
       <button
         onClick={() => handleNavigate(item.path)}
         className={`
-          group w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-all duration-150
+          group w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-[13px] transition-all duration-150
           ${active
-            ? "bg-white text-[#1A1D21] shadow-sm font-medium"
-            : "text-[#64748B] hover:bg-white/60 hover:text-[#1A1D21]"
+            ? "nav-item-active text-indigo-200"
+            : "text-[#8B8FA3] hover:bg-white/[0.04] hover:text-[#C8CAD4]"
           }
         `}
       >
-        <span className={`w-[24px] h-[24px] flex items-center justify-center text-[15px] flex-shrink-0 rounded-md transition-colors ${active ? 'bg-[#EEF2FF]' : 'group-hover:bg-[#F1F5F9]'}`}>
-          {item.emoji}
+        <span className="w-[22px] h-[22px] flex items-center justify-center flex-shrink-0">
+          <Icon className={`w-[16px] h-[16px] transition-colors duration-150 ${active ? 'text-indigo-400' : 'text-[#555872] group-hover:text-[#8B8FA3]'}`} strokeWidth={active ? 2 : 1.5} />
         </span>
         {!isCollapsed && (
           <>
-            <span className="flex-1 text-left truncate">
+            <span className="flex-1 text-left truncate tracking-[-0.01em]">
               {item.label}
             </span>
-            <MoreHorizontal className="w-4 h-4 opacity-0 group-hover:opacity-40 flex-shrink-0 transition-opacity" />
+            <MoreHorizontal className="w-3.5 h-3.5 opacity-0 group-hover:opacity-30 flex-shrink-0 transition-opacity" />
           </>
         )}
       </button>
@@ -178,10 +202,10 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
     const isExpanded = expandedSections[section.title.toLowerCase()] ?? section.defaultOpen ?? false;
 
     return (
-      <div className="mt-4">
+      <div className="mt-5">
         <button
           onClick={() => toggleSection(section.title)}
-          className="w-full flex items-center gap-1.5 px-2.5 py-[4px] text-[11px] font-semibold text-[#94A3B8] hover:text-[#64748B] transition-colors group uppercase tracking-wider"
+          className="w-full flex items-center gap-1.5 px-2.5 py-[3px] text-[10px] font-semibold text-[#454960] hover:text-[#6B70A0] transition-colors group uppercase tracking-[0.08em]"
         >
           <ChevronDown
             className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? '' : '-rotate-90'}`}
@@ -190,11 +214,11 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
             <span>{section.title}</span>
           )}
           {!isCollapsed && (
-            <Plus className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-60 transition-opacity" />
+            <Plus className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-50 transition-opacity" />
           )}
         </button>
         {isExpanded && (
-          <div className="mt-1 space-y-[2px]">
+          <div className="mt-1 space-y-[1px]">
             {section.items.map((item) => (
               <NavItemRow key={item.path} item={item} />
             ))}
@@ -205,38 +229,42 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-[#FAFBFC] overflow-hidden">
-      {/* Refined Sidebar */}
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar */}
       <aside
         className={`
           ${isCollapsed ? 'w-[52px]' : 'w-[260px]'}
-          flex-shrink-0 bg-gradient-to-b from-[#F8FAFC] to-[#F1F5F9] flex flex-col transition-all duration-200 ease-out
-          border-r border-[#E2E8F0]
+          flex-shrink-0 flex flex-col transition-all duration-200 ease-out
+          border-r border-[#1E2035] bg-[#0C0D14]
         `}
       >
-        {/* Workspace Switcher */}
-        <div className={`flex items-center h-[56px] ${isCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-[#E2E8F0]/60`}>
+        {/* App Branding */}
+        <div className={`flex items-center h-[56px] ${isCollapsed ? 'justify-center px-2' : 'px-4'} border-b border-[#1E2035]`}>
           {!isCollapsed && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2.5 hover:bg-white/80 rounded-lg px-2 py-1.5 transition-all duration-150 flex-1 min-w-0 group">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#5C5CFF] to-[#7C3AED] flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <span className="text-white text-[12px] font-bold">
-                      {user?.name?.charAt(0).toUpperCase() || "S"}
+                <button className="flex items-center gap-2.5 hover:bg-white/[0.04] rounded-lg px-2 py-1.5 transition-all duration-150 flex-1 min-w-0 group">
+                  <div className="w-7 h-7 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(99,102,241,0.25)]">
+                    <span className="text-white text-[10px] font-bold tracking-wide">SA</span>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[13px] font-semibold text-[#E0E2EE] truncate leading-tight tracking-[-0.02em]">
+                      SNS Autosystem
+                    </span>
+                    <span className="text-[10px] text-[#555872] truncate leading-tight">
+                      {user?.email}
                     </span>
                   </div>
-                  <span className="text-[14px] font-semibold text-[#1E293B] truncate">
-                    {user?.name || "Workspace"}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#94A3B8] flex-shrink-0 group-hover:text-[#64748B] transition-colors" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[#454960] flex-shrink-0 ml-auto" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[240px] p-1.5 shadow-lg border-[#E2E8F0]">
+              <DropdownMenuContent align="start" className="w-[240px] p-1.5">
                 <div className="px-2 py-2">
-                  <p className="text-[13px] font-medium text-[#1E293B]">{user?.email}</p>
+                  <p className="text-[13px] font-medium text-foreground">{user?.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{user?.email}</p>
                 </div>
-                <DropdownMenuSeparator className="bg-[#E2E8F0]" />
-                <DropdownMenuItem onClick={() => logout()} className="text-[#EF4444] focus:text-[#EF4444] text-[13px] rounded-md">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => logout()} className="text-destructive focus:text-destructive text-[13px] rounded-md">
                   <LogOut className="w-4 h-4 mr-2" />
                   ログアウト
                 </DropdownMenuItem>
@@ -245,43 +273,39 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 hover:bg-white/80 rounded-lg transition-all duration-150 flex-shrink-0"
+            className="p-1.5 hover:bg-white/[0.04] rounded-md transition-all duration-150 flex-shrink-0"
             title={isCollapsed ? "展開" : "折りたたむ"}
           >
-            <ChevronsLeft className={`w-4 h-4 text-[#94A3B8] hover:text-[#64748B] transition-all duration-200 ${isCollapsed ? 'rotate-180' : ''}`} />
+            <ChevronsLeft className={`w-4 h-4 text-[#454960] hover:text-[#8B8FA3] transition-all duration-200 ${isCollapsed ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
-        {/* Search (collapsed: icon only) */}
+        {/* Search */}
         {!isCollapsed && (
-          <div className="px-3 py-3">
-            <button className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-[#94A3B8] hover:text-[#64748B] bg-white/60 hover:bg-white rounded-lg transition-all duration-150 border border-[#E2E8F0]/60 hover:border-[#E2E8F0] shadow-sm hover:shadow">
-              <Search className="w-4 h-4" />
+          <div className="px-3 py-2.5">
+            <button className="w-full flex items-center gap-2.5 px-3 py-[7px] text-[13px] text-[#555872] hover:text-[#8B8FA3] bg-[#12131C] hover:bg-[#161724] rounded-md transition-all duration-150 border border-[#1E2035]">
+              <Search className="w-3.5 h-3.5" />
               <span>検索</span>
-              <span className="ml-auto text-[11px] text-[#CBD5E1] bg-[#F1F5F9] px-1.5 py-0.5 rounded font-medium">⌘K</span>
+              <kbd className="ml-auto text-[10px] text-[#454960] bg-[#0C0D14] px-1.5 py-0.5 rounded border border-[#1E2035] font-mono">⌘K</kbd>
             </button>
           </div>
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 pb-3">
-          {/* Private Pages */}
-          <div className="space-y-[2px]">
+        <nav className="flex-1 overflow-y-auto sidebar-scroll px-3 pb-3">
+          <div className="space-y-[1px]">
             {privatePages.map((item) => (
               <NavItemRow key={item.path} item={item} />
             ))}
           </div>
 
-          {/* Sections */}
           {sections.map((section) => (
             <SectionGroup key={section.title} section={section} />
           ))}
 
-          {/* Divider */}
-          <div className="my-4 border-t border-[#E2E8F0]" />
+          <div className="my-4 border-t border-[#1E2035]" />
 
-          {/* Bottom Items */}
-          <div className="space-y-[2px]">
+          <div className="space-y-[1px]">
             {bottomItems.map((item) => (
               <NavItemRow key={item.path} item={item} />
             ))}
@@ -290,7 +314,7 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
 
         {/* Language Switcher */}
         {!isCollapsed && (
-          <div className="px-3 py-3 border-t border-[#E2E8F0]/60">
+          <div className="px-3 py-3 border-t border-[#1E2035]">
             <LanguageSwitcher />
           </div>
         )}
@@ -298,32 +322,9 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Refined Header */}
-        <header className="h-[52px] flex items-center justify-between px-5 border-b border-[#E5E7EB] flex-shrink-0 bg-white/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-[13px] text-[#94A3B8]">
-            {/* Breadcrumb placeholder */}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-3 text-[13px] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] font-medium rounded-lg transition-all duration-150"
-            >
-              共有
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] rounded-lg transition-all duration-150"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </Button>
-          </div>
-        </header>
-
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto bg-[#FAFBFC]">
-          <div className="px-8 py-6">
+        <div className="flex-1 overflow-y-auto bg-background">
+          <div className="px-8 py-6 max-w-[1200px]">
             {children}
           </div>
         </div>

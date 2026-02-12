@@ -43,12 +43,12 @@ function Router() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-lg bg-[#1A1A1A] flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-sm">M</span>
           </div>
-          <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3] mx-auto" />
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mx-auto" />
         </div>
       </div>
     );
@@ -58,12 +58,12 @@ function Router() {
     // Auto-login: redirect to dev-login endpoint
     window.location.href = "/api/dev-login";
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-10 h-10 mx-auto mb-4 rounded-lg bg-[#1A1A1A] flex items-center justify-center">
+          <div className="w-10 h-10 mx-auto mb-4 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-xs">M</span>
           </div>
-          <p className="text-sm text-[#A3A3A3]">ログイン中...</p>
+          <p className="text-sm text-muted-foreground">ログイン中...</p>
         </div>
       </div>
     );

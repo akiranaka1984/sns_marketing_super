@@ -66,14 +66,14 @@ function timeAgo(dateStr: string | null | undefined): string {
 
 // ---- Health score color ----
 function healthColor(score: number | null): string {
-  if (score === null) return "text-gray-400";
+  if (score === null) return "text-muted-foreground";
   if (score > 70) return "text-emerald-500";
   if (score >= 40) return "text-yellow-500";
   return "text-red-500";
 }
 
 function healthBg(score: number | null): string {
-  if (score === null) return "bg-gray-500/20";
+  if (score === null) return "bg-muted-foreground/20";
   if (score > 70) return "bg-emerald-500/20";
   if (score >= 40) return "bg-yellow-500/20";
   return "bg-red-500/20";
@@ -89,7 +89,7 @@ function contentTypeColor(type: string): string {
     story: "bg-pink-500/20 text-pink-400 border-pink-500/30",
     reel: "bg-orange-500/20 text-orange-400 border-orange-500/30",
   };
-  return map[type] || "bg-gray-500/20 text-gray-400 border-gray-500/30";
+  return map[type] || "bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30";
 }
 
 // ---- Action status badge ----
@@ -162,10 +162,10 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
 // ---- Skeleton loader ----
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 animate-pulse">
-      <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
-      <div className="h-8 w-16 bg-gray-200 rounded mb-2" />
-      <div className="h-3 w-24 bg-gray-100 rounded" />
+    <div className="bg-card rounded-2xl p-5 shadow-sm border border-border animate-pulse">
+      <div className="h-4 w-20 bg-muted rounded mb-3" />
+      <div className="h-8 w-16 bg-muted rounded mb-2" />
+      <div className="h-3 w-24 bg-muted/60 rounded" />
     </div>
   );
 }
@@ -286,7 +286,7 @@ export default function GrowthDashboard() {
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
               <span className="gradient-text">Growth Dashboard</span>
             </h1>
-            <p className="text-gray-500 text-lg">
+            <p className="text-muted-foreground text-lg">
               Autonomous growth system overview and controls
             </p>
           </div>
@@ -323,12 +323,12 @@ export default function GrowthDashboard() {
       {/* ---- Empty state if no project selected ---- */}
       {!selectedProjectId && (
         <div className="fade-in-up animation-delay-200">
-          <div className="bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
+          <div className="bg-card rounded-2xl p-12 shadow-sm border border-border text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#3db9cf]/20 to-[#8b5cf6]/20 flex items-center justify-center">
-              <BarChart3 className="w-8 h-8 text-gray-400" />
+              <BarChart3 className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a Project</h3>
-            <p className="text-gray-500 text-sm max-w-md mx-auto">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Select a Project</h3>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Choose a project from the dropdown above to view its growth dashboard, KPIs, and autonomous actions.
             </p>
           </div>
@@ -344,7 +344,7 @@ export default function GrowthDashboard() {
               : kpiCards.map((card, index) => (
                   <div
                     key={card.title}
-                    className="fade-in-up bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group relative overflow-hidden"
+                    className="fade-in-up bg-card rounded-2xl p-5 shadow-sm border border-border hover:shadow-md transition-all duration-300 group relative overflow-hidden"
                     style={{ animationDelay: `${(index + 1) * 100}ms` }}
                   >
                     <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`} />
@@ -366,8 +366,8 @@ export default function GrowthDashboard() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-sm text-gray-500 font-medium">{card.title}</p>
-                      <p className="text-3xl font-bold tracking-tight text-gray-900">
+                      <p className="text-sm text-muted-foreground font-medium">{card.title}</p>
+                      <p className="text-3xl font-bold tracking-tight text-foreground">
                         {card.value.toLocaleString()}
                       </p>
                     </div>
@@ -379,35 +379,35 @@ export default function GrowthDashboard() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Growth Loop Status */}
             <div className="fade-in-up animation-delay-300 lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-[#3db9cf]/10 to-[#8b5cf6]/10">
                     <Zap className="w-5 h-5 text-[#8b5cf6]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Growth Loop</h3>
-                    <p className="text-sm text-gray-500">Autonomous system status</p>
+                    <h3 className="font-semibold text-lg text-foreground">Growth Loop</h3>
+                    <p className="text-sm text-muted-foreground">Autonomous system status</p>
                   </div>
                 </div>
 
                 {loopLoading ? (
                   <div className="space-y-4 animate-pulse">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="h-6 bg-gray-100 rounded" />
+                      <div key={i} className="h-6 bg-muted rounded" />
                     ))}
                   </div>
                 ) : loopStatus ? (
                   <div className="space-y-5">
                     {/* Running indicator */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Status</span>
+                      <span className="text-sm text-muted-foreground">Status</span>
                       {loopStatus.isRunning ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 border gap-1.5">
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border gap-1.5">
                           <Play className="w-3 h-3" />
                           Running
                         </Badge>
                       ) : (
-                        <Badge className="bg-red-500/20 text-red-500 border-red-500/30 border gap-1.5">
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 border gap-1.5">
                           <Square className="w-3 h-3" />
                           Stopped
                         </Badge>
@@ -416,8 +416,8 @@ export default function GrowthDashboard() {
 
                     {/* Last KPI check */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Last KPI Check</span>
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm text-muted-foreground">Last KPI Check</span>
+                      <span className="text-sm font-medium text-foreground/80">
                         {timeAgo(loopStatus.lastKpiCheck)}
                       </span>
                     </div>
@@ -425,8 +425,8 @@ export default function GrowthDashboard() {
                     {/* Strategy score */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-500">Strategy Score</span>
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="text-sm text-muted-foreground">Strategy Score</span>
+                        <span className="text-sm font-bold text-foreground">
                           {loopStatus.currentStrategyScore}/100
                         </span>
                       </div>
@@ -438,13 +438,13 @@ export default function GrowthDashboard() {
 
                     {/* Consecutive declines */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">Consecutive Declines</span>
+                      <span className="text-sm text-muted-foreground">Consecutive Declines</span>
                       <span className={`text-sm font-medium ${
                         loopStatus.consecutiveDeclines > 2
                           ? "text-red-500"
                           : loopStatus.consecutiveDeclines > 0
                             ? "text-yellow-500"
-                            : "text-gray-700"
+                            : "text-foreground/80"
                       }`}>
                         {loopStatus.consecutiveDeclines}
                       </span>
@@ -452,12 +452,12 @@ export default function GrowthDashboard() {
 
                     {/* Escalation warning */}
                     {loopStatus.escalationNeeded && (
-                      <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
-                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                      <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-red-700">Escalation Needed</p>
+                          <p className="text-sm font-medium text-red-400">Escalation Needed</p>
                           {loopStatus.escalationReason && (
-                            <p className="text-xs text-red-600 mt-0.5">
+                            <p className="text-xs text-red-400/80 mt-0.5">
                               {loopStatus.escalationReason}
                             </p>
                           )}
@@ -466,10 +466,10 @@ export default function GrowthDashboard() {
                     )}
 
                     {/* Pending actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <span className="text-sm text-gray-500">Pending Actions</span>
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
+                      <span className="text-sm text-muted-foreground">Pending Actions</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">
+                        <span className="text-sm font-bold text-foreground">
                           {loopStatus.pendingActionsCount}
                         </span>
                         {loopStatus.pendingActionsCount > 0 && (
@@ -490,8 +490,8 @@ export default function GrowthDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Zap className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No loop state found</p>
+                    <Zap className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No loop state found</p>
                   </div>
                 )}
               </div>
@@ -499,15 +499,15 @@ export default function GrowthDashboard() {
 
             {/* Recent Autonomous Actions */}
             <div id="actions-section" className="fade-in-up animation-delay-400 lg:col-span-2">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-[#3db9cf]/10">
                       <Activity className="w-5 h-5 text-[#3db9cf]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg text-gray-900">Recent Actions</h3>
-                      <p className="text-sm text-gray-500">Autonomous growth loop actions</p>
+                      <h3 className="font-semibold text-lg text-foreground">Recent Actions</h3>
+                      <p className="text-sm text-muted-foreground">Autonomous growth loop actions</p>
                     </div>
                   </div>
                 </div>
@@ -515,7 +515,7 @@ export default function GrowthDashboard() {
                 {loopLoading ? (
                   <div className="space-y-3 animate-pulse">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="h-14 bg-gray-50 rounded-xl" />
+                      <div key={i} className="h-14 bg-muted rounded-xl" />
                     ))}
                   </div>
                 ) : loopStatus && loopStatus.recentActions.length > 0 ? (
@@ -523,17 +523,17 @@ export default function GrowthDashboard() {
                     {loopStatus.recentActions.map((action) => (
                       <div
                         key={action.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200"
+                        className="flex items-center justify-between p-3 rounded-xl bg-muted hover:bg-accent transition-colors border border-transparent hover:border-border"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <Badge variant="outline" className="shrink-0 capitalize text-xs">
                             {action.actionType.replace(/_/g, " ")}
                           </Badge>
                           <div className="min-w-0">
-                            <p className="text-sm text-gray-900 truncate">
+                            <p className="text-sm text-foreground truncate">
                               {action.description || "No description"}
                             </p>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-xs text-muted-foreground">
                               {timeAgo(action.createdAt)}
                             </p>
                           </div>
@@ -555,7 +555,7 @@ export default function GrowthDashboard() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7 px-2 text-xs border-red-300 text-red-500 hover:bg-red-50"
+                                className="h-7 px-2 text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
                                 disabled={reviewMutation.isPending}
                                 onClick={() =>
                                   reviewMutation.mutate({ actionId: action.id, approved: false })
@@ -571,8 +571,8 @@ export default function GrowthDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Activity className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No actions recorded yet</p>
+                    <Activity className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No actions recorded yet</p>
                   </div>
                 )}
               </div>
@@ -581,21 +581,21 @@ export default function GrowthDashboard() {
 
           {/* ---- Account Health Overview ---- */}
           <div className="fade-in-up animation-delay-500">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-[#30a46c]/10">
                   <Shield className="w-5 h-5 text-[#30a46c]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-900">Account Health</h3>
-                  <p className="text-sm text-gray-500">Health scores and operational status</p>
+                  <h3 className="font-semibold text-lg text-foreground">Account Health</h3>
+                  <p className="text-sm text-muted-foreground">Health scores and operational status</p>
                 </div>
               </div>
 
               {healthLoading ? (
                 <div className="animate-pulse space-y-3">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-50 rounded" />
+                    <div key={i} className="h-12 bg-muted rounded" />
                   ))}
                 </div>
               ) : accountHealth && accountHealth.length > 0 ? (
@@ -616,7 +616,7 @@ export default function GrowthDashboard() {
                         key={account.accountId}
                         className={
                           account.isThrottled || account.isSuspended
-                            ? "bg-red-50/50"
+                            ? "bg-red-500/5"
                             : ""
                         }
                       >
@@ -627,7 +627,7 @@ export default function GrowthDashboard() {
                                 {account.username.charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-foreground">
                               {account.username}
                             </span>
                           </div>
@@ -638,7 +638,7 @@ export default function GrowthDashboard() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-600 capitalize">
+                          <span className="text-sm text-muted-foreground capitalize">
                             {account.accountPhase}
                           </span>
                         </TableCell>
@@ -656,24 +656,24 @@ export default function GrowthDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-foreground/80">
                             {account.postsToday}/{account.maxDailyPosts}
                           </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             {account.isThrottled && (
-                              <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30 border text-xs">
+                              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 border text-xs">
                                 Throttled
                               </Badge>
                             )}
                             {account.isSuspended && (
-                              <Badge className="bg-red-500/20 text-red-500 border-red-500/30 border text-xs">
+                              <Badge className="bg-red-500/20 text-red-400 border-red-500/30 border text-xs">
                                 Suspended
                               </Badge>
                             )}
                             {!account.isThrottled && !account.isSuspended && (
-                              <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 border text-xs">
+                              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border text-xs">
                                 OK
                               </Badge>
                             )}
@@ -685,8 +685,8 @@ export default function GrowthDashboard() {
                 </Table>
               ) : (
                 <div className="text-center py-8">
-                  <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No accounts found</p>
+                  <Users className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No accounts found</p>
                 </div>
               )}
             </div>
@@ -696,14 +696,14 @@ export default function GrowthDashboard() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Content Calendar Preview */}
             <div className="fade-in-up animation-delay-600">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 rounded-lg bg-[#e5a000]/10">
                     <CalendarDays className="w-5 h-5 text-[#e5a000]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Content Calendar</h3>
-                    <p className="text-sm text-gray-500">Next 7 days</p>
+                    <h3 className="font-semibold text-lg text-foreground">Content Calendar</h3>
+                    <p className="text-sm text-muted-foreground">Next 7 days</p>
                   </div>
                 </div>
 
@@ -711,8 +711,8 @@ export default function GrowthDashboard() {
                   <div className="animate-pulse space-y-4">
                     {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i}>
-                        <div className="h-4 w-20 bg-gray-200 rounded mb-2" />
-                        <div className="h-8 bg-gray-50 rounded" />
+                        <div className="h-4 w-20 bg-muted rounded mb-2" />
+                        <div className="h-8 bg-muted/60 rounded" />
                       </div>
                     ))}
                   </div>
@@ -720,24 +720,24 @@ export default function GrowthDashboard() {
                   <div className="space-y-4 max-h-[380px] overflow-y-auto">
                     {Object.entries(calendarByDate).map(([dateKey, entries]) => (
                       <div key={dateKey}>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                           {dateKey}
                         </p>
                         <div className="space-y-2">
                           {entries!.map((entry) => (
                             <div
                               key={entry.id}
-                              className="flex items-center gap-3 p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                              className="flex items-center gap-3 p-2.5 rounded-lg bg-muted hover:bg-accent transition-colors"
                             >
                               <Badge
                                 className={`text-xs border ${contentTypeColor(entry.contentType ?? "text")} capitalize`}
                               >
                                 {entry.contentType || "text"}
                               </Badge>
-                              <span className="text-sm text-gray-700 truncate flex-1">
+                              <span className="text-sm text-foreground/80 truncate flex-1">
                                 {entry.topic || "Untitled"}
                               </span>
-                              <span className="text-xs text-gray-400 shrink-0">
+                              <span className="text-xs text-muted-foreground shrink-0">
                                 {entry.timeSlot || "--:--"}
                               </span>
                             </div>
@@ -748,8 +748,8 @@ export default function GrowthDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <CalendarDays className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No scheduled content</p>
+                    <CalendarDays className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No scheduled content</p>
                   </div>
                 )}
               </div>
@@ -757,21 +757,21 @@ export default function GrowthDashboard() {
 
             {/* Active Trends */}
             <div className="fade-in-up animation-delay-700">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 rounded-lg bg-orange-500/10">
                     <Flame className="w-5 h-5 text-orange-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Active Trends</h3>
-                    <p className="text-sm text-gray-500">Latest detected trends (24h)</p>
+                    <h3 className="font-semibold text-lg text-foreground">Active Trends</h3>
+                    <p className="text-sm text-muted-foreground">Latest detected trends (24h)</p>
                   </div>
                 </div>
 
                 {trendsLoading ? (
                   <div className="animate-pulse space-y-3">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="h-12 bg-gray-50 rounded-xl" />
+                      <div key={i} className="h-12 bg-muted rounded-xl" />
                     ))}
                   </div>
                 ) : activeTrends && activeTrends.length > 0 ? (
@@ -779,12 +779,12 @@ export default function GrowthDashboard() {
                     {activeTrends.map((trend) => (
                       <div
                         key={trend.id}
-                        className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className="p-3 rounded-xl bg-muted hover:bg-accent transition-colors"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-[#3db9cf]" />
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-foreground">
                               {trend.trendName}
                             </span>
                           </div>
@@ -792,10 +792,10 @@ export default function GrowthDashboard() {
                             variant="outline"
                             className={`text-xs capitalize ${
                               trend.status === "responding" || trend.status === "responded"
-                                ? "text-emerald-600 border-emerald-300"
+                                ? "text-emerald-400 border-emerald-500/30"
                                 : trend.status === "expired" || trend.status === "ignored"
-                                  ? "text-gray-400 border-gray-300"
-                                  : "text-blue-600 border-blue-300"
+                                  ? "text-muted-foreground border-border"
+                                  : "text-blue-400 border-blue-500/30"
                             }`}
                           >
                             {trend.status}
@@ -803,7 +803,7 @@ export default function GrowthDashboard() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex-1">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                               <span>Relevance</span>
                               <span className="font-medium">
                                 {trend.relevanceScore ?? 0}%
@@ -823,8 +823,8 @@ export default function GrowthDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Flame className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No active trends detected</p>
+                    <Flame className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No active trends detected</p>
                   </div>
                 )}
               </div>
@@ -835,21 +835,21 @@ export default function GrowthDashboard() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* ROI Metrics */}
             <div className="fade-in-up animation-delay-800 lg:col-span-2">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 rounded-lg bg-emerald-500/10">
                     <DollarSign className="w-5 h-5 text-emerald-500" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">ROI Metrics</h3>
-                    <p className="text-sm text-gray-500">Campaign performance and returns</p>
+                    <h3 className="font-semibold text-lg text-foreground">ROI Metrics</h3>
+                    <p className="text-sm text-muted-foreground">Campaign performance and returns</p>
                   </div>
                 </div>
 
                 {roiLoading ? (
                   <div className="animate-pulse space-y-3">
                     {Array.from({ length: 3 }).map((_, i) => (
-                      <div key={i} className="h-12 bg-gray-50 rounded" />
+                      <div key={i} className="h-12 bg-muted rounded" />
                     ))}
                   </div>
                 ) : roiMetrics && roiMetrics.length > 0 ? (
@@ -868,12 +868,12 @@ export default function GrowthDashboard() {
                       {roiMetrics.map((campaign) => (
                         <TableRow key={campaign.id}>
                           <TableCell>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-foreground">
                               {campaign.name}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-muted-foreground">
                               {campaign.goal || "--"}
                             </span>
                           </TableCell>
@@ -881,29 +881,29 @@ export default function GrowthDashboard() {
                             <Badge
                               className={`text-xs border capitalize ${
                                 campaign.status === "active"
-                                  ? "bg-emerald-500/20 text-emerald-600 border-emerald-500/30"
+                                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                                   : campaign.status === "completed"
-                                    ? "bg-blue-500/20 text-blue-600 border-blue-500/30"
-                                    : "bg-gray-500/20 text-gray-500 border-gray-500/30"
+                                    ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                                    : "bg-muted-foreground/20 text-muted-foreground border-muted-foreground/30"
                               }`}
                             >
                               {campaign.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right text-sm text-gray-700">
+                          <TableCell className="text-right text-sm text-foreground/80">
                             {campaign.budget > 0 ? `¥${campaign.budget.toLocaleString()}` : "--"}
                           </TableCell>
-                          <TableCell className="text-right text-sm text-gray-700">
+                          <TableCell className="text-right text-sm text-foreground/80">
                             {campaign.revenue > 0 ? `¥${campaign.revenue.toLocaleString()}` : "--"}
                           </TableCell>
                           <TableCell className="text-right">
                             <span
                               className={`text-sm font-bold ${
                                 campaign.roi > 0
-                                  ? "text-emerald-600"
+                                  ? "text-emerald-400"
                                   : campaign.roi < 0
-                                    ? "text-red-500"
-                                    : "text-gray-500"
+                                    ? "text-red-400"
+                                    : "text-muted-foreground"
                               }`}
                             >
                               {campaign.roi > 0 ? "+" : ""}
@@ -916,8 +916,8 @@ export default function GrowthDashboard() {
                   </Table>
                 ) : (
                   <div className="text-center py-8">
-                    <DollarSign className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No campaigns found</p>
+                    <DollarSign className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No campaigns found</p>
                   </div>
                 )}
               </div>
@@ -925,27 +925,27 @@ export default function GrowthDashboard() {
 
             {/* Performance Report */}
             <div className="fade-in-up animation-delay-900 lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 h-full shadow-sm border border-gray-100">
+              <div className="bg-card rounded-2xl p-6 h-full shadow-sm border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 rounded-lg bg-[#8b5cf6]/10">
                     <FileText className="w-5 h-5 text-[#8b5cf6]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">Performance Report</h3>
-                    <p className="text-sm text-gray-500">Period summary</p>
+                    <h3 className="font-semibold text-lg text-foreground">Performance Report</h3>
+                    <p className="text-sm text-muted-foreground">Period summary</p>
                   </div>
                 </div>
 
                 {/* Period selector */}
-                <div className="flex gap-1 mb-5 bg-gray-100 rounded-lg p-1">
+                <div className="flex gap-1 mb-5 bg-muted rounded-lg p-1">
                   {(["daily", "weekly", "monthly"] as const).map((p) => (
                     <button
                       key={p}
                       onClick={() => setReportPeriod(p)}
                       className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors capitalize ${
                         reportPeriod === p
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-500 hover:text-gray-700"
+                          ? "bg-card text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {p === "daily" ? "Daily" : p === "weekly" ? "Weekly" : "Monthly"}
@@ -956,55 +956,55 @@ export default function GrowthDashboard() {
                 {reportLoading ? (
                   <div className="animate-pulse space-y-4">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="h-12 bg-gray-50 rounded-xl" />
+                      <div key={i} className="h-12 bg-muted rounded-xl" />
                     ))}
                   </div>
                 ) : report ? (
                   <div className="space-y-4">
-                    <div className="p-3 rounded-xl bg-gray-50">
+                    <div className="p-3 rounded-xl bg-muted">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">Total Posts</span>
+                        <span className="text-xs text-muted-foreground">Total Posts</span>
                         <Send className="w-3.5 h-3.5 text-[#3db9cf]" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {report.metrics.totalPosts.toLocaleString()}
                       </p>
                     </div>
-                    <div className="p-3 rounded-xl bg-gray-50">
+                    <div className="p-3 rounded-xl bg-muted">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">Avg Likes</span>
+                        <span className="text-xs text-muted-foreground">Avg Likes</span>
                         <Heart className="w-3.5 h-3.5 text-[#e5484d]" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {report.metrics.avgLikes.toLocaleString()}
                       </p>
                     </div>
-                    <div className="p-3 rounded-xl bg-gray-50">
+                    <div className="p-3 rounded-xl bg-muted">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">Total Engagement</span>
+                        <span className="text-xs text-muted-foreground">Total Engagement</span>
                         <Target className="w-3.5 h-3.5 text-[#8b5cf6]" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {report.metrics.totalEngagement.toLocaleString()}
                       </p>
                     </div>
-                    <div className="p-3 rounded-xl bg-gray-50">
+                    <div className="p-3 rounded-xl bg-muted">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-gray-500">Automation Actions</span>
+                        <span className="text-xs text-muted-foreground">Automation Actions</span>
                         <Zap className="w-3.5 h-3.5 text-[#e5a000]" />
                       </div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {report.automationActions.toLocaleString()}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-400 text-center pt-2">
+                    <p className="text-xs text-muted-foreground text-center pt-2">
                       {new Date(report.startDate).toLocaleDateString("ja-JP")} ~ {new Date(report.endDate).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No data available</p>
+                    <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">No data available</p>
                   </div>
                 )}
               </div>

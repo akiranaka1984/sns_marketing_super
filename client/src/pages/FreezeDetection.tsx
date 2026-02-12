@@ -7,6 +7,8 @@ import {
   RefreshCw,
   Filter,
   ArrowUpDown,
+  ShieldAlert,
+  ClipboardList,
 } from "lucide-react";
 
 // Notion-style status tag
@@ -91,7 +93,7 @@ export default function FreezeDetection() {
       {/* Page Title - Notion style */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-[40px]">⚠️</span>
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><ShieldAlert className="w-6 h-6 text-primary" /></div>
           <h1 className="text-[32px] font-bold text-[#37352F]">凍結検知ログ</h1>
         </div>
         <p className="text-[14px] text-[#9B9A97]">
@@ -159,7 +161,7 @@ export default function FreezeDetection() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[16px] font-semibold text-[#37352F] flex items-center gap-2">
-            <span>📋</span>
+            <ClipboardList className="w-4 h-4 text-muted-foreground" />
             検知履歴
           </h2>
           <div className="flex items-center gap-1">

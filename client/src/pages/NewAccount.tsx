@@ -82,10 +82,10 @@ export default function NewAccount() {
                 <SelectValue placeholder="プラットフォームを選択" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="twitter">𝕏 Twitter</SelectItem>
-                <SelectItem value="tiktok">🎵 TikTok</SelectItem>
-                <SelectItem value="instagram">📷 Instagram</SelectItem>
-                <SelectItem value="facebook">👥 Facebook</SelectItem>
+                <SelectItem value="twitter">X (Twitter)</SelectItem>
+                <SelectItem value="tiktok">TikTok</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="facebook">Facebook</SelectItem>
               </SelectContent>
             </Select>
           </div>
