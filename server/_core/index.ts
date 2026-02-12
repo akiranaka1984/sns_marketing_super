@@ -16,6 +16,7 @@ import { registerQueueProcessors } from "../queue-processors";
 import { closeQueues } from "../queue-manager";
 import { startScheduler } from "../agent-scheduler";
 import { attachWebSocketServer } from "../playwright/ws-preview";
+import { startAutoOptimizationScheduler } from "../services/auto-optimization-scheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -109,6 +110,10 @@ async function startServer() {
     // Start agent scheduler (runs scheduled agents automatically)
     startScheduler();
     console.log('[AgentScheduler] Agent scheduler started');
+
+    // Start auto-optimization scheduler (checks agent performance hourly)
+    startAutoOptimizationScheduler();
+    console.log('[AutoOptimization] Auto-optimization scheduler started');
 
     console.log('[Automation] All background executors started');
   });

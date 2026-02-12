@@ -95,6 +95,24 @@ interface TrendingContext {
   hasTrendingData: boolean;
 }
 
+// Content diversity configuration
+interface ContentDiversityConfig {
+  types: { type: string; weight: number }[];
+  maxConsecutiveSameType: number;
+}
+
+const DEFAULT_CONTENT_DIVERSITY: ContentDiversityConfig = {
+  types: [
+    { type: 'educational', weight: 30 },
+    { type: 'engagement', weight: 25 },
+    { type: 'promotional', weight: 15 },
+    { type: 'story', weight: 20 },
+    { type: 'news', weight: 10 },
+  ],
+  maxConsecutiveSameType: 2,
+};
+
+
 interface AgentContext {
   agent: typeof agents.$inferSelect;
   accounts: (typeof accounts.$inferSelect)[];
@@ -111,6 +129,9 @@ interface AgentContext {
   pendingScheduledContents: string[];
   // New: Trending hashtags and topics for timely content
   trendingContext: TrendingContext;
+  // Content diversity
+  contentDiversityConfig: ContentDiversityConfig;
+  recommendedContentType: string;
 }
 
 interface GeneratedContent {
@@ -131,6 +152,63 @@ interface PostResult {
 // ============================================
 // Agent Context Builder
 // ============================================
+
+/**
+ * Determine the next content type based on recent post diversity
+ */
+function determineNextContentType(
+  recentPosts: (typeof posts.$inferSelect)[],
+  config: ContentDiversityConfig
+): string {
+  const { types, maxConsecutiveSameType } = config;
+  if (types.length === 0) return 'engagement';
+
+  // Analyze recent posts to infer their content type from content patterns
+  const recentTypes: string[] = [];
+  for (const post of recentPosts.slice(0, 10)) {
+    const content = (post.content || '').toLowerCase();
+    if (content.includes('ポイント') || content.includes('方法') || content.includes('コツ') || content.includes('解説') || content.includes('学び')) {
+      recentTypes.push('educational');
+    } else if (content.includes('?') || content.includes('？') || content.includes('皆さん') || content.includes('教えて') || content.includes('どう思')) {
+      recentTypes.push('engagement');
+    } else if (content.includes('おすすめ') || content.includes('リンク') || content.includes('キャンペーン') || content.includes('限定') || content.includes('セール')) {
+      recentTypes.push('promotional');
+    } else if (content.includes('実は') || content.includes('体験') || content.includes('ストーリー') || content.includes('昔') || content.includes('経験')) {
+      recentTypes.push('story');
+    } else {
+      recentTypes.push('news');
+    }
+  }
+
+  // Check if we have too many consecutive same-type posts
+  if (recentTypes.length >= maxConsecutiveSameType) {
+    const lastType = recentTypes[0];
+    const consecutiveCount = recentTypes.filter((t, i) => i < maxConsecutiveSameType && t === lastType).length;
+    if (consecutiveCount >= maxConsecutiveSameType) {
+      // Exclude the repeated type and pick from remaining
+      const remaining = types.filter(t => t.type !== lastType);
+      if (remaining.length > 0) {
+        return weightedRandomSelect(remaining);
+      }
+    }
+  }
+
+  // Weighted random selection based on configured weights
+  return weightedRandomSelect(types);
+}
+
+/**
+ * Select a content type based on weights
+ */
+function weightedRandomSelect(types: { type: string; weight: number }[]): string {
+  const totalWeight = types.reduce((sum, t) => sum + t.weight, 0);
+  let random = Math.random() * totalWeight;
+  for (const t of types) {
+    random -= t.weight;
+    if (random <= 0) return t.type;
+  }
+  return types[0].type;
+}
 
 /**
  * エージェントの実行に必要なコンテキストを構築
@@ -378,6 +456,24 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     console.error(`[AgentEngine] Failed to get trending context:`, error);
   }
 
+  // Parse content diversity config
+  let contentDiversityConfig: ContentDiversityConfig = DEFAULT_CONTENT_DIVERSITY;
+  try {
+    if (agent.contentDiversityConfig) {
+      const parsed = typeof agent.contentDiversityConfig === 'string'
+        ? JSON.parse(agent.contentDiversityConfig)
+        : agent.contentDiversityConfig;
+      contentDiversityConfig = { ...DEFAULT_CONTENT_DIVERSITY, ...parsed };
+    }
+  } catch (e) {
+    console.warn(`[AgentEngine] Failed to parse contentDiversityConfig for agent ${agent.id}`);
+  }
+
+  // Determine recommended content type based on recent posts diversity
+  const recommendedContentType = determineNextContentType(recentPosts, contentDiversityConfig);
+  console.log(`[AgentEngine] Recommended content type for agent ${agent.id}: ${recommendedContentType}`);
+
+
   return {
     agent,
     accounts: linkedAccounts,
@@ -391,6 +487,8 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     accountPersonas,
     pendingScheduledContents,
     trendingContext,
+    contentDiversityConfig,
+    recommendedContentType,
   };
 }
 
@@ -783,6 +881,15 @@ ${hashtagStrategies.length > 0 ? hashtagStrategies.map((h, i) => `${i + 1}. ${h}
 ## 最近の投稿（重複を避けてください）
 ${recentContents.length > 0 ? recentContents.map((c, i) => `${i + 1}. ${c}...`).join('\n') : '- まだ投稿がありません'}
 ${accountLearningPrompt}${weightedLearningPrompt ? '\n\n---\n' + weightedLearningPrompt : ''}${personaPrompt}${strategyPrompt}${projectTargetsPrompt}${trendingPrompt}
+
+---
+## 📋 コンテンツタイプ指示
+今回は **${context.recommendedContentType}** タイプの投稿を作成してください。
+- educational: 読者に新しい知識やスキルを教える投稿（数字・具体例を含む）
+- engagement: 読者との対話を促す投稿（質問・アンケート・意見求む）
+- promotional: 商品・サービス・コンテンツの紹介（価値提案を中心に）
+- story: 体験談・裏話・ストーリー形式（共感を誘う）
+- news: 最新ニュース・トレンド・業界動向の共有
 
 ---
 ## 重要な指示

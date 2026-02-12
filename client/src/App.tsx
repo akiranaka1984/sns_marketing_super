@@ -33,6 +33,7 @@ import BuzzAnalysis from "./pages/BuzzAnalysis";
 import LearningInsights from "./pages/LearningInsights";
 import HashtagAnalytics from "./pages/HashtagAnalytics";
 import CompetitorBenchmark from "./pages/CompetitorBenchmark";
+import GrowthDashboard from "./pages/GrowthDashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import DashboardLayout from "./components/DashboardLayout";
 import { Loader2 } from "lucide-react";
@@ -94,6 +95,7 @@ function Router() {
         <Route path="/learning-insights" component={LearningInsights} />
         <Route path="/hashtag-analytics" component={HashtagAnalytics} />
         <Route path="/competitor-benchmark" component={CompetitorBenchmark} />
+        <Route path="/growth" component={GrowthDashboard} />
         <Route path="/agents" component={Agents} />
         <Route path="/agents/:id" component={AgentDetail} />
         <Route path="/weekly-review" component={WeeklyReview} />

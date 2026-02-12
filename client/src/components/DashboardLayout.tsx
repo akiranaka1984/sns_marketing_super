@@ -115,6 +115,7 @@ function NotionLayout({ children }: { children: React.ReactNode }) {
         { emoji: "🧠", label: "学習インサイト", path: "/learning-insights" },
         { emoji: "#️⃣", label: "ハッシュタグ", path: "/hashtag-analytics" },
         { emoji: "🏆", label: "競合比較", path: "/competitor-benchmark" },
+        { emoji: "🚀", label: "グロース", path: "/growth" },
       ],
     },
     {
