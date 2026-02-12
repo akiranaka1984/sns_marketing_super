@@ -20,6 +20,11 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, gte, desc, sql, avg } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ==================== Type Definitions ====================
 
 export interface HourlyEngagement {
@@ -111,7 +116,7 @@ export async function analyzeOptimalTimes(
       .where(
         and(
           eq(postAnalytics.accountId, accountId),
-          gte(postAnalytics.recordedAt, cutoffDate.toISOString())
+          gte(postAnalytics.recordedAt, toMySQLTimestamp(cutoffDate))
         )
       )
       .orderBy(desc(postAnalytics.recordedAt));
@@ -531,7 +536,7 @@ export async function getTimingReport(
       .where(
         and(
           eq(postAnalytics.accountId, accountId),
-          gte(postAnalytics.recordedAt, cutoffDate.toISOString())
+          gte(postAnalytics.recordedAt, toMySQLTimestamp(cutoffDate))
         )
       )
       .orderBy(desc(postAnalytics.recordedAt));

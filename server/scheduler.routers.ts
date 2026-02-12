@@ -9,6 +9,11 @@ import {
   getSchedulerStatus,
 } from "./interaction-scheduler";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const schedulerRouter = router({
   // スケジューラー状態を取得
   getStatus: publicProcedure.query(async () => {
@@ -51,7 +56,7 @@ export const schedulerRouter = router({
         .where(
           and(
             eq(interactions.status, "completed"),
-            gte(interactions.executedAt, oneDayAgo.toISOString())
+            gte(interactions.executedAt, toMySQLTimestamp(oneDayAgo))
           )
         );
 
@@ -61,7 +66,7 @@ export const schedulerRouter = router({
         .where(
           and(
             eq(interactions.status, "failed"),
-            gte(interactions.createdAt, oneDayAgo.toISOString())
+            gte(interactions.createdAt, toMySQLTimestamp(oneDayAgo))
           )
         );
 
@@ -88,7 +93,7 @@ export const schedulerRouter = router({
         .where(
           and(
             sql`${interactions.status} IN ('completed', 'failed')`,
-            gte(interactions.executedAt, oneDayAgo.toISOString())
+            gte(interactions.executedAt, toMySQLTimestamp(oneDayAgo))
           )
         )
         .orderBy(desc(interactions.executedAt))

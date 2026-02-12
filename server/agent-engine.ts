@@ -48,6 +48,11 @@ import {
 // Device readiness check removed (Playwright-based now)
 const ensureDeviceReady = async (_deviceId: string) => ({ ready: true, message: 'Playwright mode' });
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -1133,7 +1138,7 @@ export async function executePost(
         await db.update(posts)
           .set({
             status: 'published',
-            publishedAt: new Date().toISOString(),
+            publishedAt: toMySQLTimestamp(new Date()),
           })
           .where(eq(posts.id, postId));
 
@@ -1311,7 +1316,7 @@ export async function analyzePostPerformance(postId: number): Promise<void> {
       performanceScore: engagementScore,
       engagementScore: analytics.engagementRate,
       isProcessed: 1,
-      processedAt: new Date().toISOString(),
+      processedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(postPerformanceFeedback.postId, postId));
 

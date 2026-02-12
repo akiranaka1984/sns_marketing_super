@@ -3,6 +3,11 @@ import { z } from "zod";
 import * as db from "./db";
 import { suggestKPIs, generateStrategyWithContext } from "./aiEngine";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Projects Router
  * Manages marketing campaign projects
@@ -313,7 +318,7 @@ export const projectsRouter = router({
         content: input.content,
         mediaUrls: input.mediaUrls,
         hashtags: input.hashtags,
-        scheduledTime: input.scheduledAt ? new Date(input.scheduledAt).toISOString() : new Date().toISOString(),
+        scheduledTime: input.scheduledAt ? toMySQLTimestamp(new Date(input.scheduledAt)) : toMySQLTimestamp(new Date()),
         status: 'pending',
       });
 

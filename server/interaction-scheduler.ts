@@ -5,6 +5,11 @@ import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./
 import { getAccountLearnings } from "./services/account-learning-service";
 import { addInteractionJob, type InteractionJob } from "./queue-manager";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Build persona string from project account settings
  */
@@ -109,7 +114,7 @@ async function processScheduledInteractions(): Promise<{
     .where(
       and(
         eq(interactions.status, "pending"),
-        lte(interactions.scheduledAt, now.toISOString())
+        lte(interactions.scheduledAt, toMySQLTimestamp(now))
       )
     )
     .orderBy(interactions.scheduledAt)
@@ -181,7 +186,7 @@ async function processScheduledInteractions(): Promise<{
         await db.update(interactions)
           .set({
             status: "completed",
-            executedAt: new Date().toISOString(),
+            executedAt: toMySQLTimestamp(new Date()),
             commentContent: (execResult as any).comment || null,
           })
           .where(eq(interactions.id, task.interaction.id));
@@ -193,7 +198,7 @@ async function processScheduledInteractions(): Promise<{
 
         // リトライの場合は5分後に再スケジュール
         const nextScheduledAt = newStatus === "pending"
-          ? new Date(now.getTime() + 5 * 60 * 1000).toISOString()
+          ? toMySQLTimestamp(new Date(now.getTime() + 5 * 60 * 1000))
           : null;
 
         await db.update(interactions)
@@ -244,7 +249,7 @@ export async function enqueuePendingInteractions(): Promise<number> {
     .where(
       and(
         eq(interactions.status, "pending"),
-        lte(interactions.scheduledAt, now.toISOString())
+        lte(interactions.scheduledAt, toMySQLTimestamp(now))
       )
     )
     .orderBy(interactions.scheduledAt)

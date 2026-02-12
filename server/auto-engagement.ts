@@ -67,7 +67,7 @@ async function shouldExecuteTask(task: any): Promise<boolean> {
     where: and(
       eq(engagementLogs.taskId, task.id),
       eq(engagementLogs.status, "success"),
-      gte(engagementLogs.createdAt, today.toISOString())
+      gte(engagementLogs.createdAt, toMySQLTimestamp(today))
     ),
   });
 
@@ -149,7 +149,7 @@ async function executeTask(task: any): Promise<{
     // Update last executed time
     await db
       .update(engagementTasks)
-      .set({ lastExecutedAt: new Date().toISOString() })
+      .set({ lastExecutedAt: toMySQLTimestamp(new Date()) })
       .where(eq(engagementTasks.id, task.id));
 
     if (!result.success && result.error) {
@@ -352,6 +352,11 @@ async function executeRetweet(
 // Import missing dependencies
 import { freezeDetections } from "../drizzle/schema";
 import { desc, gte } from "drizzle-orm";
+
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
 
 /**
  * Start auto-engagement executor (runs every 5 minutes)

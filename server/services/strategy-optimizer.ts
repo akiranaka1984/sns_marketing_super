@@ -10,6 +10,11 @@ import { agents, strategies, aiOptimizations } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { EngagementInsight } from "./engagement-analyzer";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export interface OptimizationSuggestion {
   type: 'tone_adjustment' | 'style_adjustment' | 'content_strategy' | 'timing_optimization';
   title: string;
@@ -134,7 +139,7 @@ export async function applyOptimization(
     performanceImprovement: suggestion.expectedImprovement,
     insights: suggestion.description,
     status: 'applied',
-    appliedAt: new Date().toISOString(),
+    appliedAt: toMySQLTimestamp(new Date()),
   });
 
   // エージェント設定を更新
@@ -156,7 +161,7 @@ export async function applyOptimization(
     await db.update(agents)
       .set({
         ...updateData,
-        updatedAt: new Date().toISOString(),
+        updatedAt: toMySQLTimestamp(new Date()),
       })
       .where(eq(agents.id, agentId));
   }
@@ -203,7 +208,7 @@ export async function evaluateOptimizationImpact(
   await db.update(aiOptimizations)
     .set({
       performanceImprovement: actualImprovement,
-      updatedAt: new Date().toISOString(),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(aiOptimizations.id, optimizationId));
 

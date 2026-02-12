@@ -18,6 +18,11 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, desc, gte, lt, sql, asc, isNull } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Types
 export interface QueuedTask {
   id: number;
@@ -71,7 +76,7 @@ export async function getNextTasks(
   const todayLogs = await db.query.engagementLogs.findMany({
     where: and(
       eq(engagementLogs.accountId, accountId),
-      gte(engagementLogs.createdAt, today.toISOString())
+      gte(engagementLogs.createdAt, toMySQLTimestamp(today))
     ),
   });
 
@@ -237,7 +242,7 @@ export async function getQueueStats(
   const todayLogs = await db.query.engagementLogs.findMany({
     where: and(
       eq(engagementLogs.accountId, accountId),
-      gte(engagementLogs.createdAt, today.toISOString())
+      gte(engagementLogs.createdAt, toMySQLTimestamp(today))
     ),
   });
 
@@ -271,7 +276,7 @@ export async function getFollowBackStats(
       eq(engagementLogs.accountId, accountId),
       eq(engagementLogs.taskType, "follow"),
       eq(engagementLogs.status, "success"),
-      gte(engagementLogs.createdAt, startDate.toISOString())
+      gte(engagementLogs.createdAt, toMySQLTimestamp(startDate))
     ),
   });
 
@@ -279,7 +284,7 @@ export async function getFollowBackStats(
   const analyticsData = await db.query.analytics.findMany({
     where: and(
       eq(analytics.accountId, accountId),
-      gte(analytics.recordedAt, startDate.toISOString())
+      gte(analytics.recordedAt, toMySQLTimestamp(startDate))
     ),
     orderBy: [asc(analytics.recordedAt)],
   });
@@ -310,7 +315,7 @@ export async function markTaskCompleted(taskId: number): Promise<void> {
   await db
     .update(engagementTasks)
     .set({
-      lastExecutedAt: new Date().toISOString(),
+      lastExecutedAt: toMySQLTimestamp(new Date()),
       isActive: 0, // Deactivate after completion
     })
     .where(eq(engagementTasks.id, taskId));
@@ -383,7 +388,7 @@ export async function cleanupOldTasks(daysOld: number = 7): Promise<number> {
     .where(
       and(
         eq(engagementTasks.isActive, 0),
-        lt(engagementTasks.updatedAt, cutoff.toISOString())
+        lt(engagementTasks.updatedAt, toMySQLTimestamp(cutoff))
       )
     );
 
@@ -407,7 +412,7 @@ export async function getEngagementEffectiveness(
   startDate.setDate(startDate.getDate() - daysBack);
 
   const logs = await db.query.engagementLogs.findMany({
-    where: gte(engagementLogs.createdAt, startDate.toISOString()),
+    where: gte(engagementLogs.createdAt, toMySQLTimestamp(startDate)),
   });
 
   const likesPerformed = logs.filter(

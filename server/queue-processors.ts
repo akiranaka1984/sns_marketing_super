@@ -20,6 +20,11 @@ import { executeLike, executeAiComment, executeRetweet, executeFollow } from './
 import { getAccountLearnings } from './services/account-learning-service';
 import { processDueTrackingJobs } from './services/performance-tracking-scheduler';
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Process scheduled post job
  */
@@ -182,7 +187,7 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
       await db.update(interactions)
         .set({
           status: 'completed',
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
           commentContent: result.comment || null,
         })
         .where(eq(interactions.id, interactionId));

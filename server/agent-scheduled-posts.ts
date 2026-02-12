@@ -18,6 +18,11 @@ import {
 import { eq, and, sql, desc, lte, inArray } from "drizzle-orm";
 import { buildAgentContext, generateContent } from "./agent-engine";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -72,7 +77,7 @@ export async function createAgentScheduledPost(input: ScheduledPostInput): Promi
     originalContent: fullContent,
     mediaUrls: input.mediaUrls ? JSON.stringify(input.mediaUrls) : null,
     hashtags: JSON.stringify(input.hashtags),
-    scheduledTime: input.scheduledTime.toISOString(),
+    scheduledTime: toMySQLTimestamp(input.scheduledTime),
     repeatInterval: "none",
     status: "pending",
     agentId: input.agentId,
@@ -226,7 +231,7 @@ export async function generateScheduledPosts(
         const existingPost = await db.query.scheduledPosts.findFirst({
           where: and(
             eq(scheduledPosts.accountId, targetAccount.id),
-            eq(scheduledPosts.scheduledTime, postTime.toISOString()),
+            eq(scheduledPosts.scheduledTime, toMySQLTimestamp(postTime)),
             eq(scheduledPosts.status, "pending")
           ),
         });
@@ -351,7 +356,7 @@ export async function approveScheduledPost(postId: number, notes?: string): Prom
   await db.update(scheduledPosts)
     .set({
       reviewStatus: "approved",
-      reviewedAt: new Date().toISOString(),
+      reviewedAt: toMySQLTimestamp(new Date()),
       reviewNotes: notes,
     })
     .where(eq(scheduledPosts.id, postId));
@@ -367,7 +372,7 @@ export async function rejectScheduledPost(postId: number, reason: string): Promi
     .set({
       reviewStatus: "rejected",
       status: "cancelled",
-      reviewedAt: new Date().toISOString(),
+      reviewedAt: toMySQLTimestamp(new Date()),
       reviewNotes: reason,
     })
     .where(eq(scheduledPosts.id, postId));

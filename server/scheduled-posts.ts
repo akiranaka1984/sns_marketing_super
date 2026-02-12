@@ -15,6 +15,11 @@ import { postToSNS } from "./sns-posting";
 import { onPostSuccess } from "./post-success-hook";
 import { addScheduledPostJob, type ScheduledPostJob } from "./queue-manager";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Execute pending scheduled posts
  */
@@ -27,7 +32,7 @@ export async function executeScheduledPosts() {
     where: and(
       eq(scheduledPosts.status, "pending"),
       eq(scheduledPosts.reviewStatus, "approved"),
-      lte(scheduledPosts.scheduledTime, now.toISOString())
+      lte(scheduledPosts.scheduledTime, toMySQLTimestamp(now))
     ),
   });
 
@@ -141,7 +146,7 @@ export async function publishPost(postId: number): Promise<{
         .update(scheduledPosts)
         .set({
           status: "posted",
-          postedAt: new Date().toISOString(),
+          postedAt: toMySQLTimestamp(new Date()),
           postUrl: postResult.postUrl || null,
           screenshotUrl: postResult.screenshotUrl || null,
         })
@@ -336,7 +341,7 @@ async function createNextScheduledPost(post: any) {
   const existing = await db.query.scheduledPosts.findFirst({
     where: and(
       eq(scheduledPosts.accountId, post.accountId),
-      eq(scheduledPosts.scheduledTime, nextTime.toISOString()),
+      eq(scheduledPosts.scheduledTime, toMySQLTimestamp(nextTime)),
       eq(scheduledPosts.status, "pending")
     ),
   });
@@ -351,7 +356,7 @@ async function createNextScheduledPost(post: any) {
     content,
     hashtags,
     mediaUrls: post.mediaUrls,
-    scheduledTime: nextTime.toISOString(),
+    scheduledTime: toMySQLTimestamp(nextTime),
     repeatInterval: post.repeatInterval,
     status: "pending",
     agentId: post.agentId || null,
@@ -420,7 +425,7 @@ export async function enqueuePendingPosts(): Promise<number> {
     where: and(
       eq(scheduledPosts.status, "pending"),
       eq(scheduledPosts.reviewStatus, "approved"),
-      lte(scheduledPosts.scheduledTime, now.toISOString())
+      lte(scheduledPosts.scheduledTime, toMySQLTimestamp(now))
     ),
   });
 

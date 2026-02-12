@@ -9,6 +9,11 @@ import { engagementTasks, engagementLogs } from "../drizzle/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const engagementRouter = router({
   /**
    * Get all engagement tasks
@@ -199,7 +204,7 @@ export const engagementRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(engagementLogs.createdAt, startDate.toISOString())];
+      const conditions = [gte(engagementLogs.createdAt, toMySQLTimestamp(startDate))];
       if (input.accountId) {
         conditions.push(eq(engagementLogs.accountId, input.accountId));
       }

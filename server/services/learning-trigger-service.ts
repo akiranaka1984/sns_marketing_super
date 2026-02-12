@@ -11,6 +11,11 @@ import { eq, and, desc, gte } from "drizzle-orm";
 import { TweetMetrics } from "../x-api-service";
 import { addAccountLearning, LearningType, updateLearningUsage } from "./account-learning-service";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Performance thresholds
 export interface PerformanceThresholds {
   // Absolute thresholds for success/failure
@@ -69,7 +74,7 @@ export async function getAccountAverageMetrics(
       .where(
         and(
           eq(postAnalytics.accountId, accountId),
-          gte(postAnalytics.recordedAt, sinceDate.toISOString())
+          gte(postAnalytics.recordedAt, toMySQLTimestamp(sinceDate))
         )
       )
       .orderBy(desc(postAnalytics.recordedAt));
@@ -300,7 +305,7 @@ export async function triggerLearningFromMetrics(
             performanceScore: isSuccess ? 80 : 30,
             engagementScore: evaluation.metrics.engagementRate,
             isProcessed: 1,
-            processedAt: new Date().toISOString(),
+            processedAt: toMySQLTimestamp(new Date()),
             successFactors: isSuccess ? JSON.stringify(insights) : null,
             improvementAreas: !isSuccess ? JSON.stringify(insights) : null,
           })

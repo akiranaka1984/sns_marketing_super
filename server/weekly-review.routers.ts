@@ -7,6 +7,11 @@ import { invokeLLM } from "./_core/llm";
 import { analyzeAgentPerformance, saveInsightsToKnowledge } from "./services/engagement-analyzer";
 import { generateOptimizationSuggestions, applyMultipleOptimizations } from "./services/strategy-optimizer";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Weekly Review Router
  * Manages weekly performance reviews and AI-generated insights
@@ -81,8 +86,8 @@ export const weeklyReviewRouter = router({
       if (input.projectId) {
         conditions.push(eq(posts.projectId, input.projectId));
       }
-      conditions.push(gte(posts.createdAt, input.weekStartDate.toISOString()));
-      conditions.push(lte(posts.createdAt, input.weekEndDate.toISOString()));
+      conditions.push(gte(posts.createdAt, toMySQLTimestamp(input.weekStartDate)));
+      conditions.push(lte(posts.createdAt, toMySQLTimestamp(input.weekEndDate)));
 
       const weekPosts = await db
         .select()
@@ -95,8 +100,8 @@ export const weeklyReviewRouter = router({
         .from(postAnalytics)
         .where(
           and(
-            gte(postAnalytics.recordedAt, input.weekStartDate.toISOString()),
-            lte(postAnalytics.recordedAt, input.weekEndDate.toISOString())
+            gte(postAnalytics.recordedAt, toMySQLTimestamp(input.weekStartDate)),
+            lte(postAnalytics.recordedAt, toMySQLTimestamp(input.weekEndDate))
           )
         );
 
@@ -214,8 +219,8 @@ Format as JSON array of strings.`;
       await db.insert(weeklyReviews).values({
         userId: ctx.user.id,
         projectId: input.projectId ?? null,
-        weekStartDate: input.weekStartDate.toISOString(),
-        weekEndDate: input.weekEndDate.toISOString(),
+        weekStartDate: toMySQLTimestamp(input.weekStartDate),
+        weekEndDate: toMySQLTimestamp(input.weekEndDate),
         totalPosts,
         totalViews,
         totalLikes,

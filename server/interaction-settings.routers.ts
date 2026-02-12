@@ -5,6 +5,11 @@ import { interactionSettings, projects, strategies } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // AI parsing function for engagement strategy
 async function parseEngagementStrategyWithAI(strategyText: string): Promise<{
   likeEnabled: boolean;
@@ -161,7 +166,7 @@ export const interactionSettingsRouter = router({
             commentEnabled: input.commentEnabled ? 1 : 0,
             retweetEnabled: input.retweetEnabled ? 1 : 0,
             followEnabled: input.followEnabled ? 1 : 0,
-            updatedAt: new Date().toISOString(),
+            updatedAt: toMySQLTimestamp(new Date()),
           })
           .where(eq(interactionSettings.id, existing.id));
       } else {
@@ -276,7 +281,7 @@ export const interactionSettingsRouter = router({
 
         if (existing) {
           await db.update(interactionSettings)
-            .set({ ...settings, updatedAt: new Date().toISOString() })
+            .set({ ...settings, updatedAt: toMySQLTimestamp(new Date()) })
             .where(eq(interactionSettings.id, existing.id));
         } else {
           await db.insert(interactionSettings).values(settings);

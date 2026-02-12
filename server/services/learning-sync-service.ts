@@ -11,6 +11,11 @@ import * as schema from "../../drizzle/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import { applyBuzzLearningToAccount } from "./account-learning-service";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Sync a single buzz learning to all relevant accounts.
  * Called after buzz analysis creates a new learning.
@@ -147,7 +152,7 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
       if (linkForAccount) {
         await db
           .update(schema.accountModelAccounts)
-          .set({ lastSyncedAt: new Date().toISOString() })
+          .set({ lastSyncedAt: toMySQLTimestamp(new Date()) })
           .where(
             and(
               eq(schema.accountModelAccounts.accountId, accountId),

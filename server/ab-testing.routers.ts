@@ -7,6 +7,11 @@ import { router, protectedProcedure } from "./_core/trpc";
 import { db } from "./db";
 import { abTests, abTestVariations, abTestLearnings } from "../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 import {
   createAbTest,
   startAbTest,
@@ -183,7 +188,7 @@ export const abTestingRouter = router({
       await db.update(abTestLearnings)
         .set({
           isApplied: 1,
-          appliedAt: new Date().toISOString()
+          appliedAt: toMySQLTimestamp(new Date())
         })
         .where(eq(abTestLearnings.id, input.learningId));
       return { success: true };

@@ -9,6 +9,11 @@ import { db } from "../db";
 import * as schema from "../../drizzle/schema";
 import { eq, and, desc, sql, inArray, gte } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Parse hashtags from post content.
  * Extracts all #hashtag patterns and returns them without the # prefix.
@@ -73,7 +78,7 @@ export async function updateHashtagPerformance(
       .from(schema.hashtagPerformance)
       .where(and(...conditions));
 
-    const now = new Date().toISOString();
+    const now = toMySQLTimestamp(new Date());
 
     if (existing) {
       const newCount = existing.usageCount + 1;

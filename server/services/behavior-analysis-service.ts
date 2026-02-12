@@ -12,6 +12,11 @@ import { db } from "../db";
 import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
 import * as schema from "../../drizzle/schema";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Type definitions
 export interface PostingHoursDistribution {
   [hour: string]: number; // "00" to "23" -> count
@@ -118,8 +123,8 @@ export async function analyzePostingPatterns(
   const posts = await db.query.buzzPosts.findMany({
     where: and(
       eq(schema.buzzPosts.modelAccountId, modelAccountId),
-      gte(schema.buzzPosts.postedAt, startDate.toISOString()),
-      lte(schema.buzzPosts.postedAt, endDate.toISOString())
+      gte(schema.buzzPosts.postedAt, toMySQLTimestamp(startDate)),
+      lte(schema.buzzPosts.postedAt, toMySQLTimestamp(endDate))
     ),
     orderBy: desc(schema.buzzPosts.postedAt),
   });
@@ -161,8 +166,8 @@ export async function analyzePostingPatterns(
     emojiUsageRate: emojiRate,
     hashtagAvgCount: hashtagCount,
     mediaUsageRate: mediaRate,
-    analysisPeriodStart: startDate.toISOString(),
-    analysisPeriodEnd: endDate.toISOString(),
+    analysisPeriodStart: toMySQLTimestamp(startDate),
+    analysisPeriodEnd: toMySQLTimestamp(endDate),
     sampleSize: posts.length,
   };
 
@@ -387,8 +392,8 @@ function createEmptyPattern(modelAccountId: number, startDate: Date, endDate: Da
     emojiUsageRate: 0,
     hashtagAvgCount: 0,
     mediaUsageRate: 0,
-    analysisPeriodStart: startDate.toISOString(),
-    analysisPeriodEnd: endDate.toISOString(),
+    analysisPeriodStart: toMySQLTimestamp(startDate),
+    analysisPeriodEnd: toMySQLTimestamp(endDate),
     sampleSize: 0,
   };
 }
@@ -606,7 +611,7 @@ async function savePatternToDatabase(pattern: BehaviorPattern): Promise<void> {
     analysisPeriodStart: pattern.analysisPeriodStart,
     analysisPeriodEnd: pattern.analysisPeriodEnd,
     sampleSize: pattern.sampleSize,
-    lastAnalyzedAt: new Date().toISOString(),
+    lastAnalyzedAt: toMySQLTimestamp(new Date()),
   };
 
   if (existing) {

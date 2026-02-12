@@ -4,6 +4,11 @@ import { db } from "./db";
 import { contentReviews, contentRewrites } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Content Review Router
  * Manages content review workflow for approval/rejection
@@ -60,7 +65,7 @@ export const contentReviewRouter = router({
         .set({
           status: "approved",
           feedback: input.feedback ?? null,
-          reviewedAt: new Date().toISOString(),
+          reviewedAt: toMySQLTimestamp(new Date()),
         })
         .where(
           and(
@@ -86,7 +91,7 @@ export const contentReviewRouter = router({
         .set({
           status: "rejected",
           feedback: input.feedback,
-          reviewedAt: new Date().toISOString(),
+          reviewedAt: toMySQLTimestamp(new Date()),
         })
         .where(
           and(
@@ -112,7 +117,7 @@ export const contentReviewRouter = router({
         .set({
           status: "revision_requested",
           feedback: input.feedback,
-          reviewedAt: new Date().toISOString(),
+          reviewedAt: toMySQLTimestamp(new Date()),
         })
         .where(
           and(

@@ -4,6 +4,11 @@ import { db } from "./db";
 import { xApiSettings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * X API Settings Router
  * Manages X (Twitter) API credentials
@@ -64,7 +69,7 @@ export const xApiSettingsRouter = router({
             apiKey: input.apiKey || existing.apiKey,
             apiSecret: input.apiSecret || existing.apiSecret,
             bearerToken: input.bearerToken || existing.bearerToken,
-            updatedAt: new Date().toISOString(),
+            updatedAt: toMySQLTimestamp(new Date()),
           })
           .where(eq(xApiSettings.userId, userId));
       } else {
@@ -105,7 +110,7 @@ export const xApiSettingsRouter = router({
         );
 
         const testResult = response.ok ? "success" : "failed";
-        const now = new Date().toISOString();
+        const now = toMySQLTimestamp(new Date());
 
         // Update test result in database
         const existing = await db.query.xApiSettings.findFirst({

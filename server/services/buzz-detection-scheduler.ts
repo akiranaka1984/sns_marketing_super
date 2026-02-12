@@ -10,6 +10,11 @@ import { buzzPosts, accounts, modelAccounts, posts } from "../../drizzle/schema"
 import { eq, desc, gte, and, isNull, sql } from "drizzle-orm";
 import { calculateViralityScore } from "./buzz-analyzer";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -81,7 +86,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       .from(posts)
       .where(
         and(
-          gte(posts.createdAt, sevenDaysAgo.toISOString()),
+          gte(posts.createdAt, toMySQLTimestamp(sevenDaysAgo)),
           eq(posts.status, "published")
         )
       )
@@ -312,7 +317,7 @@ export async function detectBuzzForAccount(accountId: number): Promise<DetectedB
       .where(
         and(
           eq(posts.accountId, accountId),
-          gte(posts.createdAt, sevenDaysAgo.toISOString()),
+          gte(posts.createdAt, toMySQLTimestamp(sevenDaysAgo)),
           eq(posts.status, "published")
         )
       )

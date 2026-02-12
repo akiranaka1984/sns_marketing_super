@@ -7,6 +7,11 @@ import { eq, and, gte, lte, desc, sql, inArray, asc } from "drizzle-orm";
 import { getTopHashtags, getHashtagCombinations, compareWithModelAccountHashtags } from "./services/hashtag-analyzer";
 import { getFunnelData, getPostFunnelContribution } from "./services/funnel-tracker";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const analyticsRouter = router({
   /**
    * Get performance overview for all accounts
@@ -46,13 +51,13 @@ export const analyticsRouter = router({
       if (input.startDate) {
         dateFilter = and(
           dateFilter,
-          gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString())
+          gte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.startDate)))
         )!;
       }
       if (input.endDate) {
         dateFilter = and(
           dateFilter,
-          lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString())
+          lte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.endDate)))
         )!;
       }
 
@@ -169,8 +174,8 @@ export const analyticsRouter = router({
         .from(postAnalytics)
         .where(
           and(
-            gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString()),
-            lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString()),
+            gte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.startDate))),
+            lte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.endDate))),
             input.accountId
               ? eq(postAnalytics.accountId, input.accountId)
               : undefined
@@ -338,7 +343,7 @@ export const analyticsRouter = router({
         engagementRate,
         reachCount: input.reach,
         impressionsCount: input.impressions,
-        recordedAt: new Date().toISOString(),
+        recordedAt: toMySQLTimestamp(new Date()),
       });
 
       return { success: true };
@@ -372,10 +377,10 @@ export const analyticsRouter = router({
 
       const conditions = [inArray(postAnalytics.accountId, accountIds)];
       if (input.startDate) {
-        conditions.push(gte(postAnalytics.recordedAt, new Date(input.startDate).toISOString()));
+        conditions.push(gte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.startDate))));
       }
       if (input.endDate) {
-        conditions.push(lte(postAnalytics.recordedAt, new Date(input.endDate).toISOString()));
+        conditions.push(lte(postAnalytics.recordedAt, toMySQLTimestamp(new Date(input.endDate))));
       }
 
       // Group by day of week and hour

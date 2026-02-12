@@ -9,6 +9,12 @@ import { freezeDetections, autoResponses } from "../drizzle/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { detectFreeze, handleFreeze } from "./freeze-detection";
 import { TRPCError } from "@trpc/server";
+
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 import {
   findRecoveryCandidates,
   recoverAccount,
@@ -129,7 +135,7 @@ export const freezeRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(freezeDetections.createdAt, startDate.toISOString())];
+      const conditions = [gte(freezeDetections.createdAt, toMySQLTimestamp(startDate))];
       if (input.accountId) {
         conditions.push(eq(freezeDetections.accountId, input.accountId));
       }
@@ -177,7 +183,7 @@ export const freezeRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(autoResponses.createdAt, startDate.toISOString())];
+      const conditions = [gte(autoResponses.createdAt, toMySQLTimestamp(startDate))];
       if (input.accountId) {
         conditions.push(eq(autoResponses.accountId, input.accountId));
       }

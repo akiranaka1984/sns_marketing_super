@@ -5,6 +5,11 @@ import { agents, posts, accounts } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Auto Content Generation Router
  * Generates post content based on agent settings
@@ -45,8 +50,8 @@ export const autoContentGenerationRouter = router({
             platform: "twitter", // Default platform, can be customized
             status: agent.skipReview ? "approved" : "pending_review",
             agentId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: toMySQLTimestamp(new Date()),
+            updatedAt: toMySQLTimestamp(new Date()),
           });
           const newPost = { content, platform: "twitter", status: agent.skipReview ? "approved" : "pending_review", agentId };
 
@@ -86,8 +91,8 @@ export const autoContentGenerationRouter = router({
             platform: "twitter",
             status: agent.skipReview ? "approved" : "pending_review",
             agentId: agent.id,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: toMySQLTimestamp(new Date()),
+            updatedAt: toMySQLTimestamp(new Date()),
           });
           const newPost = { content, platform: "twitter", status: agent.skipReview ? "approved" : "pending_review", agentId: agent.id };
 

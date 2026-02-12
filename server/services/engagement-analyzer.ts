@@ -14,6 +14,11 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, gte, desc, sql } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export interface EngagementMetrics {
   postId: number;
   content: string;
@@ -61,7 +66,7 @@ export async function analyzeAgentPerformance(
     where: and(
       eq(scheduledPosts.agentId, agentId),
       eq(scheduledPosts.status, 'posted'),
-      gte(scheduledPosts.postedAt, cutoffDate.toISOString())
+      gte(scheduledPosts.postedAt, toMySQLTimestamp(cutoffDate))
     ),
     orderBy: [desc(scheduledPosts.postedAt)],
   });
@@ -318,7 +323,7 @@ export async function saveInsightsToKnowledge(
         .set({
           content: insight.content,
           confidence: insight.confidence,
-          updatedAt: new Date().toISOString(),
+          updatedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(agentKnowledge.id, existing.id));
     } else {

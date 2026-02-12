@@ -11,6 +11,11 @@ import { eq, and, lte, desc } from "drizzle-orm";
 import { getTweetMetrics, extractTweetIdFromUrl, TweetMetrics } from "../x-api-service";
 import { triggerLearningFromMetrics, evaluatePerformance, updateUsedLearningsFromPerformance } from "./learning-trigger-service";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Tracking intervals in hours
 export const TRACKING_INTERVALS = ['1h', '24h', '48h', '72h'] as const;
 export type TrackingType = typeof TRACKING_INTERVALS[number];
@@ -54,7 +59,7 @@ export async function scheduleTrackingJobs(
         accountId,
         projectId: projectId || null,
         trackingType,
-        scheduledAt: scheduledAt.toISOString(),
+        scheduledAt: toMySQLTimestamp(scheduledAt),
         status: 'pending',
       });
 
@@ -117,7 +122,7 @@ export async function processTrackingJob(jobId: number): Promise<{
           .set({
             status: 'pending',
             retryCount: newRetryCount,
-            scheduledAt: retryAt.toISOString(),
+            scheduledAt: toMySQLTimestamp(retryAt),
             errorMessage: "Failed to fetch metrics, retrying...",
           })
           .where(eq(engagementTrackingJobs.id, jobId));
@@ -129,7 +134,7 @@ export async function processTrackingJob(jobId: number): Promise<{
           .set({
             status: 'failed',
             retryCount: newRetryCount,
-            executedAt: new Date().toISOString(),
+            executedAt: toMySQLTimestamp(new Date()),
             errorMessage: "Failed to fetch metrics after max retries",
           })
           .where(eq(engagementTrackingJobs.id, jobId));
@@ -167,7 +172,7 @@ export async function processTrackingJob(jobId: number): Promise<{
       .update(engagementTrackingJobs)
       .set({
         status: 'completed',
-        executedAt: new Date().toISOString(),
+        executedAt: toMySQLTimestamp(new Date()),
         metrics: JSON.stringify(metrics),
         learningTriggered: learningTriggered ? 1 : 0,
       })
@@ -183,7 +188,7 @@ export async function processTrackingJob(jobId: number): Promise<{
       .update(engagementTrackingJobs)
       .set({
         status: 'failed',
-        executedAt: new Date().toISOString(),
+        executedAt: toMySQLTimestamp(new Date()),
         errorMessage: String(error),
       })
       .where(eq(engagementTrackingJobs.id, jobId));
@@ -233,7 +238,7 @@ async function saveMetricsToAnalytics(
       sharesCount: metrics.retweetCount + metrics.quoteCount,
       engagementRate,
       impressionsCount: metrics.impressionCount,
-      recordedAt: new Date().toISOString(),
+      recordedAt: toMySQLTimestamp(new Date()),
     });
 
     console.log(`[PerformanceTracker] Saved analytics for post ${postUrl.postUrl}`);
@@ -251,7 +256,7 @@ export async function processDueTrackingJobs(): Promise<{
   succeeded: number;
   failed: number;
 }> {
-  const now = new Date().toISOString();
+  const now = toMySQLTimestamp(new Date());
   let processed = 0;
   let succeeded = 0;
   let failed = 0;

@@ -5,6 +5,11 @@ import { db } from '../db';
 import { automationTasks } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const automationRouter = router({
   // いいね実行
   like: protectedProcedure
@@ -33,10 +38,10 @@ export const automationRouter = router({
         .set({
           status: result.success ? 'success' : 'failed',
           result: result as any,
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(automationTasks.id, taskId));
-      
+
       return result;
     }),
 
@@ -77,10 +82,10 @@ export const automationRouter = router({
           status: result.success ? 'success' : 'failed',
           generatedComment: result.comment,
           result: result as any,
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(automationTasks.id, taskId));
-      
+
       return result;
     }),
 

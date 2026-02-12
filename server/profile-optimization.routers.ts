@@ -6,6 +6,11 @@ import { eq, and, desc, like, sql } from "drizzle-orm";
 import { analyzeProfile, generateBioVariations, compareWithModelAccounts, ProfileData, AnalysisLanguage } from "./services/profile-optimizer";
 import { getXUserProfile, updateXUserProfile } from "./x-api-service";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 const bioStyles = ['professional', 'casual', 'creative', 'minimalist'] as const;
 const languages = ['ja', 'en'] as const;
 
@@ -750,7 +755,7 @@ export const profileOptimizationRouter = router({
         await db.update(abTests)
           .set({
             status: "running",
-            startedAt: new Date().toISOString(),
+            startedAt: toMySQLTimestamp(new Date()),
           })
           .where(eq(abTests.id, input.testId));
 

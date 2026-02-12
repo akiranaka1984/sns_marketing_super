@@ -3,6 +3,11 @@ import { scheduledPosts, accounts, agents, contentRewrites, contentReviews } fro
 import { eq, and, lte } from "drizzle-orm";
 import { publishPost } from "./scheduled-posts";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Auto-posting scheduler
  * Runs periodically to check for scheduled posts and publish them
@@ -55,7 +60,7 @@ async function processScheduledPosts() {
       .where(
         and(
           eq(scheduledPosts.status, "pending"),
-          lte(scheduledPosts.scheduledTime, new Date().toISOString())
+          lte(scheduledPosts.scheduledTime, toMySQLTimestamp(new Date()))
         )
       );
 

@@ -5,6 +5,11 @@ import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { runAgent, analyzePostPerformance, consolidateKnowledge } from "./agent-engine";
+
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
 import {
   DEFAULT_AUTO_OPTIMIZATION_SETTINGS,
   AutoOptimizationSettings,
@@ -243,7 +248,7 @@ export const agentsRouter = router({
         // Reactivate if inactive
         await db
           .update(agentAccounts)
-          .set({ isActive: 1, updatedAt: new Date().toISOString() })
+          .set({ isActive: 1, updatedAt: toMySQLTimestamp(new Date()) })
           .where(eq(agentAccounts.id, existing[0].id));
         return { success: true, id: existing[0].id };
       }
@@ -277,7 +282,7 @@ export const agentsRouter = router({
 
       await db
         .update(agentAccounts)
-        .set({ isActive: 0, updatedAt: new Date().toISOString() })
+        .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
         .where(and(
           eq(agentAccounts.agentId, input.agentId),
           eq(agentAccounts.accountId, input.accountId)
@@ -424,7 +429,7 @@ export const agentsRouter = router({
 
       if (Object.keys(cleanedData).length > 0) {
         await db.update(agentKnowledge)
-          .set({ ...cleanedData, updatedAt: new Date().toISOString() })
+          .set({ ...cleanedData, updatedAt: toMySQLTimestamp(new Date()) })
           .where(eq(agentKnowledge.id, id));
       }
 
@@ -436,7 +441,7 @@ export const agentsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await db.update(agentKnowledge)
-        .set({ isActive: 0, updatedAt: new Date().toISOString() })
+        .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(agentKnowledge.id, input.id));
 
       return { success: true };
@@ -550,7 +555,7 @@ export const agentsRouter = router({
 
       if (Object.keys(cleanedData).length > 0) {
         await db.update(agentRules)
-          .set({ ...cleanedData, updatedAt: new Date().toISOString() })
+          .set({ ...cleanedData, updatedAt: toMySQLTimestamp(new Date()) })
           .where(eq(agentRules.id, id));
       }
 
@@ -562,7 +567,7 @@ export const agentsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       await db.update(agentRules)
-        .set({ isActive: 0, updatedAt: new Date().toISOString() })
+        .set({ isActive: 0, updatedAt: toMySQLTimestamp(new Date()) })
         .where(eq(agentRules.id, input.id));
 
       return { success: true };
@@ -891,7 +896,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
       await db.update(agents)
         .set({
           autoOptimizationSettings: JSON.stringify(newSettings),
-          updatedAt: new Date().toISOString(),
+          updatedAt: toMySQLTimestamp(new Date()),
         } as any)
         .where(eq(agents.id, input.agentId));
 

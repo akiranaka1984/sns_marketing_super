@@ -12,6 +12,11 @@ const rotateDeviceForAccount = async (_accountId: number, _currentDeviceId?: str
 const releaseDevice = async (_deviceId: string) => true;
 import { scheduleRecovery } from "./services/account-recovery-scheduler";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export interface FreezeDetectionResult {
   isFrozen: boolean;
   freezeType: "ip_block" | "device_block" | "account_freeze" | "unknown" | null;
@@ -173,14 +178,14 @@ export async function handleFreeze(
       newValue: actionResult.newValue,
       status: actionResult.success ? "success" : "failed",
       errorMessage: actionResult.success ? undefined : actionResult.message,
-      executedAt: new Date().toISOString(),
+      executedAt: toMySQLTimestamp(new Date()),
     });
 
     // Update freeze detection status
     if (actionResult.success) {
       await db
         .update(freezeDetections)
-        .set({ status: "resolved", resolvedAt: new Date().toISOString() })
+        .set({ status: "resolved", resolvedAt: toMySQLTimestamp(new Date()) })
         .where(eq(freezeDetections.id, freezeDetectionId));
     } else {
       await db

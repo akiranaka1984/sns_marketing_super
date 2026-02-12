@@ -5,6 +5,11 @@ import { contentRewrites, collectedContents, agents } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Content Rewrite Router
  * Manages AI-powered content rewriting based on agent personas
@@ -82,7 +87,7 @@ Rewritten content:`;
           rewrittenContent: rewrittenContent.trim(),
           rewritePrompt: prompt,
           status: "completed",
-          rewrittenAt: new Date().toISOString(),
+          rewrittenAt: toMySQLTimestamp(new Date()),
         });
 
         return {
@@ -194,7 +199,7 @@ Rewritten content:`;
             rewrittenContent: rewrittenContent.trim(),
             rewritePrompt: prompt,
             status: "completed",
-            rewrittenAt: new Date().toISOString(),
+            rewrittenAt: toMySQLTimestamp(new Date()),
           });
 
           results.push({

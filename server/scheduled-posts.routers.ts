@@ -11,6 +11,11 @@ import { publishPost } from "./scheduled-posts";
 import { TRPCError } from "@trpc/server";
 import { buildAgentContext, generateContent } from "./agent-engine";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const scheduledPostsRouter = router({
   /**
    * Get all scheduled posts
@@ -87,7 +92,7 @@ export const scheduledPostsRouter = router({
         content: input.content,
         mediaUrls: input.mediaUrls ? JSON.stringify(input.mediaUrls) : null,
         hashtags: input.hashtags,
-        scheduledTime: input.scheduledTime.toISOString(),
+        scheduledTime: toMySQLTimestamp(input.scheduledTime),
         repeatInterval: input.repeatInterval,
         status: "pending",
       });
@@ -114,7 +119,7 @@ export const scheduledPostsRouter = router({
 
       const updates: Record<string, any> = { ...rest };
       if (scheduledTime !== undefined) {
-        updates.scheduledTime = scheduledTime.toISOString();
+        updates.scheduledTime = toMySQLTimestamp(scheduledTime);
       }
 
       await db
@@ -284,7 +289,7 @@ export const scheduledPostsRouter = router({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - input.days);
 
-      const conditions = [gte(scheduledPosts.createdAt, startDate.toISOString())];
+      const conditions = [gte(scheduledPosts.createdAt, toMySQLTimestamp(startDate))];
       if (input.projectId) {
         conditions.push(eq(scheduledPosts.projectId, input.projectId));
       }

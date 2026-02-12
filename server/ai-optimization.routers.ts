@@ -5,6 +5,11 @@ import { aiOptimizations, agents, postAnalytics, posts } from "../drizzle/schema
 import { eq, and, desc, gte } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * AI Optimization Router
  * Manages AI-powered optimization of agent parameters based on performance data
@@ -45,7 +50,7 @@ export const aiOptimizationRouter = router({
       const performanceData = await db
         .select()
         .from(postAnalytics)
-        .where(gte(postAnalytics.recordedAt, dateThreshold.toISOString()));
+        .where(gte(postAnalytics.recordedAt, toMySQLTimestamp(dateThreshold)));
 
       // Calculate average metrics
       const avgEngagement = performanceData.length > 0
@@ -246,7 +251,7 @@ Format the response as JSON with the following structure:
         .update(aiOptimizations)
         .set({
           status: "applied",
-          appliedAt: new Date().toISOString(),
+          appliedAt: toMySQLTimestamp(new Date()),
         })
         .where(eq(aiOptimizations.id, input.optimizationId));
 
