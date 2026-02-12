@@ -1501,7 +1501,7 @@ export const growthLoopState = mysqlTable("growth_loop_state", {
 	escalationNeeded: tinyint().default(0).notNull(),
 	escalationReason: text(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1534,7 +1534,7 @@ export const growthLoopActions = mysqlTable("growth_loop_actions", {
 	resultSuccess: tinyint(),
 	errorMessage: text(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("growth_loop_actions_project_idx").on(table.projectId),
@@ -1558,7 +1558,7 @@ export const accountRoles = mysqlTable("account_roles", {
 	// Role-specific config
 	config: text(), // JSON: role-specific settings (e.g., amplification delay range)
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1585,7 +1585,7 @@ export const orchestrationPlans = mysqlTable("orchestration_plans", {
 
 	startedAt: timestamp({ mode: 'string' }),
 	completedAt: timestamp({ mode: 'string' }),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1619,8 +1619,8 @@ export const trackedTrends = mysqlTable("tracked_trends", {
 	respondedAt: timestamp({ mode: 'string' }),
 	expiresAt: timestamp({ mode: 'string' }),
 
-	detectedAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	detectedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1641,7 +1641,7 @@ export const trendResponsePosts = mysqlTable("trend_response_posts", {
 	trendPostEngagement: int().default(0), // This trend post's engagement
 	performanceLift: int().default(0), // % improvement over normal
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("trend_response_posts_trend_idx").on(table.trendId),
@@ -1674,7 +1674,7 @@ export const campaigns = mysqlTable("campaigns", {
 	startDate: timestamp({ mode: 'string' }),
 	endDate: timestamp({ mode: 'string' }),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1696,8 +1696,8 @@ export const conversionEvents = mysqlTable("conversion_events", {
 	eventValue: decimal({ precision: 10, scale: 2 }),
 	metadata: text(), // JSON: additional event data
 
-	occurredAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	occurredAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("conversion_events_campaign_idx").on(table.campaignId),
@@ -1719,7 +1719,7 @@ export const trackedLinks = mysqlTable("tracked_links", {
 	uniqueClickCount: int().default(0).notNull(),
 	lastClickedAt: timestamp({ mode: 'string' }),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 },
 (table) => [
 	index("tracked_links_campaign_idx").on(table.campaignId),
@@ -1771,7 +1771,7 @@ export const accountHealth = mysqlTable("account_health", {
 	consecutiveSuccesses: int().default(0).notNull(),
 	consecutiveFailures: int().default(0).notNull(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
@@ -1810,7 +1810,7 @@ export const contentCalendar = mysqlTable("content_calendar", {
 	// Campaign linkage
 	campaignId: int(),
 
-	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 },
 (table) => [
