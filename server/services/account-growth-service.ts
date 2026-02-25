@@ -2,6 +2,10 @@ import { db } from "../db";
 import { accounts, accountLearnings } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("account-growth-service");
+
 /**
  * Experience points rewards for various actions
  */
@@ -115,7 +119,7 @@ export async function awardXP(
     })
     .where(eq(accounts.id, accountId));
 
-  console.log(
+  logger.info(
     `[AccountGrowth] Account ${accountId} awarded ${amount} XP for "${reason}". ` +
       `Total: ${newXP} XP, Level: ${newLevel}${levelUp ? " (LEVEL UP!)" : ""}`
   );
@@ -164,7 +168,7 @@ export async function getAccountGrowthStats(accountId: number): Promise<{
   let level = account.level;
 
   if (learnings.length !== account.totalLearningsCount || experiencePoints !== expectedXP) {
-    console.log(
+    logger.info(
       `[AccountGrowth] Auto-syncing account ${accountId}: ` +
       `DB has ${account.totalLearningsCount} learnings/${account.experiencePoints} XP, ` +
       `actual is ${learnings.length} learnings/${expectedXP} XP`
@@ -233,7 +237,7 @@ export async function syncAccountGrowthFromLearnings(
     })
     .where(eq(accounts.id, accountId));
 
-  console.log(
+  logger.info(
     `[AccountGrowth] Synced account ${accountId}: ${learnings.length} learnings, ${totalXP} XP, Level ${level}`
   );
 

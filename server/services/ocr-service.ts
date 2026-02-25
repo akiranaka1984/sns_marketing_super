@@ -7,6 +7,10 @@
 
 import { invokeLLM } from "../_core/llm";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("ocr-service");
+
 // ============================================
 // Types
 // ============================================
@@ -113,7 +117,7 @@ Be thorough and include all visible text, including small text, watermarks, and 
       confidence: result.confidence
     };
   } catch (error: any) {
-    console.error("[OCR] Error extracting text from image:", error);
+    logger.error("[OCR] Error extracting text from image:", error);
     return {
       success: false,
       text: "",
@@ -247,7 +251,7 @@ Note: Use null for any metrics that are not visible in the screenshot.`
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
-      console.error("[OCR] No response from vision model for post extraction");
+      logger.error("[OCR] No response from vision model for post extraction");
       return null;
     }
 
@@ -255,7 +259,7 @@ Note: Use null for any metrics that are not visible in the screenshot.`
     const result = JSON.parse(contentStr);
     return result as ExtractedPostData;
   } catch (error: any) {
-    console.error("[OCR] Error extracting post from screenshot:", error);
+    logger.error("[OCR] Error extracting post from screenshot:", error);
     return null;
   }
 }
@@ -332,7 +336,7 @@ Return the result in the following JSON format:
     const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
     return JSON.parse(contentStr);
   } catch (error: any) {
-    console.error("[OCR] Error analyzing image viral potential:", error);
+    logger.error("[OCR] Error analyzing image viral potential:", error);
     return { score: 0, factors: [], suggestions: ["Unable to analyze image"] };
   }
 }

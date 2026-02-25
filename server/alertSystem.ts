@@ -1,5 +1,8 @@
 import { getAnalyticsByAccount, getAccountById } from './db';
 import { notifyOwner } from './_core/notification';
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("alert-system");
 
 /**
  * Alert System
@@ -47,14 +50,14 @@ async function checkFollowerDrop(accountId: number, thresholds: AlertThresholds 
           title: '⚠️ Follower Count Drop Alert',
           content: `Account @${account.username} (${account.platform}) has lost ${dropPercentage.toFixed(1)}% of followers.\n\nPrevious: ${previous.followersCount}\nCurrent: ${latest.followersCount}\nDrop: ${previous.followersCount - latest.followersCount} followers`,
         });
-        console.log(`[AlertSystem] Follower drop alert sent for account ${accountId}`);
+        logger.info({ accountId }, "Follower drop alert sent");
         return true;
       }
     }
 
     return false;
   } catch (error) {
-    console.error(`[AlertSystem] Error checking follower drop for account ${accountId}:`, error);
+    logger.error({ err: error, accountId }, "Error checking follower drop");
     return false;
   }
 }
@@ -88,14 +91,14 @@ async function checkEngagementDrop(accountId: number, thresholds: AlertThreshold
           title: '⚠️ Engagement Rate Drop Alert',
           content: `Account @${account.username} (${account.platform}) has experienced a ${dropPercentage.toFixed(1)}% drop in engagement rate.\n\nPrevious: ${(previous.engagementRate / 100).toFixed(2)}%\nCurrent: ${(latest.engagementRate / 100).toFixed(2)}%`,
         });
-        console.log(`[AlertSystem] Engagement drop alert sent for account ${accountId}`);
+        logger.info({ accountId }, "Engagement drop alert sent");
         return true;
       }
     }
 
     return false;
   } catch (error) {
-    console.error(`[AlertSystem] Error checking engagement drop for account ${accountId}:`, error);
+    logger.error({ err: error, accountId }, "Error checking engagement drop");
     return false;
   }
 }
@@ -122,13 +125,13 @@ async function checkAccountSuspension(accountId: number): Promise<boolean> {
         title: '🚨 Account Suspension Alert',
         content: `Account @${account.username} (${account.platform}) appears to be suspended or frozen.\n\nImmediate action required!`,
       });
-      console.log(`[AlertSystem] Suspension alert sent for account ${accountId}`);
+      logger.info({ accountId }, "Suspension alert sent");
       return true;
     }
 
     return false;
   } catch (error) {
-    console.error(`[AlertSystem] Error checking account suspension for ${accountId}:`, error);
+    logger.error({ err: error, accountId }, "Error checking account suspension");
     return false;
   }
 }
@@ -138,7 +141,7 @@ async function checkAccountSuspension(accountId: number): Promise<boolean> {
  */
 export async function checkAccountAlerts(accountId: number, thresholds?: AlertThresholds): Promise<void> {
   try {
-    console.log(`[AlertSystem] Checking alerts for account ${accountId}`);
+    logger.info({ accountId }, "Checking alerts for account");
     
     await Promise.all([
       checkFollowerDrop(accountId, thresholds),
@@ -146,7 +149,7 @@ export async function checkAccountAlerts(accountId: number, thresholds?: AlertTh
       checkAccountSuspension(accountId),
     ]);
   } catch (error) {
-    console.error(`[AlertSystem] Error checking alerts for account ${accountId}:`, error);
+    logger.error({ err: error, accountId }, "Error checking alerts for account");
   }
 }
 
@@ -155,15 +158,15 @@ export async function checkAccountAlerts(accountId: number, thresholds?: AlertTh
  */
 export async function checkAllAccountsAlerts(thresholds?: AlertThresholds): Promise<void> {
   try {
-    console.log('[AlertSystem] Starting alert check for all accounts');
-    
+    logger.info("Starting alert check for all accounts");
+
     // TODO: Implement batch alert checking
     // Get all active accounts
     // For each account, check all alert conditions
-    
-    console.log('[AlertSystem] Batch alert checking not yet implemented');
+
+    logger.info("Batch alert checking not yet implemented");
   } catch (error) {
-    console.error('[AlertSystem] Error in batch alert checking:', error);
+    logger.error({ err: error }, "Error in batch alert checking");
   }
 }
 
@@ -171,6 +174,6 @@ export async function checkAllAccountsAlerts(thresholds?: AlertThresholds): Prom
  * Schedule alert checks (to be called by cron job)
  */
 export async function scheduleAlertChecks(): Promise<void> {
-  console.log('[AlertSystem] Scheduled alert check started');
+  logger.info("Scheduled alert check started");
   await checkAllAccountsAlerts();
 }

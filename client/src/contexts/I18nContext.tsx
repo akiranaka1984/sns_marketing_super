@@ -357,7 +357,7 @@ const translations: Record<Language, any> = {
   ja: {
     nav: {
       dashboard: 'ダッシュボード',
-      projects: 'プロジェクト',
+      projects: 'プラン検討',
       accounts: 'アカウント',
       proxies: 'プロキシ',
       strategies: '戦略',
@@ -473,8 +473,8 @@ const translations: Record<Language, any> = {
       stop: '停止',
     },
     projects: {
-      title: 'プロジェクト',
-      subtitle: 'マーケティングプロジェクトを管理',
+      title: 'プラン検討',
+      subtitle: 'マーケティングプランを管理',
       newProject: '新規プロジェクト',
       projectName: 'プロジェクト名',
       description: '説明',

@@ -3,6 +3,9 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("oauth");
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -24,7 +27,7 @@ export function registerOAuthRoutes(app: Express) {
           name: testName,
           email: "dev@test.local",
           loginMethod: "dev",
-          lastSignedIn: new Date().toISOString(),
+          lastSignedIn: new Date().toISOString().slice(0, 19).replace("T", " "),
         });
 
         // Create session token
@@ -70,7 +73,7 @@ export function registerOAuthRoutes(app: Express) {
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: new Date().toISOString(),
+        lastSignedIn: new Date().toISOString().slice(0, 19).replace("T", " "),
       });
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {

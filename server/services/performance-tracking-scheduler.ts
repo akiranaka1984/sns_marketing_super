@@ -11,6 +11,10 @@ import { eq, and, lte, desc } from "drizzle-orm";
 import { getTweetMetrics, extractTweetIdFromUrl, TweetMetrics } from "../x-api-service";
 import { triggerLearningFromMetrics, evaluatePerformance, updateUsedLearningsFromPerformance } from "./learning-trigger-service";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("performance-tracking-scheduler");
+
 // Tracking intervals in hours
 export const TRACKING_INTERVALS = ['1h', '24h', '48h', '72h'] as const;
 export type TrackingType = typeof TRACKING_INTERVALS[number];
@@ -37,7 +41,7 @@ export async function scheduleTrackingJobs(
     // Extract tweet ID from URL
     const tweetId = extractTweetIdFromUrl(postUrl);
     if (!tweetId) {
-      console.error(`[PerformanceTracker] Failed to extract tweet ID from: ${postUrl}`);
+      logger.error(`[PerformanceTracker] Failed to extract tweet ID from: ${postUrl}`);
       return { success: false, jobsCreated: 0, error: "Invalid post URL format" };
     }
 
@@ -59,12 +63,12 @@ export async function scheduleTrackingJobs(
       });
 
       jobsCreated++;
-      console.log(`[PerformanceTracker] Scheduled ${trackingType} tracking job for tweet ${tweetId} at ${scheduledAt.toISOString()}`);
+      logger.info(`[PerformanceTracker] Scheduled ${trackingType} tracking job for tweet ${tweetId} at ${scheduledAt.toISOString()}`);
     }
 
     return { success: true, jobsCreated };
   } catch (error) {
-    console.error("[PerformanceTracker] Error scheduling tracking jobs:", error);
+    logger.error("[PerformanceTracker] Error scheduling tracking jobs:", error);
     return { success: false, jobsCreated: 0, error: String(error) };
   }
 }
@@ -99,7 +103,7 @@ export async function processTrackingJob(jobId: number): Promise<{
       .set({ status: 'processing' })
       .where(eq(engagementTrackingJobs.id, jobId));
 
-    console.log(`[PerformanceTracker] Processing ${job.trackingType} job for tweet ${job.tweetId}`);
+    logger.info(`[PerformanceTracker] Processing ${job.trackingType} job for tweet ${job.tweetId}`);
 
     // Fetch metrics from X API
     const metrics = await getTweetMetrics(job.tweetId);
@@ -149,16 +153,16 @@ export async function processTrackingJob(jobId: number): Promise<{
         if (evaluation.shouldTriggerLearning) {
           await triggerLearningFromMetrics(job.postUrlId, job.accountId, metrics, evaluation);
           learningTriggered = true;
-          console.log(`[PerformanceTracker] Learning triggered for post ${job.postUrlId}: ${evaluation.reason}`);
+          logger.info(`[PerformanceTracker] Learning triggered for post ${job.postUrlId}: ${evaluation.reason}`);
         }
 
         // Feedback loop: update learnings used to generate this post
         const feedbackResult = await updateUsedLearningsFromPerformance(job.postUrlId, evaluation);
         if (feedbackResult.updated > 0) {
-          console.log(`[PerformanceTracker] Feedback loop: updated ${feedbackResult.updated} learnings for post ${job.postUrlId}`);
+          logger.info(`[PerformanceTracker] Feedback loop: updated ${feedbackResult.updated} learnings for post ${job.postUrlId}`);
         }
       } catch (learningError) {
-        console.error(`[PerformanceTracker] Learning trigger failed:`, learningError);
+        logger.error(`[PerformanceTracker] Learning trigger failed:`, learningError);
       }
     }
 
@@ -173,11 +177,11 @@ export async function processTrackingJob(jobId: number): Promise<{
       })
       .where(eq(engagementTrackingJobs.id, jobId));
 
-    console.log(`[PerformanceTracker] Completed ${job.trackingType} job for tweet ${job.tweetId}: likes=${metrics.likeCount}, impressions=${metrics.impressionCount}`);
+    logger.info(`[PerformanceTracker] Completed ${job.trackingType} job for tweet ${job.tweetId}: likes=${metrics.likeCount}, impressions=${metrics.impressionCount}`);
 
     return { success: true, metrics, learningTriggered };
   } catch (error) {
-    console.error(`[PerformanceTracker] Error processing job ${jobId}:`, error);
+    logger.error(`[PerformanceTracker] Error processing job ${jobId}:`, error);
 
     await db
       .update(engagementTrackingJobs)
@@ -207,7 +211,7 @@ async function saveMetricsToAnalytics(
       .where(eq(postUrls.id, job.postUrlId));
 
     if (!postUrl) {
-      console.warn(`[PerformanceTracker] Post URL not found for job ${job.id}`);
+      logger.warn(`[PerformanceTracker] Post URL not found for job ${job.id}`);
       return;
     }
 
@@ -236,9 +240,9 @@ async function saveMetricsToAnalytics(
       recordedAt: new Date().toISOString(),
     });
 
-    console.log(`[PerformanceTracker] Saved analytics for post ${postUrl.postUrl}`);
+    logger.info(`[PerformanceTracker] Saved analytics for post ${postUrl.postUrl}`);
   } catch (error) {
-    console.error(`[PerformanceTracker] Error saving analytics:`, error);
+    logger.error(`[PerformanceTracker] Error saving analytics:`, error);
   }
 }
 
@@ -274,7 +278,7 @@ export async function processDueTrackingJobs(): Promise<{
       return { processed: 0, succeeded: 0, failed: 0 };
     }
 
-    console.log(`[PerformanceTracker] Found ${dueJobs.length} due tracking jobs`);
+    logger.info(`[PerformanceTracker] Found ${dueJobs.length} due tracking jobs`);
 
     for (const job of dueJobs) {
       processed++;
@@ -289,10 +293,10 @@ export async function processDueTrackingJobs(): Promise<{
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    console.log(`[PerformanceTracker] Processed ${processed} jobs: ${succeeded} succeeded, ${failed} failed`);
+    logger.info(`[PerformanceTracker] Processed ${processed} jobs: ${succeeded} succeeded, ${failed} failed`);
     return { processed, succeeded, failed };
   } catch (error) {
-    console.error("[PerformanceTracker] Error processing due jobs:", error);
+    logger.error("[PerformanceTracker] Error processing due jobs:", error);
     return { processed, succeeded, failed };
   }
 }
@@ -325,7 +329,7 @@ export async function getTrackingStats(): Promise<{
       else if (job.status === 'failed') stats.failed++;
     }
   } catch (error) {
-    console.error("[PerformanceTracker] Error getting stats:", error);
+    logger.error("[PerformanceTracker] Error getting stats:", error);
   }
 
   return stats;

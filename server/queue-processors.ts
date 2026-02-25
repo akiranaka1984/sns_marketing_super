@@ -19,6 +19,9 @@ import { eq, and } from 'drizzle-orm';
 import { executeLike, executeAiComment, executeRetweet, executeFollow } from './utils/python-runner';
 import { getAccountLearnings } from './services/account-learning-service';
 import { processDueTrackingJobs } from './services/performance-tracking-scheduler';
+import { createLogger } from './utils/logger';
+
+const logger = createLogger('queue-processor');
 
 /**
  * Process scheduled post job
@@ -29,13 +32,13 @@ async function processScheduledPostJob(job: Job<ScheduledPostJob>): Promise<{
   postId: number;
 }> {
   const { postId } = job.data;
-  console.log(`[QueueProcessor] Processing scheduled post ${postId}`);
+  logger.info({ postId }, "Processing scheduled post");
 
   try {
     const result = await publishPost(postId);
     return result;
   } catch (error) {
-    console.error(`[QueueProcessor] Error processing post ${postId}:`, error);
+    logger.error({ err: error, postId }, "Error processing post");
     throw error; // Re-throw to trigger retry
   }
 }
@@ -94,7 +97,7 @@ async function buildPersonaWithLearnings(
     // Combine base persona with learned styles
     return `${basePersona}。追加のスタイル指針: ${styleHints.slice(0, 2).join('。')}`;
   } catch (error) {
-    console.error(`[QueueProcessor] Failed to get account learnings:`, error);
+    logger.error({ err: error }, "Failed to get account learnings");
     return basePersona;
   }
 }
@@ -108,7 +111,7 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
   comment?: string;
 }> {
   const { interactionId, type, fromDeviceId, fromAccountId, targetUrl, targetUsername, projectId } = job.data;
-  console.log(`[QueueProcessor] Processing interaction ${interactionId}: ${type}`);
+  logger.info({ interactionId, type }, "Processing interaction");
 
   try {
     // Update status to processing
@@ -187,7 +190,7 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
         })
         .where(eq(interactions.id, interactionId));
 
-      console.log(`[QueueProcessor] Interaction ${interactionId} completed successfully`);
+      logger.info({ interactionId }, "Interaction completed successfully");
     } else {
       // Let Bull handle retry logic
       const currentInteraction = await db.query.interactions.findFirst({
@@ -211,7 +214,7 @@ async function processInteractionJob(job: Job<InteractionJob>): Promise<{
     return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`[QueueProcessor] Interaction ${interactionId} error:`, errorMessage);
+    logger.error({ interactionId, error: errorMessage }, "Interaction error");
 
     // Update with error message
     await db.update(interactions)
@@ -234,20 +237,20 @@ let engagementTrackingIntervalId: NodeJS.Timeout | null = null;
  */
 function startEngagementTrackingProcessor(): void {
   if (engagementTrackingIntervalId) {
-    console.log('[QueueProcessor] Engagement tracking processor already running');
+    logger.info("Engagement tracking processor already running");
     return;
   }
 
   // Initial run after 30 seconds (let other services start first)
   setTimeout(async () => {
-    console.log('[QueueProcessor] Starting initial engagement tracking check...');
+    logger.info("Starting initial engagement tracking check...");
     try {
       const result = await processDueTrackingJobs();
       if (result.processed > 0) {
-        console.log(`[QueueProcessor] Initial tracking: processed ${result.processed}, succeeded ${result.succeeded}, failed ${result.failed}`);
+        logger.info({ processed: result.processed, succeeded: result.succeeded, failed: result.failed }, "Initial tracking completed");
       }
     } catch (error) {
-      console.error('[QueueProcessor] Initial engagement tracking error:', error);
+      logger.error({ err: error }, "Initial engagement tracking error");
     }
   }, 30 * 1000);
 
@@ -256,14 +259,14 @@ function startEngagementTrackingProcessor(): void {
     try {
       const result = await processDueTrackingJobs();
       if (result.processed > 0) {
-        console.log(`[QueueProcessor] Engagement tracking: processed ${result.processed}, succeeded ${result.succeeded}, failed ${result.failed}`);
+        logger.info({ processed: result.processed, succeeded: result.succeeded, failed: result.failed }, "Engagement tracking completed");
       }
     } catch (error) {
-      console.error('[QueueProcessor] Engagement tracking error:', error);
+      logger.error({ err: error }, "Engagement tracking error");
     }
   }, ENGAGEMENT_TRACKING_INTERVAL_MS);
 
-  console.log(`[QueueProcessor] Engagement tracking processor started (interval: ${ENGAGEMENT_TRACKING_INTERVAL_MS / 1000}s)`);
+  logger.info({ intervalSeconds: ENGAGEMENT_TRACKING_INTERVAL_MS / 1000 }, "Engagement tracking processor started");
 }
 
 /**
@@ -273,7 +276,7 @@ export function stopEngagementTrackingProcessor(): void {
   if (engagementTrackingIntervalId) {
     clearInterval(engagementTrackingIntervalId);
     engagementTrackingIntervalId = null;
-    console.log('[QueueProcessor] Engagement tracking processor stopped');
+    logger.info("Engagement tracking processor stopped");
   }
 }
 
@@ -288,14 +291,14 @@ export function registerQueueProcessors(): void {
   scheduledPostsQueue.process(concurrency, async (job) => {
     return processScheduledPostJob(job);
   });
-  console.log(`[QueueProcessor] Scheduled posts processor registered with concurrency ${concurrency}`);
+  logger.info({ concurrency }, "Scheduled posts processor registered");
 
   // Register interactions processor (lower concurrency for rate limiting)
   const interactionsQueue = getInteractionsQueue();
   interactionsQueue.process(Math.max(1, Math.floor(concurrency / 2)), async (job) => {
     return processInteractionJob(job);
   });
-  console.log(`[QueueProcessor] Interactions processor registered with concurrency ${Math.max(1, Math.floor(concurrency / 2))}`);
+  logger.info({ concurrency: Math.max(1, Math.floor(concurrency / 2)) }, "Interactions processor registered");
 
   // Start engagement tracking processor (DB-based scheduler)
   startEngagementTrackingProcessor();

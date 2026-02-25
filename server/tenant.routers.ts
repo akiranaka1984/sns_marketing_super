@@ -1,4 +1,5 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { tenants, tenantUsers } from "../drizzle/schema";
@@ -27,7 +28,7 @@ export const tenantRouter = router({
         .where(eq(tenants.slug, input.slug));
 
       if (existing.length > 0) {
-        throw new Error("Slug already taken");
+        throw new TRPCError({ code: 'BAD_REQUEST', message: "Slug already taken" });
       }
 
       // Create tenant
@@ -87,7 +88,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.id));
 
       if (!tenant) {
-        throw new Error("Tenant not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Tenant not found" });
       }
 
       // Check if user has access to this tenant
@@ -103,7 +104,7 @@ export const tenantRouter = router({
         );
 
       if (!isOwner && !membership) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       return {
@@ -134,7 +135,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, id));
 
       if (!tenant || tenant.ownerId !== ctx.user.id) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       const updateData: any = {};
@@ -171,7 +172,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.id));
 
       if (!tenant || tenant.ownerId !== ctx.user.id) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       // Delete tenant users first
@@ -204,7 +205,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.tenantId));
 
       if (!tenant || tenant.ownerId !== ctx.user.id) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       // Check if user is already a member
@@ -219,7 +220,7 @@ export const tenantRouter = router({
         );
 
       if (existing.length > 0) {
-        throw new Error("User is already a member");
+        throw new TRPCError({ code: 'BAD_REQUEST', message: "User is already a member" });
       }
 
       // Add user to tenant
@@ -251,7 +252,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.tenantId));
 
       if (!tenant || tenant.ownerId !== ctx.user.id) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       // Remove user from tenant
@@ -282,7 +283,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.tenantId));
 
       if (!tenant) {
-        throw new Error("Tenant not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Tenant not found" });
       }
 
       const isOwner = tenant.ownerId === ctx.user.id;
@@ -297,7 +298,7 @@ export const tenantRouter = router({
         );
 
       if (!isOwner && !membership) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       // Get all members
@@ -330,7 +331,7 @@ export const tenantRouter = router({
         .where(eq(tenants.id, input.tenantId));
 
       if (!tenant || tenant.ownerId !== ctx.user.id) {
-        throw new Error("Access denied");
+        throw new TRPCError({ code: 'FORBIDDEN', message: "Access denied" });
       }
 
       // Update member role

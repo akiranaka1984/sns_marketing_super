@@ -15,7 +15,7 @@ services:
       - VITE_OAUTH_PORTAL_URL=${VITE_OAUTH_PORTAL_URL}
       - OAUTH_SERVER_URL=${OAUTH_SERVER_URL}
       - PRODUCTION_URL=${PRODUCTION_URL}
-      - ENABLE_DEV_LOGIN=${ENABLE_DEV_LOGIN:-true}
+      - ENABLE_DEV_LOGIN=${ENABLE_DEV_LOGIN:-false}
       - TZ=Asia/Tokyo
     depends_on:
       db:

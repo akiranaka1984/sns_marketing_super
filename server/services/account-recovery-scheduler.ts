@@ -8,6 +8,10 @@
 import { db } from "../db";
 import { accounts, freezeDetections, autoResponses } from "../../drizzle/schema";
 import { eq, and, lte, sql } from "drizzle-orm";
+
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("account-recovery-scheduler");
 // Device pool service removed
 const getAvailableDevice = async (): Promise<{ deviceId: string } | null> => null;
 const assignDeviceToAccount = async (_accountId: number, _deviceId: string) => ({ success: false, deviceId: null, message: "Device assignment not available" });
@@ -128,9 +132,9 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
       const device = await getAvailableDevice();
       if (device) {
         await assignDeviceToAccount(accountId, device.deviceId);
-        console.log(`[Recovery] Assigned device ${device.deviceId} to account ${accountId}`);
+        logger.info(`[Recovery] Assigned device ${device.deviceId} to account ${accountId}`);
       } else {
-        console.log(`[Recovery] No available device for account ${accountId}, recovering anyway`);
+        logger.info(`[Recovery] No available device for account ${accountId}, recovering anyway`);
       }
     }
 
@@ -172,7 +176,7 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
       });
     }
 
-    console.log(`[Recovery] Account ${accountId} (${account.username}) recovered successfully`);
+    logger.info(`[Recovery] Account ${accountId} (${account.username}) recovered successfully`);
 
     return {
       accountId,
@@ -181,7 +185,7 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
       newStatus: "active"
     };
   } catch (error: any) {
-    console.error(`[Recovery] Error recovering account ${accountId}:`, error);
+    logger.error(`[Recovery] Error recovering account ${accountId}`);
     return {
       accountId,
       success: false,
@@ -195,7 +199,7 @@ export async function recoverAccount(accountId: number): Promise<RecoveryResult>
  */
 export async function runRecoveryCycle(): Promise<RecoveryResult[]> {
   if (isRunning) {
-    console.log("[Recovery] Recovery cycle already running, skipping");
+    logger.info("[Recovery] Recovery cycle already running, skipping");
     return [];
   }
 
@@ -204,7 +208,7 @@ export async function runRecoveryCycle(): Promise<RecoveryResult[]> {
 
   try {
     const candidates = await findRecoveryCandidates();
-    console.log(`[Recovery] Found ${candidates.length} accounts eligible for recovery`);
+    logger.info(`[Recovery] Found ${candidates.length} accounts eligible for recovery`);
 
     for (const candidate of candidates) {
       const result = await recoverAccount(candidate.accountId);
@@ -214,7 +218,7 @@ export async function runRecoveryCycle(): Promise<RecoveryResult[]> {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   } catch (error) {
-    console.error("[Recovery] Error in recovery cycle:", error);
+    logger.error("[Recovery] Error in recovery cycle");
   } finally {
     isRunning = false;
   }
@@ -236,7 +240,7 @@ export async function scheduleRecovery(
 
   // For now, we just log the scheduled time
   // In a production system, you would use a proper job queue (Bull, etc.)
-  console.log(`[Recovery] Scheduled recovery for account ${accountId} at ${scheduledAt.toISOString()}`);
+  logger.info(`[Recovery] Scheduled recovery for account ${accountId} at ${scheduledAt.toISOString()}`);
 
   return {
     success: true,
@@ -254,11 +258,11 @@ export async function scheduleRecovery(
  */
 export function startRecoveryScheduler(): void {
   if (schedulerInterval) {
-    console.log("[Recovery] Scheduler already running");
+    logger.info("[Recovery] Scheduler already running");
     return;
   }
 
-  console.log(`[Recovery] Starting recovery scheduler (interval: ${CHECK_INTERVAL_MS / 1000 / 60} minutes)`);
+  logger.info(`[Recovery] Starting recovery scheduler (interval: ${CHECK_INTERVAL_MS / 1000 / 60} minutes)`);
 
   // Run immediately
   runRecoveryCycle();
@@ -276,7 +280,7 @@ export function stopRecoveryScheduler(): void {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log("[Recovery] Recovery scheduler stopped");
+    logger.info("[Recovery] Recovery scheduler stopped");
   }
 }
 

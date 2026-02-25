@@ -2,6 +2,9 @@ import { db } from "./db";
 import { scheduledPosts, accounts, agents, contentRewrites, contentReviews } from "../drizzle/schema";
 import { eq, and, lte } from "drizzle-orm";
 import { publishPost } from "./scheduled-posts";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("auto-posting");
 
 /**
  * Auto-posting scheduler
@@ -15,11 +18,11 @@ let schedulerInterval: NodeJS.Timeout | null = null;
  */
 export function startAutoPostingScheduler(intervalMs: number = 60000) {
   if (schedulerInterval) {
-    console.log("[AutoPosting] Scheduler already running");
+    logger.info("Scheduler already running");
     return;
   }
 
-  console.log(`[AutoPosting] Starting scheduler with interval ${intervalMs}ms`);
+  logger.info({ intervalMs }, "Starting scheduler");
 
   // Run immediately on start
   processScheduledPosts();
@@ -37,7 +40,7 @@ export function stopAutoPostingScheduler() {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log("[AutoPosting] Scheduler stopped");
+    logger.info("Scheduler stopped");
   }
 }
 
@@ -46,7 +49,7 @@ export function stopAutoPostingScheduler() {
  */
 async function processScheduledPosts() {
   try {
-    console.log("[AutoPosting] Checking for scheduled posts...");
+    logger.info("Checking for scheduled posts...");
 
     // Get all pending posts that are due
     const duePosts = await db
@@ -60,18 +63,18 @@ async function processScheduledPosts() {
       );
 
     if (duePosts.length === 0) {
-      console.log("[AutoPosting] No posts due at this time");
+      logger.info("No posts due at this time");
       return;
     }
 
-    console.log(`[AutoPosting] Found ${duePosts.length} posts to publish`);
+    logger.info({ count: duePosts.length }, "Found posts to publish");
 
     // Process each post
     for (const post of duePosts) {
       try {
         await publishScheduledPost(post.id);
       } catch (error: any) {
-        console.error(`[AutoPosting] Error publishing post ${post.id}:`, error);
+        logger.error({ err: error, postId: post.id }, "Error publishing post");
         
         // Update post status to failed
         await db
@@ -84,7 +87,7 @@ async function processScheduledPosts() {
       }
     }
   } catch (error: any) {
-    console.error("[AutoPosting] Error processing scheduled posts:", error);
+    logger.error({ err: error }, "Error processing scheduled posts");
   }
 }
 
@@ -92,7 +95,7 @@ async function processScheduledPosts() {
  * Publish a scheduled post
  */
 async function publishScheduledPost(postId: number) {
-  console.log(`[AutoPosting] Publishing post ${postId}...`);
+  logger.info({ postId }, "Publishing post...");
 
   // Get post details
   const [post] = await db
@@ -122,7 +125,7 @@ async function publishScheduledPost(postId: number) {
   // Publish the post using existing publishPost function
   await publishPost(postId);
 
-  console.log(`[AutoPosting] Post ${postId} published successfully`);
+  logger.info({ postId }, "Post published successfully");
   // Repeat scheduling is handled by executeScheduledPosts() in scheduled-posts.ts
 }
 
@@ -131,7 +134,7 @@ async function publishScheduledPost(postId: number) {
  */
 export async function createScheduledPostsFromApprovedContent() {
   try {
-    console.log("[AutoPosting] Creating scheduled posts from approved content...");
+    logger.info("Creating scheduled posts from approved content...");
 
     // Get all approved content reviews
     const approvedReviews = await db
@@ -180,11 +183,11 @@ export async function createScheduledPostsFromApprovedContent() {
         // For now, we'll skip creating the post if no account is specified
         // In production, you would have a mapping between agents and accounts
 
-        console.log(`[AutoPosting] Would schedule post for ${scheduledTime.toISOString()}`);
+        logger.info({ scheduledTime: scheduledTime.toISOString() }, "Would schedule post");
       }
     }
   } catch (error: any) {
-    console.error("[AutoPosting] Error creating scheduled posts from approved content:", error);
+    logger.error({ err: error }, "Error creating scheduled posts from approved content");
   }
 }
 

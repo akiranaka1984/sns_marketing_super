@@ -9,6 +9,9 @@ import { db } from "../db";
 import { buzzPosts, accounts, modelAccounts, posts } from "../../drizzle/schema";
 import { eq, desc, gte, and, isNull, sql } from "drizzle-orm";
 import { calculateViralityScore } from "./buzz-analyzer";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("buzz-detection-scheduler");
 
 // ============================================
 // Types
@@ -119,7 +122,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       }
     }
   } catch (error) {
-    console.error("[BuzzDetection] Error scanning own accounts:", error);
+    logger.error({ err: error }, "[BuzzDetection] Error scanning own accounts");
   }
 
   return detectedPosts;
@@ -146,10 +149,10 @@ export async function scanModelAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       // Note: In a full implementation, you would fetch the model's recent posts
       // from the social media API here. For now, we'll check the buzzPosts table
       // for any recently added posts from this model.
-      console.log(`[BuzzDetection] Model account ${model.username} has ${existingBuzzCount[0]?.count || 0} buzz posts`);
+      logger.info(`[BuzzDetection] Model account ${model.username} has ${existingBuzzCount[0]?.count || 0} buzz posts`);
     }
   } catch (error) {
-    console.error("[BuzzDetection] Error scanning model accounts:", error);
+    logger.error({ err: error }, "[BuzzDetection] Error scanning model accounts");
   }
 
   return detectedPosts;

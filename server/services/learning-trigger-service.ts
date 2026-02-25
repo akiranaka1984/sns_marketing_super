@@ -11,6 +11,10 @@ import { eq, and, desc, gte } from "drizzle-orm";
 import { TweetMetrics } from "../x-api-service";
 import { addAccountLearning, LearningType, updateLearningUsage } from "./account-learning-service";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("learning-trigger-service");
+
 // Performance thresholds
 export interface PerformanceThresholds {
   // Absolute thresholds for success/failure
@@ -96,7 +100,7 @@ export async function getAccountAverageMetrics(
       postCount: metricsArray.length,
     };
   } catch (error) {
-    console.error("[LearningTrigger] Error getting account average metrics:", error);
+    logger.error("[LearningTrigger] Error getting account average metrics:", error);
     return { avgLikes: 0, avgEngagementRate: 0, postCount: 0 };
   }
 }
@@ -205,7 +209,7 @@ export async function triggerLearningFromMetrics(
       .where(eq(postUrls.id, postUrlId));
 
     if (!postUrl) {
-      console.error(`[LearningTrigger] Post URL ${postUrlId} not found`);
+      logger.error(`[LearningTrigger] Post URL ${postUrlId} not found`);
       return null;
     }
 
@@ -289,7 +293,7 @@ export async function triggerLearningFromMetrics(
       confidence,
     });
 
-    console.log(`[LearningTrigger] Created ${evaluation.learningType} learning (ID: ${learningId}) for account ${accountId}: ${title}`);
+    logger.info(`[LearningTrigger] Created ${evaluation.learningType} learning (ID: ${learningId}) for account ${accountId}: ${title}`);
 
     // Update post performance feedback if exists
     if (postUrl.scheduledPostId) {
@@ -306,13 +310,13 @@ export async function triggerLearningFromMetrics(
           })
           .where(eq(postPerformanceFeedback.postId, postUrl.scheduledPostId));
       } catch (feedbackError) {
-        console.warn(`[LearningTrigger] Could not update feedback:`, feedbackError);
+        logger.warn(`[LearningTrigger] Could not update feedback:`, feedbackError);
       }
     }
 
     return learningId;
   } catch (error) {
-    console.error(`[LearningTrigger] Error triggering learning:`, error);
+    logger.error(`[LearningTrigger] Error triggering learning:`, error);
     return null;
   }
 }
@@ -376,23 +380,23 @@ export async function updateUsedLearningsFromPerformance(
       try {
         await updateLearningUsage(learningId, wasSuccessful);
         updated++;
-        console.log(
+        logger.info(
           `[LearningTrigger] Updated learning ${learningId}: wasSuccessful=${wasSuccessful} (${evaluation.reason})`
         );
       } catch (error) {
-        console.warn(`[LearningTrigger] Failed to update learning ${learningId}:`, error);
+        logger.warn(`[LearningTrigger] Failed to update learning ${learningId}:`, error);
       }
     }
 
     if (updated > 0) {
-      console.log(
+      logger.info(
         `[LearningTrigger] Feedback loop: updated ${updated}/${learningIds.length} learnings for post ${postUrlId} (performance: ${evaluation.performanceLevel})`
       );
     }
 
     return { updated, learningIds };
   } catch (error) {
-    console.error(`[LearningTrigger] Error in feedback loop:`, error);
+    logger.error(`[LearningTrigger] Error in feedback loop:`, error);
     return { updated: 0, learningIds: [] };
   }
 }

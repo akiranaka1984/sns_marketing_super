@@ -23,6 +23,9 @@ import {
   getXUserProfile,
   getLatestTweetsWithMetrics,
 } from "../x-api-service";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("target-discovery");
 
 // Types
 export interface TargetUser {
@@ -112,17 +115,17 @@ export async function discoverFromModelAccounts(
           modelAccountId: ma.id,
         });
 
-        console.log(
+        logger.info(
           `[TargetDiscovery] Added model account as target: @${username}`
         );
       } catch (err) {
-        console.warn(`[TargetDiscovery] Failed to fetch data for @${username}:`, err);
+        logger.warn(`[TargetDiscovery] Failed to fetch data for @${username}:`, err);
       }
     }
 
     return { success: true, targets: targets.slice(0, limit) };
   } catch (err: any) {
-    console.error("[TargetDiscovery] Discovery from model accounts failed:", err);
+    logger.error("[TargetDiscovery] Discovery from model accounts failed:", err);
     return { success: false, targets: [], error: err.message };
   }
 }
@@ -167,7 +170,7 @@ export async function discoverFromPostEngagers(
 
     return { success: true, targets: uniqueTargets.slice(0, limit) };
   } catch (err: any) {
-    console.error("[TargetDiscovery] Discovery from post engagers failed:", err);
+    logger.error("[TargetDiscovery] Discovery from post engagers failed:", err);
     return { success: false, targets: [], error: err.message };
   }
 }
@@ -182,7 +185,7 @@ export async function discoverFromHashtags(
   try {
     // Note: Full hashtag search requires Search API access
     // For now, return a placeholder indicating the feature needs API setup
-    console.log(`[TargetDiscovery] Hashtag discovery requested for: ${hashtags.join(", ")}`);
+    logger.info(`[TargetDiscovery] Hashtag discovery requested for: ${hashtags.join(", ")}`);
 
     // This would use the searchTrendingHashtag function when implemented
     return {
@@ -191,7 +194,7 @@ export async function discoverFromHashtags(
       error: "Hashtag discovery requires X API Search access",
     };
   } catch (err: any) {
-    console.error("[TargetDiscovery] Discovery from hashtags failed:", err);
+    logger.error("[TargetDiscovery] Discovery from hashtags failed:", err);
     return { success: false, targets: [], error: err.message };
   }
 }
@@ -367,7 +370,7 @@ export async function queueTargetsForEngagement(
       });
       queued++;
     } catch (err) {
-      console.error(`[TargetDiscovery] Failed to queue target ${target.username}:`, err);
+      logger.error(`[TargetDiscovery] Failed to queue target ${target.username}:`, err);
       skipped++;
     }
   }

@@ -11,6 +11,10 @@ import { publishPost } from "./scheduled-posts";
 import { TRPCError } from "@trpc/server";
 import { buildAgentContext, generateContent } from "./agent-engine";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("scheduled-posts.routers");
+
 export const scheduledPostsRouter = router({
   /**
    * Get all scheduled posts
@@ -214,7 +218,7 @@ export const scheduledPostsRouter = router({
               maxLength = 280;
               break;
           }
-          console.log(`[ScheduledPosts] Account plan: ${planType}, maxLength: ${maxLength}`);
+          logger.info(`[ScheduledPosts] Account plan: ${planType}, maxLength: ${maxLength}`);
         }
       }
 

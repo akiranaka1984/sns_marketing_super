@@ -5,6 +5,10 @@ import { projectModelAccounts, modelAccounts, buzzLearnings, projectAccounts, ac
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { applyBuzzLearningToAccount } from "./services/account-learning-service";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("project-model-accounts.routers");
+
 export const projectModelAccountsRouter = router({
   // List linked model accounts for a project
   list: protectedProcedure
@@ -254,7 +258,7 @@ export const projectModelAccountsRouter = router({
             await applyBuzzLearningToAccount(learning.id, account.account.id, link.projectId);
             applied++;
           } catch (error: any) {
-            console.error(`[ProjectModelAccounts] Error applying learning ${learning.id} to account ${account.account.id}:`, error);
+            logger.error(`[ProjectModelAccounts] Error applying learning ${learning.id} to account ${account.account.id}:`, error);
             errors++;
           }
         }
@@ -386,7 +390,7 @@ export async function syncLearningsToLinkedProjects(
           await applyBuzzLearningToAccount(learning.id, accountId, link.projectId);
           applied++;
         } catch (error: any) {
-          console.error(`[AutoApply] Error applying learning ${learning.id} to account ${accountId}:`, error);
+          logger.error(`[AutoApply] Error applying learning ${learning.id} to account ${accountId}:`, error);
           errors++;
         }
       }

@@ -19,6 +19,10 @@ import { db } from '../db';
 import { accounts } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("x-login-handler");
+
 export interface LoginResult {
   success: boolean;
   message: string;
@@ -45,13 +49,13 @@ export async function loginToX(
     try {
       // Navigate to login page
       setOperationStatus(accountId, 'login', 'navigating_to_login');
-      console.log(`[XLogin] Navigating to login page for account ${accountId}`);
+      logger.info(`[XLogin] Navigating to login page for account ${accountId}`);
       await page.goto(X_URLS.login, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
       // Enter username
       setOperationStatus(accountId, 'login', 'entering_username');
-      console.log(`[XLogin] Entering username for account ${accountId}`);
+      logger.info(`[XLogin] Entering username for account ${accountId}`);
       const usernameInput = page.locator(X_SELECTORS.loginUsernameInput);
       await usernameInput.waitFor({ state: 'visible', timeout: 15_000 });
       await usernameInput.fill(username);
@@ -64,7 +68,7 @@ export async function loginToX(
 
       // Enter password
       setOperationStatus(accountId, 'login', 'entering_password');
-      console.log(`[XLogin] Entering password for account ${accountId}`);
+      logger.info(`[XLogin] Entering password for account ${accountId}`);
       const passwordInput = page.locator(X_SELECTORS.loginPasswordInput);
       await passwordInput.waitFor({ state: 'visible', timeout: 15_000 });
       await passwordInput.fill(password);
@@ -93,7 +97,7 @@ export async function loginToX(
       if (!loggedIn) {
         // Check for verification / challenge screens
         const currentUrl = page.url();
-        console.warn(
+        logger.warn(
           `[XLogin] Login may require additional verification for account ${accountId}. Current URL: ${currentUrl}`
         );
 
@@ -119,14 +123,14 @@ export async function loginToX(
         .set({ sessionStatus: 'active', lastLoginAt: new Date().toISOString().slice(0, 19).replace('T', ' ') })
         .where(eq(accounts.id, accountId));
 
-      console.log(`[XLogin] Login successful for account ${accountId}`);
+      logger.info(`[XLogin] Login successful for account ${accountId}`);
       return { success: true, message: 'Login successful' };
     } finally {
       await stopScreencast(accountId);
       await page.close();
     }
   } catch (err: any) {
-    console.error(`[XLogin] Login failed for account ${accountId}:`, err.message);
+    logger.error(`[XLogin] Login failed for account ${accountId}:`, err.message);
 
     await db
       .update(accounts)

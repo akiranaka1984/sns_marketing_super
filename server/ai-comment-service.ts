@@ -1,19 +1,8 @@
-import OpenAI from "openai";
+import { invokeLLM } from "./_core/llm";
 
-// Lazy initialization to avoid startup errors when API key is not set
-let openaiClient: OpenAI | null = null;
+import { createLogger } from "./utils/logger";
 
-function getOpenAIClient(): OpenAI {
-  if (!openaiClient) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not set. Please configure it in Settings.');
-    }
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-  return openaiClient;
-}
+const logger = createLogger("ai-comment-service");
 
 /**
  * 投稿内容を理解して、ペルソナに合ったコメントを生成（検証済み）
@@ -23,10 +12,7 @@ export async function generateComment(
   commenterPersona: string
 ): Promise<string> {
   try {
-    const openai = getOpenAIClient();
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 100,
+    const result = await invokeLLM({
       messages: [{
         role: "user",
         content: `あなたは「${commenterPersona}」というペルソナのSNSユーザーです。
@@ -42,12 +28,13 @@ ${postContent}
 - 自然な日本語または中国語で
 - 同意、質問、感想のいずれかの形式で
 - コメント本文のみを返し、他の説明は不要`
-      }]
+      }],
+      maxTokens: 100,
     });
 
-    return response.choices[0].message.content || "";
+    return result.choices[0]?.message?.content as string || "";
   } catch (error) {
-    console.error("[AI Comment] Generation failed:", error);
+    logger.error({ err: error }, "[AI Comment] Generation failed");
     return "素敵ですね！👍";
   }
 }

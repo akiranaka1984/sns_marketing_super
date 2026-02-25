@@ -189,7 +189,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         const updateData: any = {};
@@ -213,7 +213,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         await db.updateAccount(input.accountId, { deviceId: input.deviceId });
@@ -228,7 +228,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         await db.updateAccount(input.accountId, { status: 'active' });
@@ -260,7 +260,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         await db.deleteAccount(input.accountId);
@@ -275,7 +275,7 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         return account;
@@ -290,7 +290,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         await db.updateAccountDeviceId(input.accountId, input.deviceId);
@@ -305,7 +305,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const account = await db.getAccountById(input.accountId);
         if (!account || account.userId !== ctx.user.id) {
-          throw new Error('Account not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found or unauthorized' });
         }
 
         await db.updateAccountDeviceId(input.accountId, null);
@@ -602,7 +602,7 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const strategy = await db.getStrategyById(input.strategyId);
         if (!strategy || strategy.userId !== ctx.user.id) {
-          throw new Error('Strategy not found or unauthorized');
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Strategy not found or unauthorized' });
         }
 
         return strategy;

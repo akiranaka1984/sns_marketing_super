@@ -9,42 +9,42 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 
-// Notion-style status tag
+// Neobrutalism status tag
 function StatusTag({ success }: { success: boolean }) {
   return success ? (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[12px] bg-[#DBEDDB] text-[#1F7A1F]">
-      <span className="w-[6px] h-[6px] rounded-full bg-[#1F7A1F]" />
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[12px] bg-[#A8E6CF] text-[#1A1A1A] border-2 border-[#1A1A1A] font-bold">
+      <span className="w-[6px] h-[6px] rounded-full bg-[#1A1A1A]" />
       成功
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[12px] bg-[#FFE2DD] text-[#93391E]">
-      <span className="w-[6px] h-[6px] rounded-full bg-[#E03E3E]" />
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[12px] bg-[#FF6B6B] text-[#1A1A1A] border-2 border-[#1A1A1A] font-bold">
+      <span className="w-[6px] h-[6px] rounded-full bg-[#1A1A1A]" />
       失敗
     </span>
   );
 }
 
-// Notion-style detection type tag
+// Neobrutalism detection type tag
 function DetectionTypeTag({ type }: { type: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    ip_block: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]" },
-    device_block: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]" },
-    account_freeze: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]" },
+    ip_block: { bg: "bg-[#FFD700]", text: "text-[#1A1A1A]" },
+    device_block: { bg: "bg-[#FF6B6B]", text: "text-[#1A1A1A]" },
+    account_freeze: { bg: "bg-[#DDA0DD]", text: "text-[#1A1A1A]" },
   };
   const labels: Record<string, string> = {
     ip_block: "IPブロック",
     device_block: "デバイスブロック",
     account_freeze: "アカウント凍結",
   };
-  const { bg, text } = config[type] || { bg: "bg-[#F1F1EF]", text: "text-[#787774]" };
+  const { bg, text } = config[type] || { bg: "bg-[#87CEEB]", text: "text-[#1A1A1A]" };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-[3px] text-[12px] ${bg} ${text}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[12px] ${bg} ${text} border-2 border-[#1A1A1A] font-bold`}>
       {labels[type] || type}
     </span>
   );
 }
 
-// Notion-style action tag
+// Neobrutalism action tag
 function ActionTag({ action }: { action: string }) {
   const labels: Record<string, string> = {
     ip_change: "IP変更",
@@ -53,18 +53,18 @@ function ActionTag({ action }: { action: string }) {
     none: "対応なし",
   };
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-[3px] text-[12px] bg-[#F1F1EF] text-[#787774]">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[12px] bg-[#4ECDC4] text-[#1A1A1A] border-2 border-[#1A1A1A] font-bold">
       {labels[action] || action}
     </span>
   );
 }
 
-// Notion-style property pill
+// Neobrutalism property pill
 function PropertyPill({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center gap-1.5 text-[13px]">
-      <span className="text-[#9B9A97]">{label}</span>
-      <span className="text-[#37352F] font-medium">{value}</span>
+      <span className="text-[#6B6B6B] font-bold">{label}</span>
+      <span className="text-[#1A1A1A] font-bold">{value}</span>
     </div>
   );
 }
@@ -88,19 +88,19 @@ export default function FreezeDetection() {
 
   return (
     <div className="min-h-full">
-      {/* Page Title - Notion style */}
+      {/* Page Title - Neobrutalism style */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-[40px]">⚠️</span>
-          <h1 className="text-[32px] font-bold text-[#37352F]">凍結検知ログ</h1>
+          <h1 className="text-[32px] font-bold text-[#1A1A1A]">凍結検知ログ</h1>
         </div>
-        <p className="text-[14px] text-[#9B9A97]">
+        <p className="text-[14px] text-[#6B6B6B] font-bold">
           アカウント凍結の検知履歴と自動対応の結果
         </p>
       </div>
 
-      {/* Quick Stats - Notion callout style */}
-      <div className="bg-[#F7F6F3] rounded-[4px] p-4 mb-6">
+      {/* Quick Stats - Neobrutalism card */}
+      <div className="bg-[#FFFDF7] rounded-lg p-4 mb-6 border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]">
         <div className="flex items-center gap-6 flex-wrap">
           <PropertyPill label="検知数" value={`${filteredDetections?.length || 0}件`} />
           <PropertyPill label="成功" value={`${successCount}件`} />
@@ -109,7 +109,7 @@ export default function FreezeDetection() {
           <button
             onClick={() => detectionsQuery.refetch()}
             disabled={detectionsQuery.isLoading}
-            className="flex items-center gap-1.5 text-[13px] text-[#2383E2] hover:underline disabled:opacity-50"
+            className="flex items-center gap-1.5 text-[13px] text-[#1A1A1A] font-bold hover:underline disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${detectionsQuery.isLoading ? "animate-spin" : ""}`} />
             更新
@@ -117,19 +117,19 @@ export default function FreezeDetection() {
         </div>
       </div>
 
-      {/* Filter Section - Notion style */}
+      {/* Filter Section - Neobrutalism style */}
       <div className="mb-6">
-        <h2 className="text-[16px] font-semibold text-[#37352F] flex items-center gap-2 mb-3">
+        <h2 className="text-[16px] font-bold text-[#1A1A1A] flex items-center gap-2 mb-3">
           <Filter className="w-4 h-4" />
           フィルター
         </h2>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] text-[#9B9A97]">検知タイプ</span>
+            <span className="text-[13px] text-[#6B6B6B] font-bold">検知タイプ</span>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-1.5 text-[13px] border border-[#E9E9E7] rounded-[4px] bg-white text-[#37352F] focus:outline-none focus:border-[#2383E2]"
+              className="px-3 py-1.5 text-[13px] border-2 border-[#1A1A1A] rounded-lg bg-white text-[#1A1A1A] font-bold focus:outline-none shadow-[2px_2px_0_#1A1A1A]"
             >
               <option value="all">すべて</option>
               <option value="ip_block">IPブロック</option>
@@ -138,11 +138,11 @@ export default function FreezeDetection() {
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[13px] text-[#9B9A97]">アカウント</span>
+            <span className="text-[13px] text-[#6B6B6B] font-bold">アカウント</span>
             <select
               value={filterAccount}
               onChange={(e) => setFilterAccount(e.target.value)}
-              className="px-3 py-1.5 text-[13px] border border-[#E9E9E7] rounded-[4px] bg-white text-[#37352F] focus:outline-none focus:border-[#2383E2]"
+              className="px-3 py-1.5 text-[13px] border-2 border-[#1A1A1A] rounded-lg bg-white text-[#1A1A1A] font-bold focus:outline-none shadow-[2px_2px_0_#1A1A1A]"
             >
               <option value="all">すべて</option>
               {accountsQuery.data?.map((account) => (
@@ -155,15 +155,15 @@ export default function FreezeDetection() {
         </div>
       </div>
 
-      {/* Detection Log - Notion database style */}
+      {/* Detection Log - Neobrutalism database style */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[16px] font-semibold text-[#37352F] flex items-center gap-2">
+          <h2 className="text-[16px] font-bold text-[#1A1A1A] flex items-center gap-2">
             <span>📋</span>
             検知履歴
           </h2>
           <div className="flex items-center gap-1">
-            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#9B9A97] hover:bg-[#EBEBEA] rounded-[4px] transition-colors">
+            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#1A1A1A] hover:bg-[#FFF8DC] rounded-lg transition-colors font-bold border-2 border-[#1A1A1A] shadow-[2px_2px_0_#1A1A1A] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
               <ArrowUpDown className="w-3.5 h-3.5" />
               ソート
             </button>
@@ -171,20 +171,20 @@ export default function FreezeDetection() {
         </div>
 
         {/* Table View */}
-        <div className="border border-[#E9E9E7] rounded-[4px] overflow-hidden">
+        <div className="border-2 border-[#1A1A1A] rounded-lg overflow-hidden shadow-[4px_4px_0_#1A1A1A]">
           {/* Header */}
-          <div className="grid grid-cols-[180px_1fr_120px_100px_80px_1fr] bg-[#F7F6F3] border-b border-[#E9E9E7]">
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">検知日時</div>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">アカウント</div>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">検知タイプ</div>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">自動対応</div>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">結果</div>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">詳細</div>
+          <div className="grid grid-cols-[180px_1fr_120px_100px_80px_1fr] bg-[#FFD700] border-b-2 border-[#1A1A1A]">
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">検知日時</div>
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">アカウント</div>
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">検知タイプ</div>
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">自動対応</div>
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">結果</div>
+            <div className="px-3 py-2 text-[12px] font-bold text-[#1A1A1A]">詳細</div>
           </div>
 
           {/* Rows */}
           {detectionsQuery.isLoading ? (
-            <div className="p-8 text-center text-[13px] text-[#9B9A97]">
+            <div className="p-8 text-center text-[13px] text-[#6B6B6B] bg-[#FFFDF7]">
               読み込み中...
             </div>
           ) : filteredDetections && filteredDetections.length > 0 ? (
@@ -193,9 +193,9 @@ export default function FreezeDetection() {
               return (
                 <div
                   key={detection.id}
-                  className="grid grid-cols-[180px_1fr_120px_100px_80px_1fr] border-b border-[#E9E9E7] last:border-b-0 hover:bg-[#F7F6F3] transition-colors"
+                  className="grid grid-cols-[180px_1fr_120px_100px_80px_1fr] border-b-2 border-[#1A1A1A] last:border-b-0 hover:bg-[#FFF8DC] transition-colors bg-[#FFFDF7]"
                 >
-                  <div className="px-3 py-2.5 text-[13px] text-[#37352F]">
+                  <div className="px-3 py-2.5 text-[13px] text-[#1A1A1A] font-bold">
                     {new Date(detection.detectedAt).toLocaleString("ja-JP", {
                       month: "short",
                       day: "numeric",
@@ -203,7 +203,7 @@ export default function FreezeDetection() {
                       minute: "2-digit",
                     })}
                   </div>
-                  <div className="px-3 py-2.5 text-[13px] text-[#37352F]">
+                  <div className="px-3 py-2.5 text-[13px] text-[#1A1A1A] font-bold">
                     {account?.username || `ID: ${detection.accountId}`}
                   </div>
                   <div className="px-3 py-2.5">
@@ -215,16 +215,16 @@ export default function FreezeDetection() {
                   <div className="px-3 py-2.5">
                     <StatusTag success={detection.actionSuccess} />
                   </div>
-                  <div className="px-3 py-2.5 text-[13px] text-[#9B9A97] truncate">
+                  <div className="px-3 py-2.5 text-[13px] text-[#6B6B6B] truncate font-bold">
                     {detection.details || "—"}
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="p-12 text-center">
-              <AlertTriangle className="w-10 h-10 text-[#9B9A97] mx-auto mb-3 opacity-50" />
-              <p className="text-[13px] text-[#9B9A97]">検知記録がありません</p>
+            <div className="p-12 text-center bg-[#FFFDF7]">
+              <AlertTriangle className="w-10 h-10 text-[#6B6B6B] mx-auto mb-3 opacity-50" />
+              <p className="text-[13px] text-[#6B6B6B] font-bold">検知記録がありません</p>
             </div>
           )}
         </div>

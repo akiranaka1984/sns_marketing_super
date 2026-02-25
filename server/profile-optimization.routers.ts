@@ -6,6 +6,10 @@ import { eq, and, desc, like, sql } from "drizzle-orm";
 import { analyzeProfile, generateBioVariations, compareWithModelAccounts, ProfileData, AnalysisLanguage } from "./services/profile-optimizer";
 import { getXUserProfile, updateXUserProfile } from "./x-api-service";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("profile-optimization.routers");
+
 const bioStyles = ['professional', 'casual', 'creative', 'minimalist'] as const;
 const languages = ['ja', 'en'] as const;
 
@@ -156,7 +160,7 @@ export const profileOptimizationRouter = router({
           analysis,
         };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error analyzing profile:", error);
+        logger.error("[ProfileOptimization] Error analyzing profile:", error);
         return { success: false, error: error.message };
       }
     }),
@@ -231,7 +235,7 @@ export const profileOptimizationRouter = router({
 
         return { success: true, bios };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error generating bios:", error);
+        logger.error("[ProfileOptimization] Error generating bios:", error);
         return { success: false, error: error.message, bios: [] };
       }
     }),
@@ -303,7 +307,7 @@ export const profileOptimizationRouter = router({
         const comparison = await compareWithModelAccounts(targetProfile, modelProfiles, input.language);
         return { success: true, comparison };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error comparing:", error);
+        logger.error("[ProfileOptimization] Error comparing:", error);
         return { success: false, error: error.message };
       }
     }),
@@ -431,7 +435,7 @@ export const profileOptimizationRouter = router({
             };
           }
         } catch (error: any) {
-          console.error("[ProfileOptimization] Error fetching X profile:", error);
+          logger.error("[ProfileOptimization] Error fetching X profile:", error);
           return { success: false, error: `Failed to fetch profile: ${error.message}` };
         }
       }
@@ -480,7 +484,7 @@ export const profileOptimizationRouter = router({
 
         return { success: true };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error saving learning:", error);
+        logger.error("[ProfileOptimization] Error saving learning:", error);
         return { success: false, error: error.message };
       }
     }),
@@ -521,7 +525,7 @@ export const profileOptimizationRouter = router({
 
         return { success: true, savedCount: allLearnings.length };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error saving learnings:", error);
+        logger.error("[ProfileOptimization] Error saving learnings:", error);
         return { success: false, error: error.message };
       }
     }),
@@ -697,7 +701,7 @@ export const profileOptimizationRouter = router({
           message: `Created Bio A/B test with ${input.testBios.length + 1} variations`,
         };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error creating Bio A/B test:", error);
+        logger.error("[ProfileOptimization] Error creating Bio A/B test:", error);
         return { success: false, error: error.message };
       }
     }),
@@ -755,7 +759,7 @@ export const profileOptimizationRouter = router({
           .where(eq(abTests.id, input.testId));
 
         // Record the application
-        console.log(`[ProfileOptimization] Applied bio variation ${input.variationId} to account ${input.accountId}`);
+        logger.info(`[ProfileOptimization] Applied bio variation ${input.variationId} to account ${input.accountId}`);
 
         return {
           success: true,
@@ -763,7 +767,7 @@ export const profileOptimizationRouter = router({
           message: "Bio updated successfully. Monitor engagement over the test period.",
         };
       } catch (error: any) {
-        console.error("[ProfileOptimization] Error applying bio variation:", error);
+        logger.error("[ProfileOptimization] Error applying bio variation:", error);
         return { success: false, error: error.message };
       }
     }),

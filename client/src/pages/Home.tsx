@@ -17,14 +17,18 @@ export default function Home() {
   // const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
+    <div className="min-h-screen flex flex-col bg-[#FFFDF7]">
+      <main className="p-8">
         {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
+        <div className="mb-4 p-4 bg-[#FFD700] border-2 border-[#1A1A1A] rounded-lg shadow-[4px_4px_0_#1A1A1A] inline-block">
+          <Loader2 className="animate-spin text-[#1A1A1A]" />
+        </div>
+        <h1 className="text-3xl font-bold text-[#1A1A1A] mb-4">Example Page</h1>
         {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+        <div className="mb-4 p-4 bg-[#FFFDF7] border-2 border-[#1A1A1A] rounded-lg shadow-[4px_4px_0_#1A1A1A]">
+          <Streamdown>Any **markdown** content</Streamdown>
+        </div>
+        <Button variant="default" className="bg-[#FFD700] hover:bg-[#FFED4A] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg shadow-[4px_4px_0_#1A1A1A] hover:shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] font-bold">Example Button</Button>
       </main>
     </div>
   );

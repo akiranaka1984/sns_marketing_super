@@ -5,6 +5,7 @@
  * ノウハウを蓄積しながら成長していく仕組み
  */
 
+import { createLogger } from "./utils/logger";
 import { db } from "./db";
 import {
   agents,
@@ -47,6 +48,8 @@ import {
 } from "./x-api-service";
 // Device readiness check removed (Playwright-based now)
 const ensureDeviceReady = async (_deviceId: string) => ({ ready: true, message: 'Playwright mode' });
+
+const logger = createLogger("agent-engine");
 
 // ============================================
 // Types
@@ -209,7 +212,7 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
       });
       accountLearnings.set(account.id, learnings);
     } catch (error) {
-      console.error(`[AgentEngine] Failed to get learnings for account ${account.id}:`, error);
+      logger.error({ err: error, accountId: account.id }, "Failed to get learnings for account");
       accountLearnings.set(account.id, []);
     }
   }
@@ -219,10 +222,10 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
   try {
     buzzPatterns = await getBuzzLearningsForPrompt(agent.userId);
     if (buzzPatterns.hasData) {
-      console.log(`[AgentEngine] Loaded buzz patterns for user ${agent.userId}`);
+      logger.info({ userId: agent.userId }, "Loaded buzz patterns");
     }
   } catch (error) {
-    console.error(`[AgentEngine] Failed to get buzz patterns:`, error);
+    logger.error({ err: error }, "Failed to get buzz patterns");
     buzzPatterns = {
       hooks: '- まだ蓄積されていません',
       structures: '- まだ蓄積されていません',
@@ -277,10 +280,10 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
     });
 
     if (persona.role || persona.tone || persona.characteristics) {
-      console.log(`[AgentEngine] Loaded persona for account ${account.id}: role=${persona.role}, tone=${persona.tone}`);
+      logger.info({ accountId: account.id, role: persona.role, tone: persona.tone }, "Loaded persona for account");
     }
     if (modelAccountIds.length > 0) {
-      console.log(`[AgentEngine] Account ${account.id} linked to ${modelAccountIds.length} model accounts`);
+      logger.info({ accountId: account.id, modelAccountCount: modelAccountIds.length }, "Account linked to model accounts");
     }
   }
 
@@ -301,7 +304,7 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
       projectStrategy = foundStrategy ?? null;
 
       if (projectStrategy) {
-        console.log(`[AgentEngine] Loaded project strategy for project ${agent.projectId}`);
+        logger.info({ projectId: agent.projectId }, "Loaded project strategy");
       }
 
       // Get project targets
@@ -312,13 +315,13 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
       if (project?.targets) {
         try {
           projectTargets = JSON.parse(project.targets);
-          console.log(`[AgentEngine] Loaded project targets:`, projectTargets);
+          logger.info({ projectTargets }, "Loaded project targets");
         } catch (e) {
-          console.error(`[AgentEngine] Failed to parse project targets:`, e);
+          logger.error({ err: e }, "Failed to parse project targets");
         }
       }
     } catch (error) {
-      console.error(`[AgentEngine] Failed to get project strategy/targets:`, error);
+      logger.error({ err: error }, "Failed to get project strategy/targets");
     }
   }
 
@@ -369,13 +372,11 @@ export async function buildAgentContext(agentId: number): Promise<AgentContext |
         trendingContext.modelAccountHashtags.length > 0;
 
       if (trendingContext.hasTrendingData) {
-        console.log(
-          `[AgentEngine] Loaded trending context: ${trendingContext.trendingHashtags.length} trending, ${trendingContext.modelAccountHashtags.length} model hashtags`
-        );
+        logger.info({ trendingCount: trendingContext.trendingHashtags.length, modelHashtagCount: trendingContext.modelAccountHashtags.length }, "Loaded trending context");
       }
     }
   } catch (error) {
-    console.error(`[AgentEngine] Failed to get trending context:`, error);
+    logger.error({ err: error }, "Failed to get trending context");
   }
 
   return {
@@ -490,7 +491,7 @@ export async function generateContent(
       for (const learning of weightedLearnings) {
         if (learning.usageCount >= 5 && learning.successRate < 30) {
           await deactivateLearning(learning.id);
-          console.log(`[AgentEngine] Auto-deactivated low-performing learning ${learning.id} (successRate=${learning.successRate}%, uses=${learning.usageCount})`);
+          logger.info({ learningId: learning.id, successRate: learning.successRate, usageCount: learning.usageCount }, "Auto-deactivated low-performing learning");
         }
       }
 
@@ -504,10 +505,10 @@ export async function generateContent(
         limit: 8,
       });
       if (weightedLearningPrompt) {
-        console.log(`[AgentEngine] Loaded ${usedLearningIds.length} weighted learnings for account ${targetAccountId}`);
+        logger.info({ count: usedLearningIds.length, accountId: targetAccountId }, "Loaded weighted learnings for account");
       }
     } catch (error) {
-      console.error(`[AgentEngine] Failed to get weighted learnings:`, error);
+      logger.error({ err: error }, "Failed to get weighted learnings");
     }
   }
 
@@ -552,7 +553,7 @@ export async function generateContent(
       }
 
       personaPrompt = '\n\n---\n' + personaSections.join('\n');
-      console.log(`[AgentEngine] Using persona for content generation: role=${role}, tone=${tone}`);
+      logger.info({ role, tone }, "Using persona for content generation");
     }
   }
 
@@ -587,7 +588,7 @@ export async function generateContent(
           }
         }
       } catch (e) {
-        console.error('[AgentEngine] Failed to parse contentGuidelines:', e);
+        logger.error({ err: e }, "Failed to parse contentGuidelines");
       }
     }
 
@@ -608,7 +609,7 @@ export async function generateContent(
           }
         }
       } catch (e) {
-        console.error('[AgentEngine] Failed to parse hashtagGuidelines:', e);
+        logger.error({ err: e }, "Failed to parse hashtagGuidelines");
       }
     }
 
@@ -629,7 +630,7 @@ export async function generateContent(
           }
         }
       } catch (e) {
-        console.error('[AgentEngine] Failed to parse toneGuidelines:', e);
+        logger.error({ err: e }, "Failed to parse toneGuidelines");
       }
     }
 
@@ -918,7 +919,7 @@ ${closingInstruction}`;
 
     // プランに応じたハッシュタグ数制限
     if (hashtags.length > maxHashtags) {
-      console.warn(`[AgentEngine] Too many hashtags (${hashtags.length}), limiting to ${maxHashtags}`);
+      logger.warn({ hashtagCount: hashtags.length, maxHashtags }, "Too many hashtags, limiting");
       hashtags = hashtags.slice(0, maxHashtags);
     }
 
@@ -929,14 +930,20 @@ ${closingInstruction}`;
     // 総文字数が制限を超えている場合は本文を切り詰める
     if (totalLength > effectiveMaxLength) {
       const maxContentLen = effectiveMaxLength - (hashtagsText.length > 0 ? 2 + hashtagsText.length : 0) - 3; // 3 = "..."分
-      console.warn(`[AgentEngine] Total length ${totalLength} exceeds ${effectiveMaxLength}, truncating content to ${maxContentLen} chars`);
+      logger.warn({ totalLength, effectiveMaxLength, maxContentLen }, "Total length exceeds limit, truncating content");
       content = content.substring(0, Math.max(maxContentLen, 50)) + '...';
     }
 
     // Log content generation with strategy info
-    const strategyInfo = projectStrategy ? `, strategy: "${projectStrategy.name}"` : '';
-    const targetsInfo = projectTargets && Object.keys(projectTargets).length > 0 ? `, targets: ${Object.keys(projectTargets).length}` : '';
-    console.log(`[AgentEngine] Plan: ${planType}, Generated content: ${content.length} chars, hashtags: ${hashtagsText.length} chars, total: ${content.length + (hashtagsText.length > 0 ? 2 + hashtagsText.length : 0)}/${effectiveMaxLength} chars${strategyInfo}${targetsInfo}`);
+    logger.info({
+      planType,
+      contentLength: content.length,
+      hashtagsLength: hashtagsText.length,
+      totalLength: content.length + (hashtagsText.length > 0 ? 2 + hashtagsText.length : 0),
+      effectiveMaxLength,
+      strategy: projectStrategy?.name,
+      targetCount: projectTargets ? Object.keys(projectTargets).length : 0,
+    }, "Generated content");
 
     return {
       content,
@@ -947,7 +954,7 @@ ${closingInstruction}`;
       usedLearningIds: usedLearningIds.length > 0 ? usedLearningIds : undefined,
     };
   } catch (error) {
-    console.error('[AgentEngine] Content generation failed:', error);
+    logger.error({ err: error }, "Content generation failed");
     throw error;
   }
 }
@@ -1059,7 +1066,7 @@ export async function executePost(
   }
 
   // レビュー待ちの場合（実際にはデバイスへ投稿されない）
-  console.log(`[AgentEngine] Post ${postId} created as pending_review (not posted to device). Set project executionMode=fullAuto or agent.skipReview=1 to auto-post.`);
+  logger.info({ postId }, "Post created as pending_review (not posted to device). Set project executionMode=fullAuto or agent.skipReview=1 to auto-post.");
   return { success: true, postId };
 }
 
@@ -1241,9 +1248,9 @@ export async function analyzePostPerformance(postId: number): Promise<void> {
           shares: analytics.sharesCount,
           views: analytics.viewsCount || undefined,
         }, { successLikes: 50, failureLikes: 5 });
-        console.log(`[AgentEngine] Account learning saved for account ${accountId}, post ${postId}`);
+        logger.info({ accountId, postId }, "Account learning saved");
       } catch (error) {
-        console.error(`[AgentEngine] Failed to save account learning:`, error);
+        logger.error({ err: error }, "Failed to save account learning");
       }
     }
   }
@@ -1281,9 +1288,9 @@ export async function analyzePostPerformance(postId: number): Promise<void> {
           shares: analytics.sharesCount,
           views: analytics.viewsCount || undefined,
         }, { successLikes: 50, failureLikes: 5 });
-        console.log(`[AgentEngine] Account failure learning saved for account ${accountId}, post ${postId}`);
+        logger.info({ accountId, postId }, "Account failure learning saved");
       } catch (error) {
-        console.error(`[AgentEngine] Failed to save account failure learning:`, error);
+        logger.error({ err: error }, "Failed to save account failure learning");
       }
     }
   }
@@ -1384,7 +1391,7 @@ ${JSON.stringify(patternsData, null, 2)}
       });
     }
   } catch (error) {
-    console.error('[AgentEngine] Knowledge consolidation failed:', error);
+    logger.error({ err: error }, "Knowledge consolidation failed");
   }
 }
 

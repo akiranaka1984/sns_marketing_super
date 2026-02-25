@@ -6,9 +6,9 @@
  */
 
 import { db } from "./db";
-import { 
-  scheduledPosts, 
-  agents, 
+import {
+  scheduledPosts,
+  agents,
   accounts,
   agentAccounts,
   agentSchedules,
@@ -17,6 +17,9 @@ import {
 } from "../drizzle/schema";
 import { eq, and, sql, desc, lte, inArray } from "drizzle-orm";
 import { buildAgentContext, generateContent } from "./agent-engine";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("agent-scheduled-posts");
 
 // ============================================
 // Types
@@ -82,7 +85,7 @@ export async function createAgentScheduledPost(input: ScheduledPostInput): Promi
     usedLearningIds: input.usedLearningIds ? JSON.stringify(input.usedLearningIds) : null,
   });
 
-  console.log(`[AgentScheduledPosts] Created scheduled post ${result.insertId} for agent ${input.agentId} with reviewStatus: ${reviewStatus}, learnings: ${input.usedLearningIds?.length || 0}`);
+  logger.info({ postId: result.insertId, agentId: input.agentId, reviewStatus, learningCount: input.usedLearningIds?.length || 0 }, "Created scheduled post");
   return result.insertId;
 }
 
@@ -106,7 +109,7 @@ export function calculatePostTimes(
         postingHours = [hour];
       }
     } catch (e) {
-      console.warn('[AgentScheduledPosts] Failed to parse time slot, using defaults');
+      logger.warn("Failed to parse time slot, using defaults");
     }
   }
 
@@ -231,7 +234,7 @@ export async function generateScheduledPosts(
           ),
         });
         if (existingPost) {
-          console.log(`[AgentScheduledPosts] Skipping duplicate: account ${targetAccount.id} at ${postTime.toISOString()}`);
+          logger.info({ accountId: targetAccount.id, scheduledTime: postTime.toISOString() }, "Skipping duplicate scheduled post");
           continue;
         }
 
@@ -241,7 +244,7 @@ export async function generateScheduledPosts(
         // 直前の生成内容との重複チェック（最大2回リトライ）
         let retries = 0;
         while (retries < 2 && recentContents.some(rc => isSimilar(rc, content.content))) {
-          console.log(`[AgentScheduledPosts] Similar content detected, regenerating (retry ${retries + 1})`);
+          logger.info({ retry: retries + 1 }, "Similar content detected, regenerating");
           content = await generateContent(context, undefined, targetAccount.id, recentContents);
           retries++;
         }
@@ -267,9 +270,9 @@ export async function generateScheduledPosts(
           content: content.content,
         });
 
-        console.log(`[AgentScheduledPosts] Generated post ${i + 1}/${postTimes.length} for ${postTime.toISOString()}`);
+        logger.info({ postNumber: i + 1, total: postTimes.length, scheduledTime: postTime.toISOString() }, "Generated scheduled post");
       } catch (error) {
-        console.error(`[AgentScheduledPosts] Failed to generate post ${i + 1}:`, error);
+        logger.error({ err: error, postNumber: i + 1 }, "Failed to generate post");
       }
     }
 
@@ -356,7 +359,7 @@ export async function approveScheduledPost(postId: number, notes?: string): Prom
     })
     .where(eq(scheduledPosts.id, postId));
 
-  console.log(`[AgentScheduledPosts] Approved post ${postId}`);
+  logger.info({ postId }, "Approved post");
 }
 
 /**
@@ -372,7 +375,7 @@ export async function rejectScheduledPost(postId: number, reason: string): Promi
     })
     .where(eq(scheduledPosts.id, postId));
 
-  console.log(`[AgentScheduledPosts] Rejected post ${postId}: ${reason}`);
+  logger.info({ postId, reason }, "Rejected post");
 }
 
 /**
@@ -393,7 +396,7 @@ export async function editScheduledPost(
     })
     .where(eq(scheduledPosts.id, postId));
 
-  console.log(`[AgentScheduledPosts] Edited post ${postId}`);
+  logger.info({ postId }, "Edited post");
 }
 
 /**
@@ -406,7 +409,7 @@ export async function bulkApproveScheduledPosts(postIds: number[]): Promise<numb
       await approveScheduledPost(postId);
       approved++;
     } catch (error) {
-      console.error(`[AgentScheduledPosts] Failed to approve post ${postId}:`, error);
+      logger.error({ err: error, postId }, "Failed to approve post");
     }
   }
   return approved;
@@ -422,7 +425,7 @@ export async function bulkRejectScheduledPosts(postIds: number[], reason: string
       await rejectScheduledPost(postId, reason);
       rejected++;
     } catch (error) {
-      console.error(`[AgentScheduledPosts] Failed to reject post ${postId}:`, error);
+      logger.error({ err: error, postId }, "Failed to reject post");
     }
   }
   return rejected;

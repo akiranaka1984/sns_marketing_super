@@ -1,9 +1,14 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { contentRewrites, collectedContents, agents } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("content-rewrite.routers");
 
 /**
  * Content Rewrite Router
@@ -34,7 +39,7 @@ export const contentRewriteRouter = router({
         );
 
       if (!agent) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Create rewrite prompt based on agent persona
@@ -69,7 +74,7 @@ Rewritten content:`;
         const rewrittenContent = response.choices[0]?.message?.content;
 
         if (!rewrittenContent || typeof rewrittenContent !== 'string') {
-          throw new Error("No response from AI");
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "No response from AI" });
         }
 
         // Save rewrite to database
@@ -90,7 +95,7 @@ Rewritten content:`;
           rewrittenContent: rewrittenContent.trim(),
         };
       } catch (error: any) {
-        console.error("[ContentRewrite] Error rewriting content:", error);
+        logger.error("[ContentRewrite] Error rewriting content:", error);
 
         // Save failed rewrite to database
         await db.insert(contentRewrites).values({
@@ -105,7 +110,7 @@ Rewritten content:`;
           errorMessage: error.message,
         });
 
-        throw new Error(`Failed to rewrite content: ${error.message}`);
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to rewrite content: ${error.message}` });
       }
     }),
 
@@ -131,7 +136,7 @@ Rewritten content:`;
         );
 
       if (!agent) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Get collected contents
@@ -181,7 +186,7 @@ Rewritten content:`;
           const rewrittenContent = response.choices[0]?.message?.content;
 
           if (!rewrittenContent || typeof rewrittenContent !== 'string') {
-            throw new Error("No response from AI");
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "No response from AI" });
           }
 
           // Save rewrite
@@ -202,7 +207,7 @@ Rewritten content:`;
             success: true,
           });
         } catch (error: any) {
-          console.error(`[ContentRewrite] Error rewriting content ${content.id}:`, error);
+          logger.error(`[ContentRewrite] Error rewriting content ${content.id}:`, error);
 
           // Save failed rewrite
           await db.insert(contentRewrites).values({
@@ -285,7 +290,7 @@ Rewritten content:`;
         );
 
       if (!rewrite) {
-        throw new Error("Rewrite not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Rewrite not found" });
       }
 
       return rewrite;

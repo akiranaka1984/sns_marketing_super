@@ -7,6 +7,10 @@ import multer from 'multer';
 import { storagePut } from './storage';
 import { randomBytes } from 'crypto';
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("upload");
+
 const router = Router();
 
 // Configure multer for memory storage
@@ -49,7 +53,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
     res.json({ url });
   } catch (error) {
-    console.error('Upload error:', error);
+    logger.error('Upload error:', error);
     res.status(500).json({ error: 'Upload failed' });
   }
 });

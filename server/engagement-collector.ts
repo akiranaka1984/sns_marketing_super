@@ -6,17 +6,21 @@
  */
 
 import { db } from "./db";
-import { 
-  posts, 
-  postAnalytics, 
+import {
+  posts,
+  postAnalytics,
   agentKnowledge,
   agents,
   postPerformanceFeedback
 } from "../drizzle/schema";
 import { eq, and, desc, gte, lte, sql, isNull, or } from "drizzle-orm";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("engagement-collector");
+
 // Screenshot functionality removed (was device-dependent)
 async function getDeviceScreenshot(_deviceId: string): Promise<string | null> {
-  console.log("[EngagementCollector] Device screenshot not available");
+  logger.info("Device screenshot not available");
   return null;
 }
 import { invokeLLM } from "./_core/llm";
@@ -59,7 +63,7 @@ async function collectTwitterEngagement(
     // スクリーンショットを取得
     const screenshotData = await getDeviceScreenshot(deviceId);
     if (!screenshotData) {
-      console.log("[EngagementCollector] Failed to get screenshot for Twitter");
+      logger.info("Failed to get screenshot for Twitter");
       return null;
     }
 
@@ -67,7 +71,7 @@ async function collectTwitterEngagement(
     const analysis = await analyzeEngagementFromScreenshot(screenshotData, "twitter");
     return analysis;
   } catch (error) {
-    console.error("[EngagementCollector] Twitter collection error:", error);
+    logger.error({ err: error }, "Twitter collection error");
     return null;
   }
 }
@@ -82,14 +86,14 @@ async function collectInstagramEngagement(
   try {
     const screenshotData = await getDeviceScreenshot(deviceId);
     if (!screenshotData) {
-      console.log("[EngagementCollector] Failed to get screenshot for Instagram");
+      logger.info("Failed to get screenshot for Instagram");
       return null;
     }
 
     const analysis = await analyzeEngagementFromScreenshot(screenshotData, "instagram");
     return analysis;
   } catch (error) {
-    console.error("[EngagementCollector] Instagram collection error:", error);
+    logger.error({ err: error }, "Instagram collection error");
     return null;
   }
 }
@@ -104,14 +108,14 @@ async function collectTikTokEngagement(
   try {
     const screenshotData = await getDeviceScreenshot(deviceId);
     if (!screenshotData) {
-      console.log("[EngagementCollector] Failed to get screenshot for TikTok");
+      logger.info("Failed to get screenshot for TikTok");
       return null;
     }
 
     const analysis = await analyzeEngagementFromScreenshot(screenshotData, "tiktok");
     return analysis;
   } catch (error) {
-    console.error("[EngagementCollector] TikTok collection error:", error);
+    logger.error({ err: error }, "TikTok collection error");
     return null;
   }
 }
@@ -126,14 +130,14 @@ async function collectFacebookEngagement(
   try {
     const screenshotData = await getDeviceScreenshot(deviceId);
     if (!screenshotData) {
-      console.log("[EngagementCollector] Failed to get screenshot for Facebook");
+      logger.info("Failed to get screenshot for Facebook");
       return null;
     }
 
     const analysis = await analyzeEngagementFromScreenshot(screenshotData, "facebook");
     return analysis;
   } catch (error) {
-    console.error("[EngagementCollector] Facebook collection error:", error);
+    logger.error({ err: error }, "Facebook collection error");
     return null;
   }
 }
@@ -232,7 +236,7 @@ K（千）やM（百万）の単位は数値に変換してください（例: 1
       engagementRate
     };
   } catch (error) {
-    console.error("[EngagementCollector] AI analysis error:", error);
+    logger.error({ err: error }, "AI analysis error");
     return null;
   }
 }
@@ -324,11 +328,11 @@ export async function collectPostEngagement(postId: number): Promise<CollectionR
       recordedAt: new Date().toISOString()
     });
 
-    console.log(`[EngagementCollector] Collected engagement for post ${postId}: likes=${engagementData.likesCount}, comments=${engagementData.commentsCount}`);
+    logger.info({ postId, likes: engagementData.likesCount, comments: engagementData.commentsCount }, "Collected engagement for post");
 
     return { success: true, postId, platform, data: engagementData };
   } catch (error) {
-    console.error(`[EngagementCollector] Error collecting engagement for post ${postId}:`, error);
+    logger.error({ err: error, postId }, "Error collecting engagement for post");
     return { 
       success: false, 
       postId, 
@@ -382,7 +386,7 @@ export async function collectAllPendingEngagements(): Promise<{
     await new Promise(resolve => setTimeout(resolve, 2000));
   }
 
-  console.log(`[EngagementCollector] Batch collection complete: ${success}/${pendingPosts.length} successful`);
+  logger.info({ success, total: pendingPosts.length }, "Batch collection complete");
 
   return {
     total: pendingPosts.length,
@@ -407,7 +411,7 @@ export async function generateKnowledgeFromEngagement(postId: number): Promise<v
     });
 
     if (!post || !post.agentId) {
-      console.log(`[EngagementCollector] Post ${postId} has no agent, skipping knowledge generation`);
+      logger.info({ postId }, "Post has no agent, skipping knowledge generation");
       return;
     }
 
@@ -424,7 +428,7 @@ export async function generateKnowledgeFromEngagement(postId: number): Promise<v
       .limit(20);
 
     if (agentPosts.length < 3) {
-      console.log(`[EngagementCollector] Not enough posts for knowledge generation`);
+      logger.info("Not enough posts for knowledge generation");
       return;
     }
 
@@ -444,7 +448,7 @@ export async function generateKnowledgeFromEngagement(postId: number): Promise<v
       (post.commentsCount || 0) < avgComments * 0.5;
 
     if (!isHighPerformer && !isLowPerformer) {
-      console.log(`[EngagementCollector] Post ${postId} has average performance, no knowledge generated`);
+      logger.info({ postId }, "Post has average performance, no knowledge generated");
       return;
     }
 
@@ -519,7 +523,7 @@ ${isHighPerformer ? "なぜ成功したのか" : "なぜ失敗したのか"}を�
       isActive: 1
     });
 
-    console.log(`[EngagementCollector] Generated knowledge for post ${postId}: ${knowledge.title}`);
+    logger.info({ postId, title: knowledge.title }, "Generated knowledge for post");
 
     // パフォーマンスフィードバックを記録
     const metrics = {
@@ -546,7 +550,7 @@ ${isHighPerformer ? "なぜ成功したのか" : "なぜ失敗したのか"}を�
     });
 
   } catch (error) {
-    console.error(`[EngagementCollector] Error generating knowledge for post ${postId}:`, error);
+    logger.error({ err: error, postId }, "Error generating knowledge for post");
   }
 }
 
@@ -602,9 +606,9 @@ export async function updateKnowledgeConfidence(agentId: number): Promise<void> 
         .where(eq(agentKnowledge.id, knowledge.id));
     }
 
-    console.log(`[EngagementCollector] Updated knowledge confidence for agent ${agentId}`);
+    logger.info({ agentId }, "Updated knowledge confidence for agent");
   } catch (error) {
-    console.error(`[EngagementCollector] Error updating knowledge confidence:`, error);
+    logger.error({ err: error }, "Error updating knowledge confidence");
   }
 }
 
@@ -617,7 +621,7 @@ export async function updateKnowledgeConfidence(agentId: number): Promise<void> 
  * 投稿後1時間、6時間、24時間、48時間で収集
  */
 export async function runScheduledCollection(): Promise<void> {
-  console.log("[EngagementCollector] Starting scheduled collection...");
+  logger.info("Starting scheduled collection...");
 
   const now = Date.now();
   const intervals = [
@@ -643,7 +647,7 @@ export async function runScheduledCollection(): Promise<void> {
         )
       );
 
-    console.log(`[EngagementCollector] Found ${postsToCollect.length} posts for ${interval.label} collection`);
+    logger.info({ count: postsToCollect.length, interval: interval.label }, "Found posts for collection");
 
     for (const post of postsToCollect) {
       const result = await collectPostEngagement(post.id);
@@ -660,7 +664,7 @@ export async function runScheduledCollection(): Promise<void> {
     }
   }
 
-  console.log("[EngagementCollector] Scheduled collection complete");
+  logger.info("Scheduled collection complete");
 }
 
 // エクスポート

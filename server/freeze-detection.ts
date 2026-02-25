@@ -350,7 +350,7 @@ async function pauseAccount(accountId: number): Promise<{
     // The recovery scheduler will pick this up automatically
     const recoverySchedule = await scheduleRecovery(accountId, 24);
 
-    console.log(`[FreezeDetection] Account ${accountId} paused. Recovery scheduled for ${recoverySchedule.scheduledAt.toISOString()}`);
+    logger.info(`[FreezeDetection] Account ${accountId} paused. Recovery scheduled for ${recoverySchedule.scheduledAt.toISOString()}`);
 
     return {
       success: true,
@@ -365,3 +365,7 @@ async function pauseAccount(accountId: number): Promise<{
 
 // Import ne function
 import { ne } from "drizzle-orm";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("freeze-detection");

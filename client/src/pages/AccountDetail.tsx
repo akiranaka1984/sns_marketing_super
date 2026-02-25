@@ -21,13 +21,13 @@ import AccountAgentsTab from "@/components/AccountAgentsTab";
 
 function SessionStatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; border: string; icon: typeof ShieldCheck; label: string }> = {
-    active: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: ShieldCheck, label: "Active" },
-    expired: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", icon: ShieldAlert, label: "Expired" },
-    needs_login: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: ShieldX, label: "Needs Login" },
+    active: { bg: "bg-[#A8E6CF]", text: "text-[#1A1A1A]", border: "border-[#1A1A1A]", icon: ShieldCheck, label: "Active" },
+    expired: { bg: "bg-[#FFDAB9]", text: "text-[#1A1A1A]", border: "border-[#1A1A1A]", icon: ShieldAlert, label: "Expired" },
+    needs_login: { bg: "bg-[#FF6B6B]", text: "text-[#1A1A1A]", border: "border-[#1A1A1A]", icon: ShieldX, label: "Needs Login" },
   };
   const { bg, text, border, icon: Icon, label } = config[status] || config.needs_login;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${bg} ${text} border ${border}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${bg} ${text} border-2 ${border} shadow-[4px_4px_0_#1A1A1A]`}>
       <Icon className="w-3.5 h-3.5" />
       {label}
     </span>
@@ -156,8 +156,8 @@ export default function AccountDetail() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-[#D4380D]" />
-          <span className="text-sm text-[#A3A3A3]">Loading account...</span>
+          <Loader2 className="h-6 w-6 animate-spin text-[#FFD700]" />
+          <span className="text-sm text-[#6B6B6B] font-bold">Loading account...</span>
         </div>
       </div>
     );
@@ -166,9 +166,9 @@ export default function AccountDetail() {
   if (!account) {
     return (
       <div className="max-w-5xl">
-        <div className="signal-card p-8 text-center">
-          <p className="text-[#A3A3A3] mb-4">Account not found</p>
-          <Button asChild size="sm" className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+        <div className="bg-[#FFFDF7] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-8 text-center">
+          <p className="text-[#6B6B6B] font-bold mb-4">Account not found</p>
+          <Button asChild size="sm" className="bg-[#FFD700] hover:bg-[#FFD700] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
             <Link href="/accounts">
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t('accountDetail.backToAccounts')}
@@ -186,33 +186,33 @@ export default function AccountDetail() {
       {/* Back + Header */}
       <div className="fade-in-up">
         <Link href="/accounts">
-          <button className="flex items-center gap-1.5 text-xs font-medium text-[#A3A3A3] hover:text-[#1A1A1A] transition-colors mb-4">
+          <button className="flex items-center gap-1.5 text-xs font-bold text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors mb-4 px-3 py-1.5 rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] bg-[#FFFDF7] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Accounts
           </button>
         </Link>
         <div className="flex items-start justify-between">
           <div>
-            <p className="section-label mb-1">Account Detail</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B] mb-1">Account Detail</p>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1A1A1A]">
               @{account.username}
             </h1>
-            <p className="text-sm text-[#737373] capitalize mt-0.5">
+            <p className="text-sm text-[#6B6B6B] font-bold capitalize mt-0.5">
               {t('accounts.platform.' + account.platform)} Account
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#DDA0DD] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]">
               <Monitor className="w-3.5 h-3.5" />
               Playwright
             </span>
             {/* Status badge */}
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] ${
               account.status === 'active'
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                ? 'bg-[#A8E6CF] text-[#1A1A1A]'
                 : account.status === 'pending'
-                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                : 'bg-red-50 text-red-700 border border-red-200'
+                ? 'bg-[#FFDAB9] text-[#1A1A1A]'
+                : 'bg-[#FF6B6B] text-[#1A1A1A]'
             }`}>
               {account.status}
             </span>
@@ -238,7 +238,7 @@ export default function AccountDetail() {
       {/* Tabs */}
       <div className="fade-in-up" style={{ animationDelay: '160ms' }}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <div className="flex items-center gap-1 p-1 bg-white border border-[#E5E5E5] rounded-lg w-fit">
+          <div className="flex items-center gap-1 p-1 bg-[#FFFDF7] border-2 border-[#1A1A1A] rounded-lg w-fit shadow-[4px_4px_0_#1A1A1A]">
             {[
               { value: "overview", icon: LayoutDashboard, label: "概要" },
               { value: "session", icon: Shield, label: "セッション" },
@@ -251,10 +251,10 @@ export default function AccountDetail() {
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   activeTab === tab.value
-                    ? "bg-[#1A1A1A] text-white shadow-sm"
-                    : "text-[#737373] hover:text-[#1A1A1A] hover:bg-[#F5F5F5]"
+                    ? "bg-[#1A1A1A] text-white"
+                    : "text-[#6B6B6B] hover:text-[#1A1A1A] hover:bg-[#FFF8DC]"
                 }`}
               >
                 <tab.icon className="w-3.5 h-3.5" />
@@ -268,46 +268,46 @@ export default function AccountDetail() {
             <div className="space-y-4">
               {/* Quick Stats */}
               <div className="grid gap-3 md:grid-cols-3">
-                <div className="signal-card p-4">
+                <div className="bg-[#4ECDC4] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">投稿方式</p>
-                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
-                      <Monitor className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A]">投稿方式</p>
+                    <div className="p-1.5 rounded-lg bg-[#FFFDF7] border-2 border-[#1A1A1A]">
+                      <Monitor className="h-3.5 w-3.5 text-[#1A1A1A]" />
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-[#1A1A1A]">Playwright</p>
-                  <p className="text-[10px] text-[#A3A3A3] mt-0.5">ブラウザ自動化</p>
+                  <p className="text-sm font-bold text-[#1A1A1A]">Playwright</p>
+                  <p className="text-[10px] font-bold text-[#1A1A1A] mt-0.5">ブラウザ自動化</p>
                 </div>
 
-                <div className="signal-card p-4">
+                <div className="bg-[#FFD700] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">作成日</p>
-                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
-                      <Calendar className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A]">作成日</p>
+                    <div className="p-1.5 rounded-lg bg-[#FFFDF7] border-2 border-[#1A1A1A]">
+                      <Calendar className="h-3.5 w-3.5 text-[#1A1A1A]" />
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-[#1A1A1A]">
+                  <p className="text-sm font-bold text-[#1A1A1A]">
                     {new Date(account.createdAt).toLocaleDateString("ja-JP")}
                   </p>
-                  <p className="text-[10px] text-[#A3A3A3] mt-0.5">
+                  <p className="text-[10px] font-bold text-[#1A1A1A] mt-0.5">
                     {new Date(account.createdAt).toLocaleTimeString("ja-JP")}
                   </p>
                 </div>
 
-                <div className="signal-card p-4">
+                <div className="bg-[#FF6B6B] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">成長データ</p>
-                    <div className="p-1.5 rounded-lg bg-[#F5F5F5]">
-                      <Activity className="h-3.5 w-3.5 text-[#A3A3A3]" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A]">成長データ</p>
+                    <div className="p-1.5 rounded-lg bg-[#FFFDF7] border-2 border-[#1A1A1A]">
+                      <Activity className="h-3.5 w-3.5 text-[#1A1A1A]" />
                     </div>
                   </div>
-                  <p className="text-xs text-[#737373]">
+                  <p className="text-xs font-bold text-[#1A1A1A]">
                     既存の学習データから経験値を再計算
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-3 w-full h-7 text-xs border-[#E5E5E5] text-[#525252] hover:bg-[#F5F5F5]"
+                    className="mt-3 w-full h-7 text-xs font-bold border-2 border-[#1A1A1A] bg-[#FFFDF7] text-[#1A1A1A] hover:bg-[#FFF8DC] rounded-lg"
                     onClick={() => syncGrowthMutation.mutate({ accountId })}
                     disabled={syncGrowthMutation.isPending}
                   >
@@ -322,28 +322,28 @@ export default function AccountDetail() {
               </div>
 
               {/* Account Details */}
-              <div className="signal-card p-5">
-                <p className="section-label mb-4">アカウント詳細</p>
+              <div className="bg-[#FFFDF7] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B] mb-4">アカウント詳細</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Username</label>
-                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5">{account.username}</p>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Username</label>
+                    <p className="text-sm font-bold text-[#1A1A1A] mt-0.5">{account.username}</p>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">X Handle</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">X Handle</label>
                     {isEditingXHandle ? (
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-[#A3A3A3]">@</span>
+                        <span className="text-sm font-bold text-[#6B6B6B]">@</span>
                         <Input
                           value={xHandleInput}
                           onChange={(e) => setXHandleInput(e.target.value)}
                           placeholder="例: elonmusk"
-                          className="flex-1 h-8 text-sm border-[#E5E5E5]"
+                          className="flex-1 h-8 text-sm font-bold border-2 border-[#1A1A1A] bg-[#FFFDF7] rounded-lg"
                         />
                         <button
                           onClick={handleSaveXHandle}
                           disabled={updateAccountMutation.isPending}
-                          className="p-1.5 rounded-md hover:bg-emerald-50 text-emerald-600 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-[#A8E6CF] text-[#1A1A1A] font-bold transition-colors border-2 border-[#1A1A1A]"
                         >
                           {updateAccountMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -353,7 +353,7 @@ export default function AccountDetail() {
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="p-1.5 rounded-md hover:bg-[#F5F5F5] text-[#A3A3A3] transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-[#FFF8DC] text-[#6B6B6B] font-bold transition-colors border-2 border-[#1A1A1A]"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -361,25 +361,25 @@ export default function AccountDetail() {
                     ) : (
                       <div className="flex items-center gap-2 mt-0.5">
                         {(account as any).xHandle ? (
-                          <code className="text-sm font-mono bg-[#F5F5F5] text-[#525252] px-2 py-0.5 rounded">
+                          <code className="text-sm font-bold bg-[#FFF8DC] text-[#1A1A1A] px-2 py-0.5 rounded-lg border-2 border-[#1A1A1A]">
                             @{(account as any).xHandle}
                           </code>
                         ) : (
-                          <span className="text-sm text-[#A3A3A3]">未設定</span>
+                          <span className="text-sm font-bold text-[#6B6B6B]">未設定</span>
                         )}
-                        <button onClick={handleEditXHandle} className="p-1 rounded-md hover:bg-[#F5F5F5] text-[#A3A3A3] transition-colors">
+                        <button onClick={handleEditXHandle} className="p-1 rounded-lg hover:bg-[#FFF8DC] text-[#6B6B6B] font-bold transition-colors border-2 border-[#1A1A1A]">
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     )}
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Platform</label>
-                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5 capitalize">{account.platform}</p>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Platform</label>
+                    <p className="text-sm font-bold text-[#1A1A1A] mt-0.5 capitalize">{account.platform}</p>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#A3A3A3]">Device ID</label>
-                    <p className="text-sm font-medium text-[#1A1A1A] mt-0.5 font-mono">{account.deviceId || 'N/A'}</p>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B6B6B]">Device ID</label>
+                    <p className="text-sm font-bold text-[#1A1A1A] mt-0.5 font-mono">{account.deviceId || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -390,37 +390,37 @@ export default function AccountDetail() {
           {activeTab === "session" && (
             <div className="space-y-4">
               {/* Session Status */}
-              <div className="signal-card p-5">
+              <div className="bg-[#FFFDF7] rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="section-label">ブラウザセッション</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B]">ブラウザセッション</p>
                     <SessionStatusBadge status={currentSessionStatus} />
                   </div>
 
                   <div className="space-y-3">
                     {/* Status detail */}
-                    <div className="p-3 rounded-lg bg-[#FAFAFA] border border-[#E5E5E5]">
+                    <div className="p-3 rounded-lg bg-[#FFF8DC] border-2 border-[#1A1A1A]">
                       <div className="flex items-start gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          currentSessionStatus === 'active' ? 'bg-emerald-100' :
-                          currentSessionStatus === 'expired' ? 'bg-amber-100' : 'bg-red-100'
+                        <div className={`p-2 rounded-lg border-2 border-[#1A1A1A] ${
+                          currentSessionStatus === 'active' ? 'bg-[#A8E6CF]' :
+                          currentSessionStatus === 'expired' ? 'bg-[#FFDAB9]' : 'bg-[#FF6B6B]'
                         }`}>
                           {currentSessionStatus === 'active' ? (
-                            <ShieldCheck className="w-5 h-5 text-emerald-700" />
+                            <ShieldCheck className="w-5 h-5 text-[#1A1A1A]" />
                           ) : currentSessionStatus === 'expired' ? (
-                            <ShieldAlert className="w-5 h-5 text-amber-700" />
+                            <ShieldAlert className="w-5 h-5 text-[#1A1A1A]" />
                           ) : (
-                            <ShieldX className="w-5 h-5 text-red-700" />
+                            <ShieldX className="w-5 h-5 text-[#1A1A1A]" />
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-[#1A1A1A]">
+                          <p className="text-sm font-bold text-[#1A1A1A]">
                             {currentSessionStatus === 'active'
                               ? 'セッション有効'
                               : currentSessionStatus === 'expired'
                               ? 'セッション期限切れ'
                               : 'ログインが必要'}
                           </p>
-                          <p className="text-xs text-[#737373] mt-0.5">
+                          <p className="text-xs font-bold text-[#6B6B6B] mt-0.5">
                             {currentSessionStatus === 'active'
                               ? 'X.comへの投稿が可能です。'
                               : currentSessionStatus === 'expired'
@@ -437,7 +437,7 @@ export default function AccountDetail() {
                         variant="outline"
                         size="sm"
                         onClick={() => setPreviewOpen(true)}
-                        className="h-8 text-xs font-semibold border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                        className="h-8 text-xs font-bold border-2 border-[#1A1A1A] bg-[#DDA0DD] text-[#1A1A1A] hover:bg-[#DDA0DD] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                       >
                         <Eye className="h-3.5 w-3.5 mr-1.5" />
                         ライブプレビュー
@@ -451,7 +451,7 @@ export default function AccountDetail() {
                           testPreviewMutation.mutate({ accountId });
                         }}
                         disabled={testPreviewMutation.isPending}
-                        className="h-8 text-xs font-semibold border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                        className="h-8 text-xs font-bold border-2 border-[#1A1A1A] bg-[#A8E6CF] text-[#1A1A1A] hover:bg-[#A8E6CF] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                       >
                         {testPreviewMutation.isPending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -468,7 +468,7 @@ export default function AccountDetail() {
                           loginMutation.mutate({ accountId });
                         }}
                         disabled={loginMutation.isPending}
-                        className="h-8 text-xs font-semibold bg-[#D4380D] hover:bg-[#B8300B] text-white"
+                        className="h-8 text-xs font-bold bg-[#FFD700] hover:bg-[#FFD700] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                       >
                         {loginMutation.isPending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -486,7 +486,7 @@ export default function AccountDetail() {
                           healthCheckMutation.mutate({ accountId });
                         }}
                         disabled={healthCheckMutation.isPending}
-                        className="h-8 text-xs font-semibold border-[#E5E5E5] text-[#525252] hover:bg-[#F5F5F5]"
+                        className="h-8 text-xs font-bold border-2 border-[#1A1A1A] bg-[#FFFDF7] text-[#1A1A1A] hover:bg-[#FFF8DC] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                       >
                         {healthCheckMutation.isPending ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -506,7 +506,7 @@ export default function AccountDetail() {
                             }
                           }}
                           disabled={deleteSessionMutation.isPending}
-                          className="h-8 text-xs font-semibold border-red-200 text-red-600 hover:bg-red-50"
+                          className="h-8 text-xs font-bold border-2 border-[#1A1A1A] bg-[#FF6B6B] text-[#1A1A1A] hover:bg-[#FF6B6B] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                         >
                           {deleteSessionMutation.isPending ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -521,10 +521,10 @@ export default function AccountDetail() {
                 </div>
 
               {/* Info note */}
-              <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[#FAFAFA] border border-[#E5E5E5]">
-                <Info className="w-4 h-4 text-[#A3A3A3] mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-[#737373] leading-relaxed">
-                  <p className="font-semibold text-[#525252] mb-1">セッションについて</p>
+              <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[#FFF8DC] border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]">
+                <Info className="w-4 h-4 text-[#6B6B6B] mt-0.5 flex-shrink-0" />
+                <div className="text-xs font-bold text-[#6B6B6B] leading-relaxed">
+                  <p className="font-bold text-[#1A1A1A] mb-1">セッションについて</p>
                   <p>
                     Playwrightブラウザ自動化を使用してX.comに投稿します。
                     X.comへのログインセッションの管理が必要です。

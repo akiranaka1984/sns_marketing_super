@@ -6,6 +6,10 @@
 
 import { invokeLLM } from "../_core/llm";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("category-classifier");
+
 // Industry categories
 export const industryCategories = [
   'it_tech', 'beauty_fashion', 'food_restaurant', 'finance_investment',
@@ -139,7 +143,7 @@ Respond with JSON:
       confidence: Math.min(100, Math.max(0, classification.confidence || 50)),
     };
   } catch (error) {
-    console.error("[CategoryClassifier] Error classifying post:", error);
+    logger.error({ err: error }, "[CategoryClassifier] Error classifying post");
     // Return default classification on error
     return {
       industryCategory: 'other',
@@ -233,7 +237,7 @@ Respond with JSON:
       confidence: Math.min(100, Math.max(0, classification.confidence || 50)),
     };
   } catch (error) {
-    console.error("[CategoryClassifier] Error classifying account:", error);
+    logger.error({ err: error }, "[CategoryClassifier] Error classifying account");
     return {
       industryCategory: 'other',
       postingStyle: 'informative',

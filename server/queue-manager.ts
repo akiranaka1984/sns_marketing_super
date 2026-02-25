@@ -14,6 +14,9 @@
 
 import Bull from 'bull';
 import type { Job, Queue, JobOptions } from 'bull';
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("queue-manager");
 
 // Queue names
 export const QUEUE_NAMES = {
@@ -75,27 +78,27 @@ export function getScheduledPostsQueue(): Queue<ScheduledPostJob> {
 
     // Global event handlers
     scheduledPostsQueue.on('error', (error) => {
-      console.error('[QueueManager] Scheduled posts queue error:', error);
+      logger.error({ err: error }, "Scheduled posts queue error");
     });
 
     scheduledPostsQueue.on('waiting', (jobId) => {
-      console.log(`[QueueManager] Job ${jobId} waiting`);
+      logger.info({ jobId }, "Job waiting");
     });
 
     scheduledPostsQueue.on('active', (job) => {
-      console.log(`[QueueManager] Processing scheduled post job ${job.id} for post ${job.data.postId}`);
+      logger.info({ jobId: job.id, postId: job.data.postId }, "Processing scheduled post job");
     });
 
     scheduledPostsQueue.on('completed', (job, result) => {
-      console.log(`[QueueManager] Scheduled post job ${job.id} completed:`, result?.success ? 'success' : 'failed');
+      logger.info({ jobId: job.id, success: result?.success }, "Scheduled post job completed");
     });
 
     scheduledPostsQueue.on('failed', (job, error) => {
-      console.error(`[QueueManager] Scheduled post job ${job?.id} failed:`, error.message);
+      logger.error({ jobId: job?.id, err: error }, "Scheduled post job failed");
     });
 
     scheduledPostsQueue.on('stalled', (job) => {
-      console.warn(`[QueueManager] Scheduled post job ${job.id} stalled`);
+      logger.warn({ jobId: job.id }, "Scheduled post job stalled");
     });
   }
   return scheduledPostsQueue;
@@ -116,23 +119,23 @@ export function getInteractionsQueue(): Queue<InteractionJob> {
 
     // Global event handlers
     interactionsQueue.on('error', (error) => {
-      console.error('[QueueManager] Interactions queue error:', error);
+      logger.error({ err: error }, "Interactions queue error");
     });
 
     interactionsQueue.on('active', (job) => {
-      console.log(`[QueueManager] Processing interaction job ${job.id}: ${job.data.type}`);
+      logger.info({ jobId: job.id, type: job.data.type }, "Processing interaction job");
     });
 
     interactionsQueue.on('completed', (job, result) => {
-      console.log(`[QueueManager] Interaction job ${job.id} completed:`, result?.success ? 'success' : 'failed');
+      logger.info({ jobId: job.id, success: result?.success }, "Interaction job completed");
     });
 
     interactionsQueue.on('failed', (job, error) => {
-      console.error(`[QueueManager] Interaction job ${job?.id} failed:`, error.message);
+      logger.error({ jobId: job?.id, err: error }, "Interaction job failed");
     });
 
     interactionsQueue.on('stalled', (job) => {
-      console.warn(`[QueueManager] Interaction job ${job.id} stalled`);
+      logger.warn({ jobId: job.id }, "Interaction job stalled");
     });
   }
   return interactionsQueue;
@@ -153,7 +156,7 @@ export async function addScheduledPostJob(
   // Check if job already exists
   const existingJob = await queue.getJob(jobId);
   if (existingJob) {
-    console.log(`[QueueManager] Job for post ${data.postId} already exists, skipping`);
+    logger.info({ postId: data.postId }, "Job for post already exists, skipping");
     return existingJob;
   }
 
@@ -178,7 +181,7 @@ export async function addInteractionJob(
   // Check if job already exists
   const existingJob = await queue.getJob(jobId);
   if (existingJob) {
-    console.log(`[QueueManager] Job for interaction ${data.interactionId} already exists, skipping`);
+    logger.info({ interactionId: data.interactionId }, "Job for interaction already exists, skipping");
     return existingJob;
   }
 
@@ -268,7 +271,7 @@ export async function closeQueues(): Promise<void> {
   }
 
   await Promise.all(closePromises);
-  console.log('[QueueManager] All queues closed');
+  logger.info("All queues closed");
 }
 
 /**
@@ -287,7 +290,7 @@ export async function clearQueues(): Promise<void> {
     interactionsQ.clean(0, 'failed'),
   ]);
 
-  console.log('[QueueManager] All queues cleared');
+  logger.info("All queues cleared");
 }
 
 /**
@@ -302,7 +305,7 @@ export async function pauseQueues(): Promise<void> {
     interactionsQ.pause(),
   ]);
 
-  console.log('[QueueManager] All queues paused');
+  logger.info("All queues paused");
 }
 
 export async function resumeQueues(): Promise<void> {
@@ -314,7 +317,7 @@ export async function resumeQueues(): Promise<void> {
     interactionsQ.resume(),
   ]);
 
-  console.log('[QueueManager] All queues resumed');
+  logger.info("All queues resumed");
 }
 
 /**
@@ -333,6 +336,6 @@ export async function retryFailedJobs(queueName: keyof typeof QUEUE_NAMES): Prom
     retried++;
   }
 
-  console.log(`[QueueManager] Retried ${retried} failed jobs in ${queueName}`);
+  logger.info({ retried, queueName }, "Retried failed jobs");
   return retried;
 }

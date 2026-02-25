@@ -18,6 +18,10 @@ import {
 } from "../../drizzle/schema";
 import { eq, and, desc, gte, lt, sql, asc, isNull } from "drizzle-orm";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("engagement-queue");
+
 // Types
 export interface QueuedTask {
   id: number;
@@ -60,7 +64,7 @@ export async function getNextTasks(
   });
 
   if (!settings?.isEnabled) {
-    console.log(`[EngagementQueue] Interactions disabled for project ${projectId}`);
+    logger.info(`[EngagementQueue] Interactions disabled for project ${projectId}`);
     return [];
   }
 
@@ -110,7 +114,7 @@ export async function getNextTasks(
   }
 
   if (availableTypes.length === 0) {
-    console.log(`[EngagementQueue] All task types at daily limit for account ${accountId}`);
+    logger.info(`[EngagementQueue] All task types at daily limit for account ${accountId}`);
     return [];
   }
 
@@ -363,7 +367,7 @@ export async function bulkAddToQueue(
       await addToQueue(task);
       added++;
     } catch (err) {
-      console.error("[EngagementQueue] Failed to add task:", err);
+      logger.error({ err: err }, "[EngagementQueue] Failed to add task");
       failed++;
     }
   }

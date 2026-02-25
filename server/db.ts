@@ -3,9 +3,15 @@ import mysql from "mysql2/promise";
 import { eq, and, desc, gte, inArray, sql } from "drizzle-orm";
 import * as schema from "../drizzle/schema";
 import type { BuzzLearningInput, ModelPatternInput } from "./aiEngine";
+import { encrypt, decrypt, ensureEncrypted } from "./utils/encryption";
 
 const connection = mysql.createPool(process.env.DATABASE_URL!);
 export const db = drizzle(connection, { schema, mode: "default" });
+
+/** Format Date to MySQL-compatible datetime string */
+function toMySQLDatetime(date: Date = new Date()): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
 
 /**
  * User operations
@@ -21,7 +27,7 @@ export async function createUser(data: schema.InsertUser) {
 }
 
 export async function updateUserLastSignedIn(openId: string) {
-  await db.update(schema.users).set({ lastSignedIn: new Date().toISOString() }).where(eq(schema.users.openId, openId));
+  await db.update(schema.users).set({ lastSignedIn: toMySQLDatetime() }).where(eq(schema.users.openId, openId));
 }
 
 export async function upsertUser(data: schema.InsertUser) {
@@ -173,6 +179,14 @@ export async function getAccountById(accountId: number) {
   return account;
 }
 
+/**
+ * Get an account's decrypted password
+ */
+export function getDecryptedPassword(account: { password: string | null }): string | null {
+  if (!account.password) return null;
+  return decrypt(account.password);
+}
+
 export async function getAccountByUsernameAndPlatform(
   username: string,
   platform: 'twitter' | 'tiktok' | 'instagram' | 'facebook',
@@ -196,14 +210,22 @@ export async function getAccountByUsernameAndPlatform(
 }
 
 export async function createAccount(data: schema.InsertAccount) {
-  const [result] = await db.insert(schema.accounts).values(data);
+  const securedData = { ...data };
+  if (securedData.password) {
+    securedData.password = ensureEncrypted(securedData.password);
+  }
+  const [result] = await db.insert(schema.accounts).values(securedData);
   return result.insertId;
 }
 
 export async function updateAccount(accountId: number, data: Partial<schema.InsertAccount>) {
+  const securedData = { ...data };
+  if (securedData.password) {
+    securedData.password = ensureEncrypted(securedData.password);
+  }
   await db
     .update(schema.accounts)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...securedData, updatedAt: new Date().toISOString() })
     .where(eq(schema.accounts.id, accountId));
 }
 
@@ -462,23 +484,30 @@ export async function createAnalytics(data: schema.InsertAnalytics) {
 /**
  * Settings operations - System-wide key-value configuration
  */
+const SENSITIVE_SETTING_KEYS = new Set([
+  'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'X_API_BEARER_TOKEN', 'X_API_KEY', 'X_API_SECRET',
+]);
+
 export async function getSetting(key: string): Promise<string | null> {
   const [setting] = await db.select().from(schema.settings).where(eq(schema.settings.key, key));
-  return setting?.value || null;
+  const value = setting?.value || null;
+  if (value && SENSITIVE_SETTING_KEYS.has(key)) {
+    return decrypt(value);
+  }
+  return value;
 }
 
 export async function setSetting(key: string, value: string, description?: string): Promise<void> {
+  const storedValue = SENSITIVE_SETTING_KEYS.has(key) ? ensureEncrypted(value) : value;
   const existing = await db.select().from(schema.settings).where(eq(schema.settings.key, key));
-  
+
   if (existing.length > 0) {
-    // Update existing setting
     await db
       .update(schema.settings)
-      .set({ value, description, updatedAt: new Date().toISOString() })
+      .set({ value: storedValue, description, updatedAt: new Date().toISOString() })
       .where(eq(schema.settings.key, key));
   } else {
-    // Insert new setting
-    await db.insert(schema.settings).values({ key, value, description });
+    await db.insert(schema.settings).values({ key, value: storedValue, description });
   }
 }
 

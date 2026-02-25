@@ -6,6 +6,10 @@
 
 import { invokeLLM } from "../_core/llm";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("profile-optimizer");
+
 export type AnalysisLanguage = 'ja' | 'en';
 
 export interface ProfileData {
@@ -232,7 +236,7 @@ Respond with JSON:
       })),
     };
   } catch (error) {
-    console.error("[ProfileOptimizer] Error analyzing profile:", error);
+    logger.error("[ProfileOptimizer] Error analyzing profile:", error);
     return getDefaultAnalysis();
   }
 }
@@ -306,7 +310,7 @@ Respond with JSON:
       whyItWorks: b.whyItWorks || '',
     }));
   } catch (error) {
-    console.error("[ProfileOptimizer] Error generating bio variations:", error);
+    logger.error("[ProfileOptimizer] Error generating bio variations:", error);
     return [];
   }
 }
@@ -403,7 +407,7 @@ Respond with JSON:
       targetVsAverage,
     };
   } catch (error) {
-    console.error("[ProfileOptimizer] Error comparing profiles:", error);
+    logger.error("[ProfileOptimizer] Error comparing profiles:", error);
     const errorMessage = language === 'ja' ? '比較分析に失敗しました' : 'Comparison analysis failed';
     return {
       similarities: [],

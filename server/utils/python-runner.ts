@@ -1,6 +1,10 @@
 import { execSync, exec } from 'child_process';
 import { promisify } from 'util';
 
+import { createLogger } from "./logger";
+
+const logger = createLogger("python-runner");
+
 const execAsync = promisify(exec);
 
 // Docker container paths
@@ -119,13 +123,13 @@ export async function executeRetweet(
       env: cleanEnv
     });
     if (stderr) {
-      console.log("[executeRetweet] Debug:", stderr);
+      logger.info("[executeRetweet] Debug:", stderr);
     }
     return JSON.parse(stdout);
   } catch (error: any) {
-    console.error("[executeRetweet] Error:", error.message);
+    logger.error("[executeRetweet] Error:", error.message);
     if (error.stderr) {
-      console.error("[executeRetweet] Stderr:", error.stderr);
+      logger.error("[executeRetweet] Stderr:", error.stderr);
     }
     return { success: false, error: String(error) };
   }

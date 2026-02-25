@@ -1,9 +1,14 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { aiOptimizations, agents, postAnalytics, posts } from "../drizzle/schema";
 import { eq, and, desc, gte } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("ai-optimization.routers");
 
 /**
  * AI Optimization Router
@@ -21,7 +26,7 @@ export const aiOptimizationRouter = router({
       daysBack: z.number().default(30),
     }))
     .mutation(async ({ input, ctx }) => {
-      console.log("[AIOptimization] Analyzing agent:", input.agentId);
+      logger.info({ data: input.agentId }, "[AIOptimization] Analyzing agent");
 
       // Get agent details
       const [agent] = await db
@@ -35,7 +40,7 @@ export const aiOptimizationRouter = router({
         );
 
       if (!agent) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Get performance data for the last N days
@@ -161,7 +166,7 @@ Format the response as JSON with the following structure:
 
         const content = response.choices[0]?.message?.content;
         if (!content || typeof content !== 'string') {
-          throw new Error("No response from AI");
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "No response from AI" });
         }
 
         const suggestions = JSON.parse(content);
@@ -196,8 +201,8 @@ Format the response as JSON with the following structure:
           suggestions,
         };
       } catch (error: any) {
-        console.error("[AIOptimization] Error generating optimization suggestions:", error);
-        throw new Error(`Failed to generate optimization suggestions: ${error.message}`);
+        logger.error({ err: error }, "[AIOptimization] Error generating optimization suggestions");
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to generate optimization suggestions: ${error.message}` });
       }
     }),
 
@@ -221,11 +226,11 @@ Format the response as JSON with the following structure:
         );
 
       if (!optimization) {
-        throw new Error("Optimization not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Optimization not found" });
       }
 
       if (optimization.status === "applied") {
-        throw new Error("Optimization already applied");
+        throw new TRPCError({ code: 'BAD_REQUEST', message: "Optimization already applied" });
       }
 
       // Parse after params
@@ -273,11 +278,11 @@ Format the response as JSON with the following structure:
         );
 
       if (!optimization) {
-        throw new Error("Optimization not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Optimization not found" });
       }
 
       if (optimization.status !== "applied") {
-        throw new Error("Optimization not applied yet");
+        throw new TRPCError({ code: 'BAD_REQUEST', message: "Optimization not applied yet" });
       }
 
       // Parse before params
@@ -361,7 +366,7 @@ Format the response as JSON with the following structure:
         );
 
       if (!optimization) {
-        throw new Error("Optimization not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Optimization not found" });
       }
 
       return {

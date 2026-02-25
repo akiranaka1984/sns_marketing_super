@@ -7,6 +7,10 @@ import { db } from "../db";
 import { eq, and, desc, gte, inArray } from "drizzle-orm";
 import * as schema from "../../drizzle/schema";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("account-learning-service");
+
 export type LearningType =
   | 'posting_style'
   | 'comment_style'
@@ -542,7 +546,7 @@ export async function getBuzzLearningsForPrompt(
       hasData: hookPatterns.length > 0 || structurePatterns.length > 0 || ctaPatterns.length > 0,
     };
   } catch (error) {
-    console.error('[AccountLearningService] Error getting buzz learnings for prompt:', error);
+    logger.error({ err: error }, '[AccountLearningService] Error getting buzz learnings for prompt');
     return emptyResponse;
   }
 }
@@ -577,7 +581,7 @@ export async function getFailurePatternsForPrompt(
       return `${i + 1}. ${p.title}${insight ? `: ${insight}` : ''}`;
     }).join('\n');
   } catch (error) {
-    console.error('[AccountLearningService] Error getting failure patterns:', error);
+    logger.error({ err: error }, '[AccountLearningService] Error getting failure patterns');
     return '- 特にありません';
   }
 }

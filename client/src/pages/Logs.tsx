@@ -9,22 +9,22 @@ export default function Logs() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-[#A8E6CF]" />;
       case 'failed':
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-[#FF6B6B]" />;
       default:
-        return <Clock className="h-5 w-5 text-yellow-500" />;
+        return <Clock className="h-5 w-5 text-[#FFD700]" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
-        return 'bg-emerald-50 text-emerald-700';
+        return 'bg-[#A8E6CF] text-[#1A1A1A] border-2 border-[#1A1A1A]';
       case 'failed':
-        return 'bg-red-50 text-red-700';
+        return 'bg-[#FF6B6B] text-[#1A1A1A] border-2 border-[#1A1A1A]';
       default:
-        return 'bg-amber-50 text-amber-700';
+        return 'bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A]';
     }
   };
 
@@ -39,19 +39,19 @@ export default function Logs() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#FFD700]" />
         </div>
       ) : logs && logs.length > 0 ? (
-        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
-          <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">{t('logs.recentActivity')}</h3>
-          <p className="text-xs text-[#A3A3A3] mb-4">
+        <div className="fade-in-up bg-[#FFFDF7] rounded-lg border-2 border-[#1A1A1A] p-4 shadow-[4px_4px_0_#1A1A1A]">
+          <h3 className="font-bold text-sm text-[#1A1A1A] mb-1">{t('logs.recentActivity')}</h3>
+          <p className="text-xs text-[#6B6B6B] mb-4 font-bold">
             {t('logs.showingLatest').replace('{count}', logs.length.toString())}
           </p>
           <div className="space-y-3">
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="flex items-start gap-4 p-4 rounded-lg border border-[#E5E5E5] hover:bg-[#F5F5F5] transition-colors"
+                className="flex items-start gap-4 p-4 rounded-lg border-2 border-[#1A1A1A] hover:bg-[#FFF8DC] transition-colors bg-white shadow-[2px_2px_0_#1A1A1A] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
               >
                 <div className="flex-shrink-0 mt-1">
                   {getStatusIcon(log.status)}
@@ -59,36 +59,36 @@ export default function Logs() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex-1">
-                      <h4 className="font-semibold text-[#1A1A1A]">{log.action}</h4>
+                      <h4 className="font-bold text-[#1A1A1A]">{log.action}</h4>
                       {log.details && (
-                        <p className="text-sm text-[#737373] mt-1">{log.details}</p>
+                        <p className="text-sm text-[#6B6B6B] mt-1 font-bold">{log.details}</p>
                       )}
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(
+                      className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${getStatusColor(
                         log.status
                       )}`}
                     >
                       {log.status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-[#A3A3A3]">
+                  <div className="flex items-center gap-4 text-xs text-[#6B6B6B] font-bold">
                     <span>{new Date(log.createdAt).toLocaleString()}</span>
                     {log.deviceId && (
                       <span className="flex items-center gap-1">
-                        <span className="font-medium">{t('logs.device')}:</span> {log.deviceId}
+                        <span className="font-bold">{t('logs.device')}:</span> {log.deviceId}
                       </span>
                     )}
                     {log.accountId && (
                       <span className="flex items-center gap-1">
-                        <span className="font-medium">{t('logs.accountId')}:</span> {log.accountId}
+                        <span className="font-bold">{t('logs.accountId')}:</span> {log.accountId}
                       </span>
                     )}
                   </div>
                   {log.errorMessage && (
-                    <div className="mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                      <p className="text-sm text-red-700">
-                        <span className="font-medium">{t('logs.error')}:</span> {log.errorMessage}
+                    <div className="mt-2 p-3 bg-[#FF6B6B] rounded-lg border-2 border-[#1A1A1A]">
+                      <p className="text-sm text-[#1A1A1A] font-bold">
+                        <span className="font-bold">{t('logs.error')}:</span> {log.errorMessage}
                       </p>
                     </div>
                   )}
@@ -98,13 +98,13 @@ export default function Logs() {
           </div>
         </div>
       ) : (
-        <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
+        <div className="fade-in-up bg-[#FFFDF7] rounded-lg border-2 border-[#1A1A1A] p-4 shadow-[4px_4px_0_#1A1A1A]">
           <div className="text-center py-12">
-            <ClipboardList className="h-12 w-12 text-[#A3A3A3] mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
+            <ClipboardList className="h-12 w-12 text-[#6B6B6B] mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">
               {t('logs.noLogs')}
             </h3>
-            <p className="text-[#A3A3A3]">
+            <p className="text-[#6B6B6B] font-bold">
               {t('logs.noLogsSubtitle')}
             </p>
           </div>

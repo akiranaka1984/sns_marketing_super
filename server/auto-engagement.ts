@@ -27,7 +27,7 @@ export async function executeEngagementTasks() {
     where: eq(engagementTasks.isActive, 1),
   });
 
-  console.log(`[AutoEngagement] Found ${activeTasks.length} active tasks`);
+  logger.info(`[AutoEngagement] Found ${activeTasks.length} active tasks`);
 
   const results = [];
 
@@ -41,7 +41,7 @@ export async function executeEngagementTasks() {
         results.push(result);
       }
     } catch (error: any) {
-      console.error(
+      logger.error(
         `[AutoEngagement] Error executing task ${task.id}:`,
         error
       );
@@ -187,7 +187,7 @@ async function executeTask(task: any): Promise<{
       taskId: task.id,
     };
   } catch (error: any) {
-    console.error(`[AutoEngagement] Error in executeTask:`, error);
+    logger.error(`[AutoEngagement] Error in executeTask:`, error);
     return {
       success: false,
       message: error.message,
@@ -207,7 +207,7 @@ async function executeLike(
     return { success: false, error: "No target post URL provided" };
   }
 
-  console.log(
+  logger.info(
     `[AutoEngagement] Liking post ${task.targetPost} with account ${account.username}`
   );
 
@@ -236,7 +236,7 @@ async function executeFollow(
     return { success: false, error: "No target user provided" };
   }
 
-  console.log(
+  logger.info(
     `[AutoEngagement] Following user ${task.targetUser} with account ${account.username}`
   );
 
@@ -269,7 +269,7 @@ async function executeComment(
     return { success: false, error: "No comment text provided" };
   }
 
-  console.log(
+  logger.info(
     `[AutoEngagement] Commenting "${task.commentText}" on post ${task.targetPost} with account ${account.username}`
   );
 
@@ -302,7 +302,7 @@ async function executeUnfollow(
     return { success: false, error: "No target user provided" };
   }
 
-  console.log(
+  logger.info(
     `[AutoEngagement] Unfollowing user ${task.targetUser} with account ${account.username}`
   );
 
@@ -331,7 +331,7 @@ async function executeRetweet(
     return { success: false, error: "No target post URL provided" };
   }
 
-  console.log(
+  logger.info(
     `[AutoEngagement] Retweeting post ${task.targetPost} with account ${account.username}`
   );
 
@@ -353,11 +353,15 @@ async function executeRetweet(
 import { freezeDetections } from "../drizzle/schema";
 import { desc, gte } from "drizzle-orm";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("auto-engagement");
+
 /**
  * Start auto-engagement executor (runs every 5 minutes)
  */
 export function startAutoEngagementExecutor() {
-  console.log("[AutoEngagement] Starting executor...");
+  logger.info("[AutoEngagement] Starting executor...");
 
   // Run immediately
   executeEngagementTasks();

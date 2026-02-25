@@ -196,50 +196,51 @@ export default function ModelAccounts() {
   }
 
   return (
-    <div className="space-y-5 max-w-5xl">
+    <div className="space-y-6 max-w-5xl">
       {/* Stat Cards */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#6366F1' } as React.CSSProperties}>
-          <div className="pl-3">
-            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">モデルアカウント</p>
-            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalAccounts || 0}</p>
-            <p className="text-[10px] text-[#A3A3A3] mt-0.5">アクティブ: {stats?.activeAccounts || 0}</p>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="bg-[#FFD700] border-2 border-[#1A1A1A] rounded-lg p-5 shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+          <div>
+            <p className="text-xs text-[#1A1A1A] font-bold uppercase tracking-wide">モデルアカウント</p>
+            <p className="text-3xl font-black text-[#1A1A1A] mt-2">{stats?.totalAccounts || 0}</p>
+            <p className="text-xs text-[#6B6B6B] mt-1 font-bold">アクティブ: {stats?.activeAccounts || 0}</p>
           </div>
         </div>
-        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#10B981' } as React.CSSProperties}>
-          <div className="pl-3">
-            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">収集済み投稿</p>
-            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{stats?.totalCollectedPosts || 0}</p>
-            <p className="text-[10px] text-[#A3A3A3] mt-0.5">分析済み: {stats?.analyzedPosts || 0}</p>
+        <div className="bg-[#FF6B6B] border-2 border-[#1A1A1A] rounded-lg p-5 shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+          <div>
+            <p className="text-xs text-[#1A1A1A] font-bold uppercase tracking-wide">収集済み投稿</p>
+            <p className="text-3xl font-black text-[#1A1A1A] mt-2">{stats?.totalCollectedPosts || 0}</p>
+            <p className="text-xs text-[#6B6B6B] mt-1 font-bold">分析済み: {stats?.analyzedPosts || 0}</p>
           </div>
         </div>
-        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#F59E0B' } as React.CSSProperties}>
-          <div className="pl-3">
-            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">カテゴリ</p>
-            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">{Object.keys(categoryCounts).length}</p>
-            <p className="text-[10px] text-[#A3A3A3] mt-0.5">業界分類数</p>
+        <div className="bg-[#4ECDC4] border-2 border-[#1A1A1A] rounded-lg p-5 shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+          <div>
+            <p className="text-xs text-[#1A1A1A] font-bold uppercase tracking-wide">カテゴリ</p>
+            <p className="text-3xl font-black text-[#1A1A1A] mt-2">{Object.keys(categoryCounts).length}</p>
+            <p className="text-xs text-[#6B6B6B] mt-1 font-bold">業界分類数</p>
           </div>
         </div>
-        <div className="fade-in-up metric-card p-4" style={{ '--metric-color': '#8B5CF6' } as React.CSSProperties}>
-          <div className="pl-3">
-            <p className="text-[11px] text-[#A3A3A3] font-medium uppercase tracking-wide">AI分類</p>
-            <p className="text-2xl font-bold text-[#1A1A1A] mt-0.5">GPT-4o</p>
-            <p className="text-[10px] text-[#A3A3A3] mt-0.5">自動分類エンジン</p>
+        <div className="bg-[#DDA0DD] border-2 border-[#1A1A1A] rounded-lg p-5 shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+          <div>
+            <p className="text-xs text-[#1A1A1A] font-bold uppercase tracking-wide">AI分類</p>
+            <p className="text-3xl font-black text-[#1A1A1A] mt-2">GPT-4o</p>
+            <p className="text-xs text-[#6B6B6B] mt-1 font-bold">自動分類エンジン</p>
           </div>
         </div>
       </div>
 
       {/* Page Header */}
-      <div className="page-header flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-[#1A1A1A]">モデルアカウント管理</h2>
-          <p className="text-xs text-[#A3A3A3] mt-0.5">バズ投稿を学習するためのモデルアカウント（インフルエンサー・競合）を管理</p>
+          <h2 className="text-2xl font-black text-[#1A1A1A]">モデルアカウント管理</h2>
+          <p className="text-sm text-[#6B6B6B] mt-1 font-medium">バズ投稿を学習するためのモデルアカウント（インフルエンサー・競合）を管理</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button
             variant="outline"
             onClick={() => collectAllActiveMutation.mutate()}
             disabled={collectAllActiveMutation.isPending}
+            className="border-2 border-[#1A1A1A] bg-white font-bold shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
           >
             {collectAllActiveMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -250,7 +251,7 @@ export default function ModelAccounts() {
           </Button>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+              <Button className="bg-[#FFD700] hover:bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A] font-bold shadow-[4px_4px_0_#1A1A1A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
                 <Plus className="h-4 w-4 mr-2" />
                 アカウント追加
               </Button>
@@ -284,7 +285,7 @@ export default function ModelAccounts() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-[#A3A3A3]">
+                  <p className="text-xs text-[#6B6B6B]">
                     後からAIで自動分類することもできます
                   </p>
                 </div>
@@ -293,7 +294,7 @@ export default function ModelAccounts() {
                 <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
                   キャンセル
                 </Button>
-                <Button onClick={handleAdd} disabled={addMutation.isPending} className="bg-[#D4380D] hover:bg-[#B8300B] text-white">
+                <Button onClick={handleAdd} disabled={addMutation.isPending} className="bg-[#FFD700] hover:bg-[#FFD700] text-[#1A1A1A] border-2 border-[#1A1A1A] font-bold">
                   {addMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   追加
                 </Button>
@@ -304,52 +305,64 @@ export default function ModelAccounts() {
       </div>
 
       {/* Tab Buttons */}
-      <div className="fade-in-up bg-white rounded-lg border border-[#E5E5E5] p-4">
-        <div className="flex gap-1 bg-[#F5F5F5] rounded-md p-0.5 w-fit">
+      <div className="bg-white border-2 border-[#1A1A1A] rounded-lg p-5 shadow-[4px_4px_0_#1A1A1A]">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory("all")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "all" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "all"
+                ? "bg-[#FFD700] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             すべて ({stats?.totalAccounts || 0})
           </button>
           <button
             onClick={() => setSelectedCategory("it_tech")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "it_tech" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "it_tech"
+                ? "bg-[#4ECDC4] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             IT・テック ({categoryCounts['it_tech'] || 0})
           </button>
           <button
             onClick={() => setSelectedCategory("business")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "business" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "business"
+                ? "bg-[#FF6B6B] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             ビジネス ({categoryCounts['business'] || 0})
           </button>
           <button
             onClick={() => setSelectedCategory("entertainment")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "entertainment" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "entertainment"
+                ? "bg-[#DDA0DD] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             エンタメ ({categoryCounts['entertainment'] || 0})
           </button>
           <button
             onClick={() => setSelectedCategory("education")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "education" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "education"
+                ? "bg-[#A8E6CF] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             教育 ({categoryCounts['education'] || 0})
           </button>
           <button
             onClick={() => setSelectedCategory("other")}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-              selectedCategory === "other" ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#A3A3A3] hover:text-[#737373]"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 border-[#1A1A1A] ${
+              selectedCategory === "other"
+                ? "bg-[#87CEEB] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#6B6B6B] hover:translate-x-[1px] hover:translate-y-[1px]"
             }`}
           >
             その他 ({categoryCounts['other'] || 0})
@@ -357,96 +370,96 @@ export default function ModelAccounts() {
         </div>
 
         {/* Table */}
-        <div className="mt-4 border border-[#E5E5E5] rounded-md overflow-hidden">
-          <div className="grid grid-cols-8 gap-0 bg-[#F5F5F5] text-[11px] font-medium text-[#A3A3A3] uppercase tracking-wide">
-            <div className="px-3 py-2">ユーザー</div>
-            <div className="px-3 py-2">フォロワー</div>
-            <div className="px-3 py-2">業界</div>
-            <div className="px-3 py-2">投稿スタイル</div>
-            <div className="px-3 py-2">トーン</div>
-            <div className="px-3 py-2">収集数</div>
-            <div className="px-3 py-2">ステータス</div>
-            <div className="px-3 py-2 text-right">アクション</div>
+        <div className="mt-5 border-2 border-[#1A1A1A] rounded-lg overflow-hidden">
+          <div className="grid grid-cols-8 gap-0 bg-[#FFD700] text-xs font-black text-[#1A1A1A] uppercase tracking-wide border-b-2 border-[#1A1A1A]">
+            <div className="px-4 py-3">ユーザー</div>
+            <div className="px-4 py-3">フォロワー</div>
+            <div className="px-4 py-3">業界</div>
+            <div className="px-4 py-3">投稿スタイル</div>
+            <div className="px-4 py-3">トーン</div>
+            <div className="px-4 py-3">収集数</div>
+            <div className="px-4 py-3">ステータス</div>
+            <div className="px-4 py-3 text-right">アクション</div>
           </div>
           {!accounts || accounts.length === 0 ? (
-            <div className="px-3 py-8 text-center text-[#A3A3A3] text-sm">
+            <div className="px-4 py-12 text-center text-[#6B6B6B] text-sm font-bold bg-white">
               モデルアカウントがありません
             </div>
           ) : (
             accounts.map((account) => (
-              <div key={account.id} className="grid grid-cols-8 gap-0 border-t border-[#F0F0F0] hover:bg-[#F5F5F5] transition-colors">
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+              <div key={account.id} className="grid grid-cols-8 gap-0 border-b-2 border-[#1A1A1A] last:border-b-0 hover:bg-[#FFF8DC] transition-colors bg-white">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">𝕏</span>
-                      <span className="font-medium">@{account.username}</span>
+                      <span className="font-bold">@{account.username}</span>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-6 w-6 border-2 border-[#1A1A1A] rounded hover:bg-[#FFD700] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
                         onClick={() => window.open(`https://x.com/${account.username}`, '_blank')}
                       >
                         <ExternalLink className="h-3 w-3" />
                       </Button>
                     </div>
                     {account.displayName && (
-                      <span className="text-sm text-[#A3A3A3]">{account.displayName}</span>
+                      <span className="text-xs text-[#6B6B6B] font-medium">{account.displayName}</span>
                     )}
                   </div>
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   {account.followersCount ? (
-                    <span className="font-medium">
+                    <span className="font-bold">
                       {account.followersCount.toLocaleString()}
                     </span>
                   ) : (
-                    <span className="text-[#A3A3A3]">-</span>
+                    <span className="text-[#6B6B6B]">-</span>
                   )}
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   {account.industryCategory ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border border-[#E5E5E5] text-[#737373]">
+                    <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border-2 border-[#1A1A1A] bg-[#A8E6CF] text-[#1A1A1A]">
                       {industryLabels[account.industryCategory] || account.industryCategory}
                     </span>
                   ) : (
-                    <span className="text-[#A3A3A3] text-sm">未分類</span>
+                    <span className="text-[#6B6B6B] text-xs font-medium">未分類</span>
                   )}
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   {account.postingStyle ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                    <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border-2 border-[#1A1A1A] bg-[#87CEEB] text-[#1A1A1A]">
                       {postingStyleLabels[account.postingStyle] || account.postingStyle}
                     </span>
                   ) : (
-                    <span className="text-[#A3A3A3] text-sm">-</span>
+                    <span className="text-[#6B6B6B] text-xs">-</span>
                   )}
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   {account.toneStyle ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#F5F5F5] text-[#737373]">
+                    <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold border-2 border-[#1A1A1A] bg-[#DDA0DD] text-[#1A1A1A]">
                       {toneStyleLabels[account.toneStyle] || account.toneStyle}
                     </span>
                   ) : (
-                    <span className="text-[#A3A3A3] text-sm">-</span>
+                    <span className="text-[#6B6B6B] text-xs">-</span>
                   )}
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
-                  <span className="font-medium">{account.totalCollectedPosts || 0}</span>
-                  <span className="text-[#A3A3A3] text-sm ml-1">件</span>
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
+                  <span className="font-bold">{account.totalCollectedPosts || 0}</span>
+                  <span className="text-[#6B6B6B] text-xs ml-1 font-medium">件</span>
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium cursor-pointer ${
+                    className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold cursor-pointer border-2 border-[#1A1A1A] transition-all ${
                       account.isActive === 1
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-[#F5F5F5] text-[#737373]"
+                        ? "bg-[#A8E6CF] text-[#1A1A1A] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+                        : "bg-[#E5E5E5] text-[#6B6B6B] hover:bg-[#D4D4D4]"
                     }`}
                     onClick={() => toggleActiveMutation.mutate({ modelAccountId: account.id })}
                   >
                     {account.isActive === 1 ? "アクティブ" : "停止中"}
                   </span>
                 </div>
-                <div className="px-3 py-2.5 text-xs text-[#1A1A1A]">
+                <div className="px-4 py-3 text-sm text-[#1A1A1A]">
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant="ghost"
@@ -454,6 +467,7 @@ export default function ModelAccounts() {
                       onClick={() => fetchProfileMutation.mutate({ modelAccountId: account.id })}
                       disabled={fetchProfileMutation.isPending}
                       title="プロフィール更新"
+                      className="h-8 w-8 border-2 border-[#1A1A1A] rounded hover:bg-[#4ECDC4] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
                     >
                       <RefreshCw className={`h-4 w-4 ${fetchProfileMutation.isPending ? 'animate-spin' : ''}`} />
                     </Button>
@@ -463,6 +477,7 @@ export default function ModelAccounts() {
                       onClick={() => handleCollect(account.id)}
                       disabled={collectingId === account.id}
                       title="投稿を収集"
+                      className="h-8 w-8 border-2 border-[#1A1A1A] rounded hover:bg-[#87CEEB] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
                     >
                       {collectingId === account.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -476,11 +491,12 @@ export default function ModelAccounts() {
                       onClick={() => handleAutoClassify(account.id)}
                       disabled={classifyingId === account.id}
                       title="AIで自動分類"
+                      className="h-8 w-8 border-2 border-[#1A1A1A] rounded hover:bg-[#DDA0DD] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
                     >
                       {classifyingId === account.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Brain className="h-4 w-4 text-[#D4380D]" />
+                        <Brain className="h-4 w-4 text-[#1A1A1A]" />
                       )}
                     </Button>
                     <Button
@@ -489,8 +505,9 @@ export default function ModelAccounts() {
                       onClick={() => handleDelete(account.id)}
                       disabled={deleteMutation.isPending}
                       title="削除"
+                      className="h-8 w-8 border-2 border-[#1A1A1A] rounded hover:bg-[#FF6B6B] shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <Trash2 className="h-4 w-4 text-[#1A1A1A]" />
                     </Button>
                   </div>
                 </div>

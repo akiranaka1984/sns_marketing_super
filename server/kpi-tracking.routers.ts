@@ -9,6 +9,7 @@
  */
 
 import { router, publicProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import {
@@ -62,7 +63,7 @@ export const kpiTrackingRouter = router({
       });
 
       if (!project) {
-        throw new Error("Project not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Project not found" });
       }
 
       const results = [];

@@ -90,95 +90,99 @@ export default function ContentCollection() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">コンテンツ収集</h1>
-          <p className="text-muted-foreground">SNSプラットフォームからコンテンツを自動収集します</p>
+          <h1 className="text-3xl font-bold text-[#1A1A1A]">コンテンツ収集</h1>
+          <p className="text-[#6B6B6B] font-bold">SNSプラットフォームからコンテンツを自動収集します</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-[#FFD700] hover:bg-[#FFD700] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
               <Plus className="mr-2 h-4 w-4" />
               収集スケジュール作成
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
             <DialogHeader>
-              <DialogTitle>収集スケジュール作成</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="font-bold">収集スケジュール作成</DialogTitle>
+              <DialogDescription className="font-bold text-[#6B6B6B]">
                 コンテンツ収集のスケジュールを設定します
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="platform">プラットフォーム</Label>
+                <Label htmlFor="platform" className="font-bold">プラットフォーム</Label>
                 <Select value={platform} onValueChange={(value: any) => setPlatform(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-[#1A1A1A] rounded-lg font-bold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="twitter">Twitter</SelectItem>
-                    <SelectItem value="tiktok">TikTok</SelectItem>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="facebook">Facebook</SelectItem>
-                    <SelectItem value="youtube">YouTube</SelectItem>
-                    <SelectItem value="other">その他</SelectItem>
+                  <SelectContent className="border-2 border-[#1A1A1A] rounded-lg">
+                    <SelectItem value="twitter" className="font-bold">Twitter</SelectItem>
+                    <SelectItem value="tiktok" className="font-bold">TikTok</SelectItem>
+                    <SelectItem value="instagram" className="font-bold">Instagram</SelectItem>
+                    <SelectItem value="facebook" className="font-bold">Facebook</SelectItem>
+                    <SelectItem value="youtube" className="font-bold">YouTube</SelectItem>
+                    <SelectItem value="other" className="font-bold">その他</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="keywords">検索キーワード（カンマ区切り）</Label>
+                <Label htmlFor="keywords" className="font-bold">検索キーワード（カンマ区切り）</Label>
                 <Input
                   id="keywords"
                   placeholder="AI, マーケティング, SNS"
                   value={keywords}
                   onChange={(e) => setKeywords(e.target.value)}
+                  className="border-2 border-[#1A1A1A] rounded-lg font-bold"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="hashtags">ハッシュタグ（カンマ区切り）</Label>
+                <Label htmlFor="hashtags" className="font-bold">ハッシュタグ（カンマ区切り）</Label>
                 <Input
                   id="hashtags"
                   placeholder="trending, viral, popular"
                   value={hashtags}
                   onChange={(e) => setHashtags(e.target.value)}
+                  className="border-2 border-[#1A1A1A] rounded-lg font-bold"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="accounts">監視アカウント（カンマ区切り）</Label>
+                <Label htmlFor="accounts" className="font-bold">監視アカウント（カンマ区切り）</Label>
                 <Input
                   id="accounts"
                   placeholder="@user1, @user2"
                   value={accounts}
                   onChange={(e) => setAccounts(e.target.value)}
+                  className="border-2 border-[#1A1A1A] rounded-lg font-bold"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="frequency">収集頻度</Label>
+                <Label htmlFor="frequency" className="font-bold">収集頻度</Label>
                 <Select value={frequency} onValueChange={(value: any) => setFrequency(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-[#1A1A1A] rounded-lg font-bold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hourly">1時間ごと</SelectItem>
-                    <SelectItem value="daily">1日ごと</SelectItem>
-                    <SelectItem value="weekly">1週間ごと</SelectItem>
+                  <SelectContent className="border-2 border-[#1A1A1A] rounded-lg">
+                    <SelectItem value="hourly" className="font-bold">1時間ごと</SelectItem>
+                    <SelectItem value="daily" className="font-bold">1日ごと</SelectItem>
+                    <SelectItem value="weekly" className="font-bold">1週間ごと</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="maxItems">最大収集数</Label>
+                <Label htmlFor="maxItems" className="font-bold">最大収集数</Label>
                 <Input
                   id="maxItems"
                   type="number"
                   value={maxItems}
                   onChange={(e) => setMaxItems(e.target.value)}
+                  className="border-2 border-[#1A1A1A] rounded-lg font-bold"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="bg-white hover:bg-[#FFF8DC] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
                 キャンセル
               </Button>
-              <Button onClick={handleCreateSchedule} disabled={createSchedule.isPending}>
+              <Button onClick={handleCreateSchedule} disabled={createSchedule.isPending} className="bg-[#FFD700] hover:bg-[#FFD700] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
                 {createSchedule.isPending ? "作成中..." : "作成"}
               </Button>
             </DialogFooter>
@@ -188,18 +192,18 @@ export default function ContentCollection() {
 
       {/* Collection Schedules */}
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">収集スケジュール</h2>
+        <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">収集スケジュール</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {schedules?.map((schedule) => (
-            <Card key={schedule.id}>
+            <Card key={schedule.id} className="bg-[#FFFDF7] border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between font-bold">
                   <span className="capitalize">{schedule.platform}</span>
-                  <Badge variant={schedule.isActive ? "default" : "secondary"}>
+                  <Badge variant={schedule.isActive ? "default" : "secondary"} className={`font-bold border-2 border-[#1A1A1A] ${schedule.isActive ? 'bg-[#4ECDC4] text-[#1A1A1A]' : 'bg-[#A8E6CF] text-[#1A1A1A]'}`}>
                     {schedule.isActive ? "有効" : "無効"}
                   </Badge>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-bold text-[#6B6B6B]">
                   {schedule.frequency === "hourly" && "1時間ごと"}
                   {schedule.frequency === "daily" && "1日ごと"}
                   {schedule.frequency === "weekly" && "1週間ごと"}
@@ -209,37 +213,37 @@ export default function ContentCollection() {
                 <div className="space-y-2 text-sm">
                   {schedule.searchKeywords && schedule.searchKeywords.length > 0 && (
                     <div className="flex items-start gap-2">
-                      <Hash className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <Hash className="h-4 w-4 mt-0.5 text-[#6B6B6B]" />
                       <div className="flex-1">
-                        <p className="font-medium">キーワード:</p>
-                        <p className="text-muted-foreground">{schedule.searchKeywords.join(", ")}</p>
+                        <p className="font-bold">キーワード:</p>
+                        <p className="text-[#6B6B6B] font-bold">{schedule.searchKeywords.join(", ")}</p>
                       </div>
                     </div>
                   )}
                   {schedule.searchHashtags && schedule.searchHashtags.length > 0 && (
                     <div className="flex items-start gap-2">
-                      <Hash className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <Hash className="h-4 w-4 mt-0.5 text-[#6B6B6B]" />
                       <div className="flex-1">
-                        <p className="font-medium">ハッシュタグ:</p>
-                        <p className="text-muted-foreground">#{schedule.searchHashtags.join(", #")}</p>
+                        <p className="font-bold">ハッシュタグ:</p>
+                        <p className="text-[#6B6B6B] font-bold">#{schedule.searchHashtags.join(", #")}</p>
                       </div>
                     </div>
                   )}
                   {schedule.searchAccounts && schedule.searchAccounts.length > 0 && (
                     <div className="flex items-start gap-2">
-                      <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <User className="h-4 w-4 mt-0.5 text-[#6B6B6B]" />
                       <div className="flex-1">
-                        <p className="font-medium">アカウント:</p>
-                        <p className="text-muted-foreground">{schedule.searchAccounts.join(", ")}</p>
+                        <p className="font-bold">アカウント:</p>
+                        <p className="text-[#6B6B6B] font-bold">{schedule.searchAccounts.join(", ")}</p>
                       </div>
                     </div>
                   )}
                   {schedule.lastRunAt && (
                     <div className="flex items-start gap-2">
-                      <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                      <Calendar className="h-4 w-4 mt-0.5 text-[#6B6B6B]" />
                       <div className="flex-1">
-                        <p className="font-medium">最終実行:</p>
-                        <p className="text-muted-foreground">
+                        <p className="font-bold">最終実行:</p>
+                        <p className="text-[#6B6B6B] font-bold">
                           {new Date(schedule.lastRunAt).toLocaleString("ja-JP")}
                         </p>
                       </div>
@@ -251,6 +255,7 @@ export default function ContentCollection() {
                     size="sm"
                     onClick={() => handleCollectNow(schedule.id)}
                     disabled={collectContent.isPending}
+                    className="bg-[#4ECDC4] hover:bg-[#4ECDC4] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                   >
                     <Play className="mr-2 h-4 w-4" />
                     今すぐ収集
@@ -259,6 +264,7 @@ export default function ContentCollection() {
                     size="sm"
                     variant="destructive"
                     onClick={() => deleteSchedule.mutate({ id: schedule.id })}
+                    className="bg-[#FF6B6B] hover:bg-[#FF6B6B] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] text-[#1A1A1A] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -271,40 +277,41 @@ export default function ContentCollection() {
 
       {/* Collected Content */}
       <div>
-        <h2 className="text-2xl font-semibold mb-4">収集済みコンテンツ</h2>
+        <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">収集済みコンテンツ</h2>
         <div className="grid gap-4">
           {contents?.map((content) => (
-            <Card key={content.id}>
+            <Card key={content.id} className="bg-[#FFFDF7] border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between font-bold">
                   <span className="capitalize">{content.platform}</span>
                   <div className="flex gap-2">
-                    <Badge variant="outline">{content.author}</Badge>
+                    <Badge variant="outline" className="font-bold border-2 border-[#1A1A1A] bg-[#DDA0DD] text-[#1A1A1A]">{content.author}</Badge>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => deleteContent.mutate({ id: content.id })}
+                      className="hover:bg-[#FFF8DC] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] font-bold border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] rounded-lg"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="font-bold text-[#6B6B6B]">
                   {new Date(content.collectedAt).toLocaleString("ja-JP")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm mb-4">{content.content}</p>
+                <p className="text-sm mb-4 font-bold">{content.content}</p>
                 {content.hashtags && content.hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {content.hashtags.map((tag: string, idx: number) => (
-                      <Badge key={idx} variant="secondary">
+                      <Badge key={idx} variant="secondary" className="font-bold border-2 border-[#1A1A1A] bg-[#FFD700] text-[#1A1A1A]">
                         #{tag}
                       </Badge>
                     ))}
                   </div>
                 )}
-                <div className="flex gap-4 text-sm text-muted-foreground">
+                <div className="flex gap-4 text-sm text-[#6B6B6B] font-bold">
                   <span>👁️ {content.views?.toLocaleString() || 0}</span>
                   <span>❤️ {content.likes?.toLocaleString() || 0}</span>
                   <span>💬 {content.comments?.toLocaleString() || 0}</span>

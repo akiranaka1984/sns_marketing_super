@@ -1,6 +1,9 @@
 import { db } from "./db";
 import { xApiSettings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("x-api-service");
 
 interface Tweet {
   id: string;
@@ -74,14 +77,14 @@ export async function getXUserId(username: string): Promise<string | null> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Failed to get user ID:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Failed to get user ID");
       return null;
     }
 
     const data = await response.json();
     return data.data?.id || null;
   } catch (error) {
-    console.error("[X API] Error getting user ID:", error);
+    logger.error({ err: error }, "Error getting user ID");
     return null;
   }
 }
@@ -93,7 +96,7 @@ export async function getXUserId(username: string): Promise<string | null> {
 export async function getXUserProfile(username: string): Promise<XUserProfile | null> {
   const settings = await getXApiSettings();
   if (!settings?.bearerToken) {
-    console.error("[X API] Bearer token not found");
+    logger.error("Bearer token not found");
     return null;
   }
 
@@ -108,7 +111,7 @@ export async function getXUserProfile(username: string): Promise<XUserProfile | 
 
     const url = `https://api.twitter.com/2/users/by/username/${username}?user.fields=${userFields}`;
 
-    console.log("[X API] Fetching user profile:", username);
+    logger.info({ username }, "Fetching user profile");
 
     const response = await fetch(url, {
       headers: {
@@ -118,23 +121,22 @@ export async function getXUserProfile(username: string): Promise<XUserProfile | 
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Failed to get user profile:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Failed to get user profile");
       return null;
     }
 
     const data = await response.json();
 
     if (!data.data) {
-      console.error("[X API] No user data returned for:", username);
+      logger.error({ username }, "No user data returned");
       return null;
     }
 
-    console.log("[X API] Profile fetched successfully:", data.data.username,
-      "followers:", data.data.public_metrics?.followers_count);
+    logger.info({ username: data.data.username, followers: data.data.public_metrics?.followers_count }, "Profile fetched successfully");
 
     return data.data as XUserProfile;
   } catch (error) {
-    console.error("[X API] Error getting user profile:", error);
+    logger.error({ err: error }, "Error getting user profile");
     return null;
   }
 }
@@ -149,14 +151,14 @@ export async function getLatestTweetsWithMetrics(
 ): Promise<Tweet[]> {
   const settings = await getXApiSettings();
   if (!settings?.bearerToken) {
-    console.error("[X API] Bearer token not found");
+    logger.error("Bearer token not found");
     return [];
   }
 
   try {
     const userId = await getXUserId(username);
     if (!userId) {
-      console.error("[X API] Could not get user ID for:", username);
+      logger.error({ username }, "Could not get user ID");
       return [];
     }
 
@@ -165,7 +167,7 @@ export async function getLatestTweetsWithMetrics(
     // Exclude both retweets and replies to get only main posts
     const url = `https://api.twitter.com/2/users/${userId}/tweets?max_results=${maxResults}&tweet.fields=${tweetFields}&exclude=retweets,replies`;
 
-    console.log("[X API] Fetching tweets with metrics:", username);
+    logger.info({ username }, "Fetching tweets with metrics");
 
     const response = await fetch(url, {
       headers: {
@@ -175,16 +177,16 @@ export async function getLatestTweetsWithMetrics(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Timeline with metrics failed:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Timeline with metrics failed");
       return [];
     }
 
     const data: SearchResponse = await response.json();
-    console.log("[X API] Tweets with metrics result:", data.meta?.result_count, "tweets");
+    logger.info({ resultCount: data.meta?.result_count }, "Tweets with metrics result");
 
     return data.data || [];
   } catch (error) {
-    console.error("[X API] Error fetching tweets with metrics:", error);
+    logger.error({ err: error }, "Error fetching tweets with metrics");
     return [];
   }
 }
@@ -196,7 +198,7 @@ export async function getLatestTweetsWithMetrics(
 export async function getLatestTweets(username: string, count: number = 10): Promise<Tweet[]> {
   const settings = await getXApiSettings();
   if (!settings?.bearerToken) {
-    console.error("[X API] Bearer token not found");
+    logger.error("Bearer token not found");
     return [];
   }
 
@@ -204,7 +206,7 @@ export async function getLatestTweets(username: string, count: number = 10): Pro
     // まずユーザーIDを取得
     const userId = await getXUserId(username);
     if (!userId) {
-      console.error("[X API] Could not get user ID for:", username);
+      logger.error({ username }, "Could not get user ID");
       // フォールバック: Search APIを試す
       return await searchRecentTweets(username, count, settings.bearerToken);
     }
@@ -214,7 +216,7 @@ export async function getLatestTweets(username: string, count: number = 10): Pro
     const maxResults = Math.max(5, Math.min(100, count));
     const url = `https://api.twitter.com/2/users/${userId}/tweets?max_results=${maxResults}&tweet.fields=created_at,author_id&exclude=retweets,replies`;
 
-    console.log("[X API] Fetching user timeline:", url);
+    logger.info({ url }, "Fetching user timeline");
 
     const response = await fetch(url, {
       headers: {
@@ -224,17 +226,17 @@ export async function getLatestTweets(username: string, count: number = 10): Pro
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Timeline failed:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Timeline failed");
       // フォールバック: Search APIを試す
       return await searchRecentTweets(username, count, settings.bearerToken);
     }
 
     const data: SearchResponse = await response.json();
-    console.log("[X API] Timeline result:", data.meta?.result_count, "tweets found");
+    logger.info({ resultCount: data.meta?.result_count }, "Timeline result");
 
     return data.data || [];
   } catch (error) {
-    console.error("[X API] Error fetching timeline:", error);
+    logger.error({ err: error }, "Error fetching timeline");
     return [];
   }
 }
@@ -249,7 +251,7 @@ async function searchRecentTweets(username: string, count: number, bearerToken: 
     const maxResults = Math.max(10, Math.min(100, count));
     const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=${maxResults}&tweet.fields=created_at,author_id`;
 
-    console.log("[X API] Searching tweets (fallback):", url);
+    logger.info({ url }, "Searching tweets (fallback)");
 
     const response = await fetch(url, {
       headers: {
@@ -259,16 +261,16 @@ async function searchRecentTweets(username: string, count: number, bearerToken: 
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Search failed:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Search failed");
       return [];
     }
 
     const data: SearchResponse = await response.json();
-    console.log("[X API] Search result:", data.meta?.result_count, "tweets found");
+    logger.info({ resultCount: data.meta?.result_count }, "Search result");
 
     return data.data || [];
   } catch (error) {
-    console.error("[X API] Error searching tweets:", error);
+    logger.error({ err: error }, "Error searching tweets");
     return [];
   }
 }
@@ -293,7 +295,7 @@ export async function getPostUrlAfterPublish(
 
   const tweets = await getLatestTweets(username, 5);
   if (tweets.length === 0) {
-    console.warn("[X API] No tweets found after publish");
+    logger.warn("No tweets found after publish");
     return null;
   }
 
@@ -304,12 +306,12 @@ export async function getPostUrlAfterPublish(
   });
 
   if (!matchingTweet) {
-    console.warn("[X API] No matching tweet found. Using latest tweet.");
+    logger.warn("No matching tweet found. Using latest tweet.");
     // マッチしない場合は最新のツイートを返す
     return buildTweetUrl(username, tweets[0].id);
   }
 
-  console.log("[X API] Found matching tweet:", matchingTweet.id);
+  logger.info({ tweetId: matchingTweet.id }, "Found matching tweet");
   return buildTweetUrl(username, matchingTweet.id);
 }
 
@@ -331,7 +333,7 @@ export interface TweetMetrics {
 export async function getTweetMetrics(tweetId: string): Promise<TweetMetrics | null> {
   const settings = await getXApiSettings();
   if (!settings?.bearerToken) {
-    console.error("[X API] Bearer token not found");
+    logger.error("Bearer token not found");
     return null;
   }
 
@@ -340,7 +342,7 @@ export async function getTweetMetrics(tweetId: string): Promise<TweetMetrics | n
     const tweetFields = 'public_metrics,non_public_metrics,organic_metrics';
     const url = `https://api.twitter.com/2/tweets/${tweetId}?tweet.fields=${tweetFields}`;
 
-    console.log("[X API] Fetching tweet metrics for:", tweetId);
+    logger.info({ tweetId }, "Fetching tweet metrics");
 
     const response = await fetch(url, {
       headers: {
@@ -350,14 +352,14 @@ export async function getTweetMetrics(tweetId: string): Promise<TweetMetrics | n
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Failed to get tweet metrics:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Failed to get tweet metrics");
       return null;
     }
 
     const data = await response.json();
 
     if (!data.data) {
-      console.error("[X API] No tweet data returned for:", tweetId);
+      logger.error({ tweetId }, "No tweet data returned");
       return null;
     }
 
@@ -375,10 +377,10 @@ export async function getTweetMetrics(tweetId: string): Promise<TweetMetrics | n
       bookmarkCount: publicMetrics.bookmark_count || 0,
     };
 
-    console.log("[X API] Tweet metrics fetched:", JSON.stringify(metrics));
+    logger.info({ metrics }, "Tweet metrics fetched");
     return metrics;
   } catch (error) {
-    console.error("[X API] Error getting tweet metrics:", error);
+    logger.error({ err: error }, "Error getting tweet metrics");
     return null;
   }
 }
@@ -407,8 +409,8 @@ export async function updateXUserProfile(
     location?: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
-  console.log(`[X API] updateXUserProfile called for account ${accountId}`);
-  console.log(`[X API] Profile data:`, profileData);
+  logger.info({ accountId }, "updateXUserProfile called");
+  logger.info({ profileData }, "Profile data");
 
   // X API v2 doesn't support profile updates directly
   // v1.1 POST account/update_profile requires OAuth 1.0a with user credentials
@@ -421,7 +423,7 @@ export async function updateXUserProfile(
   // 3. Update the bio/description field
   // 4. Save changes
 
-  console.warn("[X API] Profile update not fully implemented - requires device automation");
+  logger.warn("Profile update not fully implemented - requires device automation");
 
   // Return success for development/testing
   // In production, this should actually update the profile
@@ -454,7 +456,7 @@ export async function searchTrendingHashtag(
 ): Promise<TrendingHashtagResult | null> {
   const settings = await getXApiSettings();
   if (!settings?.bearerToken) {
-    console.error("[X API] Bearer token not found");
+    logger.error("Bearer token not found");
     return null;
   }
 
@@ -466,7 +468,7 @@ export async function searchTrendingHashtag(
 
     const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=${maxResults}&tweet.fields=created_at,author_id,public_metrics`;
 
-    console.log("[X API] Searching hashtag:", cleanHashtag);
+    logger.info({ hashtag: cleanHashtag }, "Searching hashtag");
 
     const response = await fetch(url, {
       headers: {
@@ -476,12 +478,12 @@ export async function searchTrendingHashtag(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("[X API] Hashtag search failed:", response.status, errorData);
+      logger.error({ status: response.status, errorData }, "Hashtag search failed");
       return null;
     }
 
     const data: SearchResponse = await response.json();
-    console.log("[X API] Hashtag search result:", data.meta?.result_count, "tweets");
+    logger.info({ resultCount: data.meta?.result_count }, "Hashtag search result");
 
     return {
       hashtag: cleanHashtag,
@@ -489,7 +491,7 @@ export async function searchTrendingHashtag(
       sampleTweets: data.data || [],
     };
   } catch (error) {
-    console.error("[X API] Error searching hashtag:", error);
+    logger.error({ err: error }, "Error searching hashtag");
     return null;
   }
 }

@@ -1,4 +1,5 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { weeklyReviews, postAnalytics, posts } from "../drizzle/schema";
@@ -6,6 +7,10 @@ import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
 import { analyzeAgentPerformance, saveInsightsToKnowledge } from "./services/engagement-analyzer";
 import { generateOptimizationSuggestions, applyMultipleOptimizations } from "./services/strategy-optimizer";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("weekly-review.routers");
 
 /**
  * Weekly Review Router
@@ -23,7 +28,7 @@ export const weeklyReviewRouter = router({
       autoApply: z.boolean().default(false),
     }))
     .mutation(async ({ input }) => {
-      console.log(`[WeeklyReview] Running auto-optimization for agent ${input.agentId}`);
+      logger.info(`[WeeklyReview] Running auto-optimization for agent ${input.agentId}`);
 
       // エンゲージメント分析を実行
       const analysis = await analyzeAgentPerformance(input.agentId, input.daysBack);
@@ -74,7 +79,7 @@ export const weeklyReviewRouter = router({
       weekEndDate: z.date(),
     }))
     .mutation(async ({ input, ctx }) => {
-      console.log("[WeeklyReview] Generating review for week:", input.weekStartDate, "to", input.weekEndDate);
+      logger.info("[WeeklyReview] Generating review for week:", input.weekStartDate, "to", input.weekEndDate);
 
       // Get all posts in the date range
       const conditions = [];
@@ -198,7 +203,7 @@ Format as JSON array of strings.`;
           recommendations = JSON.parse(recContent);
         }
       } catch (error: any) {
-        console.error("[WeeklyReview] Error generating AI insights:", error);
+        logger.error("[WeeklyReview] Error generating AI insights:", error);
         insights = {
           highlights: ["データ収集完了"],
           improvements: ["AI分析は利用できません"],
@@ -289,7 +294,7 @@ Format as JSON array of strings.`;
         );
 
       if (!review) {
-        throw new Error("Review not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Review not found" });
       }
 
       return {

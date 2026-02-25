@@ -23,6 +23,9 @@ import {
   requiredSampleSize,
   type StatisticalAnalysis
 } from "./utils/statistics";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("ab-testing");
 
 // ============================================
 // Types
@@ -231,7 +234,7 @@ export async function createAbTest(
     });
   }
 
-  console.log(`[ABTesting] Created test ${testId} with ${variationCount} variations`);
+  logger.info(`[ABTesting] Created test ${testId} with ${variationCount} variations`);
   return testId;
 }
 
@@ -246,7 +249,7 @@ export async function startAbTest(testId: number): Promise<void> {
     })
     .where(eq(abTests.id, testId));
 
-  console.log(`[ABTesting] Started test ${testId}`);
+  logger.info(`[ABTesting] Started test ${testId}`);
 }
 
 /**
@@ -449,7 +452,7 @@ p値: ${statAnalysis.tTest?.pValue?.toFixed(4) ?? "N/A"}
 効果量: ${effectSizeValue?.toFixed(2) ?? "N/A"} (${effectSizeInterpretation})
 ${statAnalysis.warnings.length > 0 ? "\n⚠️ 警告:\n" + statAnalysis.warnings.join("\n") : ""}`;
 
-  console.log(`[ABTesting] Test ${testId} completed. Winner: Variation ${winner.variationName}`);
+  logger.info(`[ABTesting] Test ${testId} completed. Winner: Variation ${winner.variationName}`);
 
   return {
     winnerId: winner.id,
@@ -487,7 +490,7 @@ export async function extractLearnings(testId: number): Promise<void> {
   });
 
   if (!test || test.status !== "completed" || !test.winnerId) {
-    console.log(`[ABTesting] Test ${testId} is not ready for learning extraction`);
+    logger.info(`[ABTesting] Test ${testId} is not ready for learning extraction`);
     return;
   }
 
@@ -573,7 +576,7 @@ export async function extractLearnings(testId: number): Promise<void> {
     });
   }
 
-  console.log(`[ABTesting] Extracted learnings from test ${testId}`);
+  logger.info(`[ABTesting] Extracted learnings from test ${testId}`);
 }
 
 /**

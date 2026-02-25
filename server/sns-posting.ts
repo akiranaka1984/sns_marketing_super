@@ -5,6 +5,9 @@
  */
 
 import { postToXViaPlaywright } from './playwright';
+import { createLogger } from './utils/logger';
+
+const logger = createLogger('sns-posting');
 
 interface PostResult {
   success: boolean;
@@ -27,7 +30,7 @@ export async function postToSNS(
   const normalizedPlatform = platform.toLowerCase();
 
   if (normalizedPlatform === 'twitter' || normalizedPlatform === 'x') {
-    console.log(`[SNSPosting] Using Playwright mode for account ${accountId}`);
+    logger.info({ accountId }, "Using Playwright mode");
     const result = await postToXViaPlaywright(accountId, content, mediaUrls);
     return {
       success: result.success,

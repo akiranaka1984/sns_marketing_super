@@ -5,6 +5,9 @@
 
 import { invokeLLM } from "../_core/llm";
 import { classifyPost, PostClassification } from "./category-classifier";
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("buzz-analyzer");
 
 export interface BuzzAnalysis {
   successFactors: SuccessFactor[];
@@ -163,7 +166,7 @@ Respond with JSON:
       suggestedImprovements: analysis.suggestedImprovements || [],
     };
   } catch (error) {
-    console.error("[BuzzAnalyzer] Error analyzing post:", error);
+    logger.error({ err: error }, "[BuzzAnalyzer] Error analyzing post");
     return getDefaultAnalysis();
   }
 }
@@ -181,7 +184,7 @@ export async function extractBuzzPatterns(
   }>
 ): Promise<BuzzPattern[]> {
   if (posts.length < 3) {
-    console.log("[BuzzAnalyzer] Not enough posts for pattern extraction");
+    logger.info("[BuzzAnalyzer] Not enough posts for pattern extraction");
     return [];
   }
 
@@ -248,7 +251,7 @@ Respond with JSON:
       sampleSize: posts.length,
     }));
   } catch (error) {
-    console.error("[BuzzAnalyzer] Error extracting patterns:", error);
+    logger.error({ err: error }, "[BuzzAnalyzer] Error extracting patterns");
     return [];
   }
 }

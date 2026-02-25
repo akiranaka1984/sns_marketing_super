@@ -11,4 +11,10 @@ export const ENV = {
   get forgeApiKey() {
     return process.env.BUILT_IN_FORGE_API_KEY || process.env.OPENAI_API_KEY || "";
   },
+  get anthropicApiKey() {
+    return process.env.ANTHROPIC_API_KEY || "";
+  },
+  get llmProvider() {
+    return (process.env.LLM_PROVIDER || "openai") as "openai" | "anthropic";
+  },
 };

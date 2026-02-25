@@ -1,4 +1,7 @@
 import { invokeLLM } from "./_core/llm";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("ai-engine");
 
 export interface StrategyData {
   contentType: string;
@@ -123,7 +126,7 @@ export async function generateStrategy(objective: string): Promise<StrategyData>
     const strategy: StrategyData = JSON.parse(content);
     return strategy;
   } catch (error) {
-    console.error("[AI Engine] Failed to generate strategy:", error);
+    logger.error({ err: error }, "Failed to generate strategy");
     
     // Return a fallback strategy
     return {
@@ -175,7 +178,7 @@ Create an engaging post that follows this strategy. Include relevant hashtags at
     const content = response.choices[0]?.message?.content;
     return typeof content === 'string' ? content : "Failed to generate content";
   } catch (error) {
-    console.error("[AI Engine] Failed to generate post content:", error);
+    logger.error({ err: error }, "Failed to generate post content");
     return "Failed to generate content. Please try again.";
   }
 }
@@ -262,7 +265,7 @@ The rationale should be concise (2-3 sentences) explaining the connection betwee
     const suggestion: KPISuggestion = JSON.parse(content);
     return suggestion;
   } catch (error) {
-    console.error("[AI Engine] Failed to suggest KPIs:", error);
+    logger.error({ err: error }, "Failed to suggest KPIs");
 
     // Return a fallback suggestion
     return {
@@ -312,7 +315,7 @@ Provide insights and suggestions for improvement.`,
     const content = response.choices[0]?.message?.content;
     return typeof content === 'string' ? content : "Failed to analyze performance";
   } catch (error) {
-    console.error("[AI Engine] Failed to analyze performance:", error);
+    logger.error({ err: error }, "Failed to analyze performance");
     return "Failed to analyze performance. Please try again.";
   }
 }
@@ -540,7 +543,7 @@ ${performanceContext}
     const strategy: ExtendedStrategyData = JSON.parse(content);
     return strategy;
   } catch (error) {
-    console.error("[AI Engine] Failed to generate strategy with context:", error);
+    logger.error({ err: error }, "Failed to generate strategy with context");
 
     // Return a fallback strategy
     return {
@@ -625,7 +628,7 @@ export async function generatePersonaCharacteristics(
     const content = result.choices?.[0]?.message?.content;
     return (typeof content === 'string' ? content : '').trim();
   } catch (error) {
-    console.error("Failed to generate persona characteristics:", error);
+    logger.error({ err: error }, "Failed to generate persona characteristics");
     // Fallback to a simple template
     return generateFallbackCharacteristics(role, tone);
   }

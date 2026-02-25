@@ -20,6 +20,10 @@ import { db } from '../db';
 import { accounts, proxies, interactionSettings } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("engagement-actions");
+
 export interface EngagementResult {
   success: boolean;
   message: string;
@@ -105,7 +109,7 @@ export async function likePostViaPlaywright(
     try {
       // Navigate to the post
       setOperationStatus(accountId, 'like', 'navigating_to_post');
-      console.log(`[EngagementActions] Navigating to post: ${postUrl}`);
+      logger.info(`[EngagementActions] Navigating to post: ${postUrl}`);
       await page.goto(postUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
@@ -121,7 +125,7 @@ export async function likePostViaPlaywright(
       const alreadyLiked = await unlikeBtn.isVisible({ timeout: 2_000 }).catch(() => false);
 
       if (alreadyLiked) {
-        console.log(`[EngagementActions] Post already liked`);
+        logger.info(`[EngagementActions] Post already liked`);
         return { success: true, message: 'Post already liked' };
       }
 
@@ -136,7 +140,7 @@ export async function likePostViaPlaywright(
       const likeSuccess = await unlikeBtn.isVisible({ timeout: 5_000 }).catch(() => false);
 
       if (likeSuccess) {
-        console.log(`[EngagementActions] Like successful for account ${accountId}`);
+        logger.info(`[EngagementActions] Like successful for account ${accountId}`);
         await saveSession(accountId);
         return { success: true, message: 'Post liked successfully' };
       }
@@ -148,7 +152,7 @@ export async function likePostViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[EngagementActions] Like failed for account ${accountId}:`, err.message);
+    logger.error(`[EngagementActions] Like failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {}
@@ -182,7 +186,7 @@ export async function commentPostViaPlaywright(
     try {
       // Navigate to the post
       setOperationStatus(accountId, 'comment', 'navigating_to_post');
-      console.log(`[EngagementActions] Navigating to post for comment: ${postUrl}`);
+      logger.info(`[EngagementActions] Navigating to post for comment: ${postUrl}`);
       await page.goto(postUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
@@ -221,7 +225,7 @@ export async function commentPostViaPlaywright(
       const toastVisible = await page.locator(X_SELECTORS.toast).first().isVisible({ timeout: 3_000 }).catch(() => false);
 
       if (dialogClosed || toastVisible) {
-        console.log(`[EngagementActions] Comment successful for account ${accountId}`);
+        logger.info(`[EngagementActions] Comment successful for account ${accountId}`);
         await saveSession(accountId);
         return { success: true, message: 'Comment posted successfully' };
       }
@@ -233,7 +237,7 @@ export async function commentPostViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[EngagementActions] Comment failed for account ${accountId}:`, err.message);
+    logger.error(`[EngagementActions] Comment failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {}
@@ -269,7 +273,7 @@ export async function followUserViaPlaywright(
       // Navigate to user profile
       const profileUrl = `https://x.com/${cleanUsername}`;
       setOperationStatus(accountId, 'follow', 'navigating_to_profile');
-      console.log(`[EngagementActions] Navigating to profile: ${profileUrl}`);
+      logger.info(`[EngagementActions] Navigating to profile: ${profileUrl}`);
       await page.goto(profileUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
@@ -282,7 +286,7 @@ export async function followUserViaPlaywright(
       const alreadyFollowing = await unfollowBtn.isVisible({ timeout: 3_000 }).catch(() => false);
 
       if (alreadyFollowing) {
-        console.log(`[EngagementActions] Already following ${cleanUsername}`);
+        logger.info(`[EngagementActions] Already following ${cleanUsername}`);
         return { success: true, message: 'Already following user' };
       }
 
@@ -298,7 +302,7 @@ export async function followUserViaPlaywright(
       const followSuccess = await unfollowBtn.isVisible({ timeout: 5_000 }).catch(() => false);
 
       if (followSuccess) {
-        console.log(`[EngagementActions] Follow successful: ${cleanUsername}`);
+        logger.info(`[EngagementActions] Follow successful: ${cleanUsername}`);
         await saveSession(accountId);
         return { success: true, message: `Successfully followed @${cleanUsername}` };
       }
@@ -310,7 +314,7 @@ export async function followUserViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[EngagementActions] Follow failed for account ${accountId}:`, err.message);
+    logger.error(`[EngagementActions] Follow failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {}
@@ -345,7 +349,7 @@ export async function unfollowUserViaPlaywright(
       // Navigate to user profile
       const profileUrl = `https://x.com/${cleanUsername}`;
       setOperationStatus(accountId, 'unfollow', 'navigating_to_profile');
-      console.log(`[EngagementActions] Navigating to profile for unfollow: ${profileUrl}`);
+      logger.info(`[EngagementActions] Navigating to profile for unfollow: ${profileUrl}`);
       await page.goto(profileUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
@@ -358,7 +362,7 @@ export async function unfollowUserViaPlaywright(
       const isFollowing = await unfollowBtn.isVisible({ timeout: 3_000 }).catch(() => false);
 
       if (!isFollowing) {
-        console.log(`[EngagementActions] Not following ${cleanUsername}`);
+        logger.info(`[EngagementActions] Not following ${cleanUsername}`);
         return { success: true, message: 'Not following user' };
       }
 
@@ -380,7 +384,7 @@ export async function unfollowUserViaPlaywright(
       const unfollowSuccess = await followBtn.isVisible({ timeout: 5_000 }).catch(() => false);
 
       if (unfollowSuccess) {
-        console.log(`[EngagementActions] Unfollow successful: ${cleanUsername}`);
+        logger.info(`[EngagementActions] Unfollow successful: ${cleanUsername}`);
         await saveSession(accountId);
         return { success: true, message: `Successfully unfollowed @${cleanUsername}` };
       }
@@ -392,7 +396,7 @@ export async function unfollowUserViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[EngagementActions] Unfollow failed for account ${accountId}:`, err.message);
+    logger.error(`[EngagementActions] Unfollow failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {}
@@ -424,7 +428,7 @@ export async function retweetPostViaPlaywright(
     try {
       // Navigate to the post
       setOperationStatus(accountId, 'retweet', 'navigating_to_post');
-      console.log(`[EngagementActions] Navigating to post for retweet: ${postUrl}`);
+      logger.info(`[EngagementActions] Navigating to post for retweet: ${postUrl}`);
       await page.goto(postUrl, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
@@ -437,7 +441,7 @@ export async function retweetPostViaPlaywright(
       const alreadyRetweeted = await unretweetBtn.isVisible({ timeout: 2_000 }).catch(() => false);
 
       if (alreadyRetweeted) {
-        console.log(`[EngagementActions] Post already retweeted`);
+        logger.info(`[EngagementActions] Post already retweeted`);
         return { success: true, message: 'Post already retweeted' };
       }
 
@@ -460,7 +464,7 @@ export async function retweetPostViaPlaywright(
       const retweetSuccess = await unretweetBtn.isVisible({ timeout: 5_000 }).catch(() => false);
 
       if (retweetSuccess) {
-        console.log(`[EngagementActions] Retweet successful for account ${accountId}`);
+        logger.info(`[EngagementActions] Retweet successful for account ${accountId}`);
         await saveSession(accountId);
         return { success: true, message: 'Post retweeted successfully' };
       }
@@ -472,7 +476,7 @@ export async function retweetPostViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[EngagementActions] Retweet failed for account ${accountId}:`, err.message);
+    logger.error(`[EngagementActions] Retweet failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {}

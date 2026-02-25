@@ -15,7 +15,11 @@ export const abTestLearnings = mysqlTable("ab_test_learnings", {
 	isApplied: tinyint().default(0).notNull(),
 	appliedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_ab_test_learnings_testId").on(table.testId),
+	index("idx_ab_test_learnings_agentId").on(table.agentId),
+]);
 
 export const abTestVariations = mysqlTable("ab_test_variations", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -39,7 +43,11 @@ export const abTestVariations = mysqlTable("ab_test_variations", {
 	isWinner: tinyint().default(0).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_ab_test_variations_testId").on(table.testId),
+	index("idx_ab_test_variations_postId").on(table.postId),
+]);
 
 export const abTests = mysqlTable("ab_tests", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -58,7 +66,11 @@ export const abTests = mysqlTable("ab_tests", {
 	completedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_ab_tests_agentId").on(table.agentId),
+	index("idx_ab_tests_status").on(table.status),
+]);
 
 export const accounts = mysqlTable("accounts", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -92,6 +104,8 @@ export const accounts = mysqlTable("accounts", {
 },
 (table) => [
 	index("username_platform_idx").on(table.username, table.platform),
+	index("idx_accounts_userId").on(table.userId),
+	index("idx_accounts_status").on(table.status),
 ]);
 
 // Account relationships (intimacy/closeness between accounts)
@@ -109,7 +123,12 @@ export const accountRelationships = mysqlTable("account_relationships", {
 	isActive: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_account_relationships_projectId").on(table.projectId),
+	index("idx_account_relationships_fromAccountId").on(table.fromAccountId),
+	index("idx_account_relationships_toAccountId").on(table.toAccountId),
+]);
 
 export const agentAccounts = mysqlTable("agent_accounts", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -118,7 +137,11 @@ export const agentAccounts = mysqlTable("agent_accounts", {
 	isActive: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_agent_accounts_agentId").on(table.agentId),
+	index("idx_agent_accounts_accountId").on(table.accountId),
+]);
 
 export const agentExecutionLogs = mysqlTable("agent_execution_logs", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -133,7 +156,13 @@ export const agentExecutionLogs = mysqlTable("agent_execution_logs", {
 	errorMessage: text(),
 	executionTimeMs: int(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_agent_execution_logs_agentId").on(table.agentId),
+	index("idx_agent_execution_logs_accountId").on(table.accountId),
+	index("idx_agent_execution_logs_postId").on(table.postId),
+	index("idx_agent_execution_logs_status").on(table.status),
+]);
 
 export const agentKnowledge = mysqlTable("agent_knowledge", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -148,7 +177,10 @@ export const agentKnowledge = mysqlTable("agent_knowledge", {
 	isActive: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_agent_knowledge_agentId").on(table.agentId),
+]);
 
 export const agentRules = mysqlTable("agent_rules", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -160,7 +192,10 @@ export const agentRules = mysqlTable("agent_rules", {
 	isActive: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_agent_rules_agentId").on(table.agentId),
+]);
 
 export const agentSchedules = mysqlTable("agent_schedules", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -175,7 +210,11 @@ export const agentSchedules = mysqlTable("agent_schedules", {
 	nextExecutionAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_agent_schedules_agentId").on(table.agentId),
+	index("idx_agent_schedules_accountId").on(table.accountId),
+]);
 
 export const agents = mysqlTable("agents", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -195,7 +234,11 @@ export const agents = mysqlTable("agents", {
 	postingTimeSlots: text(),
 	skipReview: tinyint().default(0).notNull(),
 	autoOptimizationSettings: text(), // JSON: { enabled, minEngagementRateThreshold, checkIntervalHours, etc. }
-});
+},
+(table) => [
+	index("idx_agents_userId").on(table.userId),
+	index("idx_agents_projectId").on(table.projectId),
+]);
 
 export const aiOptimizations = mysqlTable("ai_optimizations", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -211,7 +254,13 @@ export const aiOptimizations = mysqlTable("ai_optimizations", {
 	appliedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_ai_optimizations_userId").on(table.userId),
+	index("idx_ai_optimizations_projectId").on(table.projectId),
+	index("idx_ai_optimizations_agentId").on(table.agentId),
+	index("idx_ai_optimizations_status").on(table.status),
+]);
 
 export const alertHistory = mysqlTable("alert_history", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -230,7 +279,13 @@ export const alertHistory = mysqlTable("alert_history", {
 	notificationSentAt: timestamp({ mode: 'string' }),
 	triggeredAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_alert_history_userId").on(table.userId),
+	index("idx_alert_history_accountId").on(table.accountId),
+	index("idx_alert_history_postId").on(table.postId),
+	index("idx_alert_history_status").on(table.status),
+]);
 
 export const alertSettings = mysqlTable("alert_settings", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -242,7 +297,10 @@ export const alertSettings = mysqlTable("alert_settings", {
 	notifyOwner: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_alert_settings_userId").on(table.userId),
+]);
 
 export const analytics = mysqlTable("analytics", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -256,7 +314,10 @@ export const analytics = mysqlTable("analytics", {
 	sharesCount: int().default(0).notNull(),
 	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_analytics_accountId").on(table.accountId),
+]);
 
 export const autoResponses = mysqlTable("auto_responses", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -270,7 +331,11 @@ export const autoResponses = mysqlTable("auto_responses", {
 	executedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_auto_responses_freezeDetectionId").on(table.freezeDetectionId),
+	index("idx_auto_responses_accountId").on(table.accountId),
+]);
 
 export const collectedContents = mysqlTable("collected_contents", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -289,7 +354,11 @@ export const collectedContents = mysqlTable("collected_contents", {
 	collectedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_collected_contents_userId").on(table.userId),
+	index("idx_collected_contents_projectId").on(table.projectId),
+]);
 
 export const collectionSchedules = mysqlTable("collection_schedules", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -306,7 +375,11 @@ export const collectionSchedules = mysqlTable("collection_schedules", {
 	nextRunAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_collection_schedules_userId").on(table.userId),
+	index("idx_collection_schedules_projectId").on(table.projectId),
+]);
 
 export const contentReviews = mysqlTable("content_reviews", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -319,7 +392,14 @@ export const contentReviews = mysqlTable("content_reviews", {
 	reviewedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_content_reviews_userId").on(table.userId),
+	index("idx_content_reviews_projectId").on(table.projectId),
+	index("idx_content_reviews_contentRewriteId").on(table.contentRewriteId),
+	index("idx_content_reviews_reviewerId").on(table.reviewerId),
+	index("idx_content_reviews_status").on(table.status),
+]);
 
 export const contentRewrites = mysqlTable("content_rewrites", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -335,7 +415,13 @@ export const contentRewrites = mysqlTable("content_rewrites", {
 	rewrittenAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_content_rewrites_userId").on(table.userId),
+	index("idx_content_rewrites_projectId").on(table.projectId),
+	index("idx_content_rewrites_collectedContentId").on(table.collectedContentId),
+	index("idx_content_rewrites_agentId").on(table.agentId),
+]);
 
 export const coordinateLearningData = mysqlTable("coordinate_learning_data", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -408,7 +494,11 @@ export const engagementLogs = mysqlTable("engagement_logs", {
 	status: mysqlEnum(['success','failed']).notNull(),
 	errorMessage: text(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_engagement_logs_taskId").on(table.taskId),
+	index("idx_engagement_logs_accountId").on(table.accountId),
+]);
 
 export const engagementTasks = mysqlTable("engagement_tasks", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -423,7 +513,11 @@ export const engagementTasks = mysqlTable("engagement_tasks", {
 	lastExecutedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_engagement_tasks_projectId").on(table.projectId),
+	index("idx_engagement_tasks_accountId").on(table.accountId),
+]);
 
 export const freezeDetections = mysqlTable("freeze_detections", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -437,7 +531,11 @@ export const freezeDetections = mysqlTable("freeze_detections", {
 	resolvedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_freeze_detections_accountId").on(table.accountId),
+	index("idx_freeze_detections_status").on(table.status),
+]);
 
 export const interactionSettings = mysqlTable("interaction_settings", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -485,7 +583,12 @@ export const interactions = mysqlTable("interactions", {
 	afterScreenshotKey: text(),
 	metadata: text(), // JSON: relationship data, comment style, etc.
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_interactions_postUrlId").on(table.postUrlId),
+	index("idx_interactions_fromAccountId").on(table.fromAccountId),
+	index("idx_interactions_status").on(table.status),
+]);
 
 export const logs = mysqlTable("logs", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -496,7 +599,10 @@ export const logs = mysqlTable("logs", {
 	details: text(),
 	errorMessage: text(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_logs_accountId").on(table.accountId),
+]);
 
 export const postAnalytics = mysqlTable("post_analytics", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -514,7 +620,11 @@ export const postAnalytics = mysqlTable("post_analytics", {
 	impressionsCount: int().default(0).notNull(),
 	recordedAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_post_analytics_postId").on(table.postId),
+	index("idx_post_analytics_accountId").on(table.accountId),
+]);
 
 export const postPerformanceFeedback = mysqlTable("post_performance_feedback", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -533,7 +643,12 @@ export const postPerformanceFeedback = mysqlTable("post_performance_feedback", {
 	processedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_post_performance_feedback_postId").on(table.postId),
+	index("idx_post_performance_feedback_agentId").on(table.agentId),
+	index("idx_post_performance_feedback_accountId").on(table.accountId),
+]);
 
 export const postUrls = mysqlTable("post_urls", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -545,7 +660,12 @@ export const postUrls = mysqlTable("post_urls", {
 	postUrl: varchar({ length: 500 }).notNull(),
 	postContent: text(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-});
+},
+(table) => [
+	index("idx_post_urls_projectId").on(table.projectId),
+	index("idx_post_urls_scheduledPostId").on(table.scheduledPostId),
+	index("idx_post_urls_accountId").on(table.accountId),
+]);
 
 export const posts = mysqlTable("posts", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -567,7 +687,14 @@ export const posts = mysqlTable("posts", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	agentId: int(),
 	platform: varchar({ length: 50 }),
-});
+},
+(table) => [
+	index("idx_posts_projectId").on(table.projectId),
+	index("idx_posts_accountId").on(table.accountId),
+	index("idx_posts_strategyId").on(table.strategyId),
+	index("idx_posts_agentId").on(table.agentId),
+	index("idx_posts_status").on(table.status),
+]);
 
 export const projectAccounts = mysqlTable("project_accounts", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -579,7 +706,11 @@ export const projectAccounts = mysqlTable("project_accounts", {
 	isActive: tinyint().default(1).notNull(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_project_accounts_projectId").on(table.projectId),
+	index("idx_project_accounts_accountId").on(table.accountId),
+]);
 
 // Project-Model Account linkage - links projects to model accounts for learning
 // @deprecated Use accountModelAccounts instead for account-centric management
@@ -626,7 +757,11 @@ export const projects = mysqlTable("projects", {
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	targets: text(),
-});
+},
+(table) => [
+	index("idx_projects_userId").on(table.userId),
+	index("idx_projects_status").on(table.status),
+]);
 
 export const proxies = mysqlTable("proxies", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -640,7 +775,10 @@ export const proxies = mysqlTable("proxies", {
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 	duoplusProxyId: varchar({ length: 255 }),
-});
+},
+(table) => [
+	index("idx_proxies_assignedAccountId").on(table.assignedAccountId),
+]);
 
 export const scheduledPosts = mysqlTable("scheduled_posts", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -666,7 +804,14 @@ export const scheduledPosts = mysqlTable("scheduled_posts", {
 	postUrl: text(),
 	screenshotUrl: text(),
 	usedLearningIds: text(), // JSON array of learning IDs used for content generation
-});
+},
+(table) => [
+	index("idx_scheduled_posts_projectId").on(table.projectId),
+	index("idx_scheduled_posts_accountId").on(table.accountId),
+	index("idx_scheduled_posts_agentId").on(table.agentId),
+	index("idx_scheduled_posts_status").on(table.status),
+	index("idx_scheduled_posts_reviewStatus").on(table.reviewStatus),
+]);
 
 export const settings = mysqlTable("settings", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -728,6 +873,8 @@ export const strategies = mysqlTable("strategies", {
 (table) => [
 	index("strategies_project_idx").on(table.projectId),
 	index("strategies_active_idx").on(table.projectId, table.isActive),
+	index("idx_strategies_userId").on(table.userId),
+	index("idx_strategies_accountId").on(table.accountId),
 ]);
 
 export const tenantUsers = mysqlTable("tenant_users", {
@@ -741,7 +888,11 @@ export const tenantUsers = mysqlTable("tenant_users", {
 	joinedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_tenant_users_tenantId").on(table.tenantId),
+	index("idx_tenant_users_userId").on(table.userId),
+]);
 
 export const tenants = mysqlTable("tenants", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -759,6 +910,7 @@ export const tenants = mysqlTable("tenants", {
 },
 (table) => [
 	index("tenants_slug_unique").on(table.slug),
+	index("idx_tenants_ownerId").on(table.ownerId),
 ]);
 
 export const users = mysqlTable("users", {
@@ -793,7 +945,13 @@ export const videoGenerations = mysqlTable("video_generations", {
 	generatedAt: timestamp({ mode: 'string' }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_video_generations_userId").on(table.userId),
+	index("idx_video_generations_projectId").on(table.projectId),
+	index("idx_video_generations_agentId").on(table.agentId),
+	index("idx_video_generations_status").on(table.status),
+]);
 
 export const weeklyReviews = mysqlTable("weekly_reviews", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -811,7 +969,11 @@ export const weeklyReviews = mysqlTable("weekly_reviews", {
 	recommendations: text(),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_weekly_reviews_userId").on(table.userId),
+	index("idx_weekly_reviews_projectId").on(table.projectId),
+]);
 
 export const xApiSettings = mysqlTable("x_api_settings", {
 	id: int().autoincrement().notNull().primaryKey(),
@@ -824,7 +986,10 @@ export const xApiSettings = mysqlTable("x_api_settings", {
 	testResult: varchar({ length: 50 }),
 	createdAt: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("idx_x_api_settings_userId").on(table.userId),
+]);
 
 // Account-specific learning data for consistent persona across posts and comments
 export const accountLearnings = mysqlTable("account_learnings", {
@@ -857,6 +1022,7 @@ export const accountLearnings = mysqlTable("account_learnings", {
 (table) => [
 	index("account_learnings_account_idx").on(table.accountId),
 	index("account_learnings_type_idx").on(table.accountId, table.learningType),
+	index("idx_account_learnings_projectId").on(table.projectId),
 ]);
 
 export const automationTasks = mysqlTable("automation_tasks", {
@@ -912,6 +1078,7 @@ export const modelAccounts = mysqlTable("model_accounts", {
 (table) => [
 	index("model_accounts_user_platform_idx").on(table.userId, table.platform),
 	index("model_accounts_industry_idx").on(table.industryCategory),
+	index("idx_model_accounts_projectId").on(table.projectId),
 ]);
 
 // Buzz posts - viral/successful posts from own accounts and model accounts
@@ -970,6 +1137,8 @@ export const buzzPosts = mysqlTable("buzz_posts", {
 	index("buzz_posts_model_idx").on(table.modelAccountId),
 	index("buzz_posts_category_idx").on(table.industryCategory, table.postType),
 	index("buzz_posts_virality_idx").on(table.viralityScore),
+	index("idx_buzz_posts_userId").on(table.userId),
+	index("idx_buzz_posts_projectId").on(table.projectId),
 ]);
 
 // Buzz learnings - extracted patterns from successful posts
@@ -1011,6 +1180,8 @@ export const buzzLearnings = mysqlTable("buzz_learnings", {
 (table) => [
 	index("buzz_learnings_agent_idx").on(table.agentId),
 	index("buzz_learnings_category_idx").on(table.industryCategory, table.learningType),
+	index("idx_buzz_learnings_userId").on(table.userId),
+	index("idx_buzz_learnings_projectId").on(table.projectId),
 ]);
 
 // Profile analyses - analysis of account profiles for optimization
@@ -1043,6 +1214,8 @@ export const profileAnalyses = mysqlTable("profile_analyses", {
 },
 (table) => [
 	index("profile_analyses_target_idx").on(table.targetType, table.accountId),
+	index("idx_profile_analyses_userId").on(table.userId),
+	index("idx_profile_analyses_modelAccountId").on(table.modelAccountId),
 ]);
 
 // ==========================================
@@ -1164,6 +1337,7 @@ export const engagementTrackingJobs = mysqlTable("engagement_tracking_jobs", {
 	index("engagement_tracking_jobs_status_idx").on(table.status, table.scheduledAt),
 	index("engagement_tracking_jobs_post_idx").on(table.postUrlId),
 	index("engagement_tracking_jobs_account_idx").on(table.accountId),
+	index("idx_engagement_tracking_jobs_projectId").on(table.projectId),
 ]);
 
 // ==========================================

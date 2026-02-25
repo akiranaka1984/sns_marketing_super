@@ -13,6 +13,9 @@ import {
   updateKnowledgeConfidence,
   runScheduledCollection
 } from "./engagement-collector";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("engagement-collector.routers");
 
 // スケジューラーの状態
 let collectionInterval: NodeJS.Timeout | null = null;
@@ -72,16 +75,16 @@ export const engagementCollectorRouter = router({
 
       // 1時間ごとに実行
       collectionInterval = setInterval(async () => {
-        console.log("[EngagementCollector] Running scheduled collection...");
+        logger.info("[EngagementCollector] Running scheduled collection...");
         try {
           await runScheduledCollection();
         } catch (error) {
-          console.error("[EngagementCollector] Scheduled collection error:", error);
+          logger.error("[EngagementCollector] Scheduled collection error");
         }
       }, 60 * 60 * 1000); // 1時間
 
       isCollectorRunning = true;
-      console.log("[EngagementCollector] Collector started");
+      logger.info("[EngagementCollector] Collector started");
       return { success: true, message: "Collector started" };
     }),
 
@@ -95,7 +98,7 @@ export const engagementCollectorRouter = router({
       clearInterval(collectionInterval);
       collectionInterval = null;
       isCollectorRunning = false;
-      console.log("[EngagementCollector] Collector stopped");
+      logger.info("[EngagementCollector] Collector stopped");
       return { success: true, message: "Collector stopped" };
     }),
 

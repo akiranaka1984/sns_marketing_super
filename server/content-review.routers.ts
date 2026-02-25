@@ -1,4 +1,5 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { contentReviews, contentRewrites } from "../drizzle/schema";
@@ -31,7 +32,7 @@ export const contentReviewRouter = router({
         );
 
       if (!rewrite) {
-        throw new Error("Content rewrite not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Content rewrite not found" });
       }
 
       // Create review entry
@@ -228,7 +229,7 @@ export const contentReviewRouter = router({
         );
 
       if (!review) {
-        throw new Error("Review not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Review not found" });
       }
 
       // Get associated content rewrite

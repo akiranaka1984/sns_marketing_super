@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import rateLimit from "express-rate-limit";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
@@ -16,6 +17,8 @@ import { registerQueueProcessors } from "../queue-processors";
 import { closeQueues } from "../queue-manager";
 import { startScheduler } from "../agent-scheduler";
 import { attachWebSocketServer } from "../playwright/ws-preview";
+import { attachEventBus } from "../utils/event-bus";
+import { logger } from "../utils/logger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,30 +40,64 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
-  // Load API keys from database on startup
-  console.log('[Settings] Loading API keys from database...');
-  
+  logger.info('Loading API keys from database...');
+
   // Wait for database connection to be ready
   await new Promise(resolve => setTimeout(resolve, 2000));
-  
+
   try {
     const openaiApiKey = await getSetting('OPENAI_API_KEY');
 
     if (openaiApiKey) {
       process.env.OPENAI_API_KEY = openaiApiKey;
-      console.log('[Settings] Loaded OPENAI_API_KEY from database');
+      logger.info('Loaded OPENAI_API_KEY from database');
     } else {
-      console.log('[Settings] No OPENAI_API_KEY found in database, using environment variable');
+      logger.info('No OPENAI_API_KEY found in database, using environment variable');
+    }
+
+    const anthropicApiKey = await getSetting('ANTHROPIC_API_KEY');
+    if (anthropicApiKey) {
+      process.env.ANTHROPIC_API_KEY = anthropicApiKey;
+      logger.info('Loaded ANTHROPIC_API_KEY from database');
+    }
+
+    const llmProvider = await getSetting('LLM_PROVIDER');
+    if (llmProvider) {
+      process.env.LLM_PROVIDER = llmProvider;
+      logger.info({ provider: llmProvider }, 'Loaded LLM_PROVIDER from database');
     }
   } catch (error: any) {
-    console.error('[Settings] Failed to load API keys from database:', error.message);
+    logger.error({ err: error }, 'Failed to load API keys from database');
   }
-  
+
   const app = express();
   const server = createServer(app);
 
   // Attach WebSocket server for Playwright live preview
   attachWebSocketServer(server);
+
+  // Attach real-time event bus WebSocket
+  attachEventBus(server);
+
+  // Rate limiting
+  const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300, // 300 requests per 15 minutes
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' },
+  });
+  const authLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 10, // 10 requests per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many login attempts, please try again later.' },
+  });
+  app.use('/api/trpc', generalLimiter);
+  app.use('/api/oauth', authLimiter);
+  app.use('/api/dev-login', authLimiter);
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -87,15 +124,15 @@ async function startServer() {
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+    logger.info({ preferredPort, port }, 'Port busy, using alternative');
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info({ port }, `Server running on http://localhost:${port}/`);
 
     // Register queue processors (Bull)
     registerQueueProcessors();
-    console.log('[Queue] Queue processors registered');
+    logger.info('Queue processors registered');
 
     // Start scheduled posts enqueuer (adds pending posts to queue)
     startScheduledPostsEnqueuer();
@@ -108,29 +145,29 @@ async function startServer() {
 
     // Start agent scheduler (runs scheduled agents automatically)
     startScheduler();
-    console.log('[AgentScheduler] Agent scheduler started');
+    logger.info('Agent scheduler started');
 
-    console.log('[Automation] All background executors started');
+    logger.info('All background executors started');
   });
 
   // Graceful shutdown
   const gracefulShutdown = async (signal: string) => {
-    console.log(`[Server] Received ${signal}, starting graceful shutdown...`);
+    logger.info({ signal }, 'Starting graceful shutdown...');
 
     // Stop accepting new connections
     server.close(async () => {
-      console.log('[Server] HTTP server closed');
+      logger.info('HTTP server closed');
 
       // Close queue connections
       await closeQueues();
 
-      console.log('[Server] Graceful shutdown complete');
+      logger.info('Graceful shutdown complete');
       process.exit(0);
     });
 
     // Force shutdown after 30 seconds
     setTimeout(() => {
-      console.error('[Server] Forced shutdown after timeout');
+      logger.error('Forced shutdown after timeout');
       process.exit(1);
     }, 30000);
   };
@@ -141,17 +178,14 @@ async function startServer() {
 
 // Global error handlers to prevent server crashes
 process.on('uncaughtException', (error) => {
-  console.error('[FATAL] Uncaught Exception:', error);
-  console.error('[FATAL] Stack:', error.stack);
-  // Log but don't exit immediately to allow graceful shutdown
+  logger.fatal({ err: error }, 'Uncaught Exception');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[FATAL] Unhandled Rejection at:', promise);
-  console.error('[FATAL] Reason:', reason);
+  logger.fatal({ reason }, 'Unhandled Rejection');
 });
 
 startServer().catch((error) => {
-  console.error('[FATAL] Failed to start server:', error);
+  logger.fatal({ err: error }, 'Failed to start server');
   process.exit(1);
 });

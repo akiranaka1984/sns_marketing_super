@@ -14,6 +14,9 @@ import { isSimilar } from "./agent-scheduled-posts";
 import { postToSNS } from "./sns-posting";
 import { onPostSuccess } from "./post-success-hook";
 import { addScheduledPostJob, type ScheduledPostJob } from "./queue-manager";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("scheduled-posts");
 
 /**
  * Execute pending scheduled posts
@@ -31,7 +34,7 @@ export async function executeScheduledPosts() {
     ),
   });
 
-  console.log(`[ScheduledPosts] Found ${pendingPosts.length} posts to publish`);
+  logger.info({ count: pendingPosts.length }, "Found posts to publish");
 
   const results = [];
 
@@ -45,7 +48,7 @@ export async function executeScheduledPosts() {
         await createNextScheduledPost(post);
       }
     } catch (error: any) {
-      console.error(`[ScheduledPosts] Error publishing post ${post.id}:`, error);
+      logger.error({ err: error, postId: post.id }, "Error publishing post");
       await db
         .update(scheduledPosts)
         .set({
@@ -111,8 +114,8 @@ export async function publishPost(postId: number): Promise<{
       };
     }
 
-    console.log(`[ScheduledPosts] Publishing post ${postId} to ${account.platform} account ${account.username}`);
-    console.log(`[ScheduledPosts] Content: ${post.content}`);
+    logger.info({ postId, platform: account.platform, username: account.username }, "Publishing post");
+    logger.info({ content: post.content }, "Post content");
 
     // Build full content with hashtags
     let fullContent = post.content;
@@ -160,12 +163,12 @@ export async function publishPost(postId: number): Promise<{
           );
           
           if (hookResult.success) {
-            console.log(`[ScheduledPosts] Post success hook completed: ${hookResult.tasksCreated} tasks created`);
+            logger.info({ tasksCreated: hookResult.tasksCreated }, "Post success hook completed");
           } else {
-            console.error(`[ScheduledPosts] Post success hook failed: ${hookResult.error}`);
+            logger.error({ error: hookResult.error }, "Post success hook failed");
           }
         } catch (error: any) {
-          console.error(`[ScheduledPosts] Post success hook error:`, error.message);
+          logger.error({ err: error }, "Post success hook error");
         }
       }
 
@@ -197,7 +200,7 @@ export async function publishPost(postId: number): Promise<{
       });
 
       if (currentPost?.status === "posted") {
-        console.log(`[ScheduledPosts] Post ${postId} was already successfully posted by another process, skipping failure update`);
+        logger.info({ postId }, "Post was already successfully posted by another process, skipping failure update");
         return {
           success: true,
           message: "Post was already successfully published",
@@ -236,7 +239,7 @@ export async function publishPost(postId: number): Promise<{
       });
 
       if (postAfterFreeze?.status === "posted") {
-        console.log(`[ScheduledPosts] Post ${postId} was successfully posted during freeze detection, skipping failure update`);
+        logger.info({ postId }, "Post was successfully posted during freeze detection, skipping failure update");
         return {
           success: true,
           message: "Post was successfully published",
@@ -272,7 +275,7 @@ export async function publishPost(postId: number): Promise<{
       };
     }
   } catch (error: any) {
-    console.error(`[ScheduledPosts] Error in publishPost:`, error);
+    logger.error({ err: error }, "Error in publishPost");
     return {
       success: false,
       message: error.message,
@@ -316,7 +319,7 @@ async function createNextScheduledPost(post: any) {
         // 類似チェック（最大2回リトライ）
         let retries = 0;
         while (retries < 2 && existingContents.some(ec => isSimilar(ec, generated.content))) {
-          console.log(`[ScheduledPosts] Regenerated content similar to existing, retrying (${retries + 1})`);
+          logger.info({ retry: retries + 1 }, "Regenerated content similar to existing, retrying");
           generated = await generateContent(context, undefined, post.accountId, existingContents);
           retries++;
         }
@@ -324,10 +327,10 @@ async function createNextScheduledPost(post: any) {
         const hashtagText = generated.hashtags.map((h: string) => `#${h}`).join(' ');
         content = generated.content + (hashtagText ? '\n\n' + hashtagText : '');
         hashtags = JSON.stringify(generated.hashtags);
-        console.log(`[ScheduledPosts] Regenerated content for repeat post`);
+        logger.info("Regenerated content for repeat post");
       }
     } catch (error) {
-      console.warn(`[ScheduledPosts] Content regeneration failed, using original content:`, error);
+      logger.warn({ err: error }, "Content regeneration failed, using original content");
       // フォールバック: 元のコンテンツを使用
     }
   }
@@ -341,7 +344,7 @@ async function createNextScheduledPost(post: any) {
     ),
   });
   if (existing) {
-    console.log(`[ScheduledPosts] Duplicate detected for account ${post.accountId} at ${nextTime.toISOString()}, skipping`);
+    logger.info({ accountId: post.accountId, scheduledTime: nextTime.toISOString() }, "Duplicate detected, skipping");
     return;
   }
 
@@ -359,9 +362,7 @@ async function createNextScheduledPost(post: any) {
     reviewStatus: post.agentId ? "approved" : "draft",
   });
 
-  console.log(
-    `[ScheduledPosts] Created next scheduled post for ${nextTime.toISOString()}`
-  );
+  logger.info({ scheduledTime: nextTime.toISOString() }, "Created next scheduled post");
 }
 
 /**
@@ -411,7 +412,7 @@ export async function enqueuePendingPosts(): Promise<number> {
       rejected: allPending.filter(p => p.reviewStatus === 'rejected').length,
       other: allPending.filter(p => !['draft', 'pending_review', 'approved', 'rejected'].includes(p.reviewStatus || '')).length,
     };
-    console.log(`[ScheduledPosts] Pending posts breakdown: ${JSON.stringify(byReviewStatus)}`);
+    logger.info({ byReviewStatus }, "Pending posts breakdown");
   }
 
   // Get all posts ready to be published now
@@ -428,7 +429,7 @@ export async function enqueuePendingPosts(): Promise<number> {
     return 0;
   }
 
-  console.log(`[ScheduledPosts] Enqueueing ${pendingPosts.length} posts to queue`);
+  logger.info({ count: pendingPosts.length }, "Enqueueing posts to queue");
 
   let enqueued = 0;
   for (const post of pendingPosts) {
@@ -442,7 +443,7 @@ export async function enqueuePendingPosts(): Promise<number> {
       await addScheduledPostJob(jobData);
       enqueued++;
     } catch (error) {
-      console.error(`[ScheduledPosts] Failed to enqueue post ${post.id}:`, error);
+      logger.error({ err: error, postId: post.id }, "Failed to enqueue post");
     }
   }
 
@@ -454,20 +455,20 @@ export async function enqueuePendingPosts(): Promise<number> {
  * This function periodically checks for pending posts and adds them to the queue
  */
 export function startScheduledPostsEnqueuer() {
-  console.log("[ScheduledPosts] Starting enqueuer...");
+  logger.info("Starting enqueuer...");
 
   // Run immediately
-  enqueuePendingPosts().catch(console.error);
+  enqueuePendingPosts().catch((err) => logger.error({ err }, "Enqueuer initial run failed"));
 
   // Run every minute
   setInterval(async () => {
     try {
       const count = await enqueuePendingPosts();
       if (count > 0) {
-        console.log(`[ScheduledPosts] Enqueued ${count} posts`);
+        logger.info({ count }, "Enqueued posts");
       }
     } catch (error) {
-      console.error("[ScheduledPosts] Enqueuer error:", error);
+      logger.error({ err: error }, "Enqueuer error");
     }
   }, 60 * 1000); // 60 seconds
 }
@@ -477,6 +478,6 @@ export function startScheduledPostsEnqueuer() {
  * Legacy function for backward compatibility
  */
 export function startScheduledPostsExecutor() {
-  console.log("[ScheduledPosts] Warning: startScheduledPostsExecutor is deprecated, use startScheduledPostsEnqueuer");
+  logger.warn("startScheduledPostsExecutor is deprecated, use startScheduledPostsEnqueuer");
   startScheduledPostsEnqueuer();
 }

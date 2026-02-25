@@ -20,6 +20,10 @@ import { db } from '../db';
 import { accounts, proxies } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("x-playwright-poster");
+
 export interface PlaywrightPostResult {
   success: boolean;
   message: string;
@@ -71,7 +75,7 @@ export async function postToXViaPlaywright(
     }
 
     // Ensure logged in
-    console.log(`[XPlaywright] Ensuring login for account ${accountId}`);
+    logger.info(`[XPlaywright] Ensuring login for account ${accountId}`);
     const loggedIn = await ensureLoggedIn(
       accountId,
       account.username,
@@ -95,13 +99,13 @@ export async function postToXViaPlaywright(
     try {
       // Navigate to home
       setOperationStatus(accountId, 'post', 'navigating_to_home');
-      console.log(`[XPlaywright] Navigating to X.com home for account ${accountId}`);
+      logger.info(`[XPlaywright] Navigating to X.com home for account ${accountId}`);
       await page.goto(X_URLS.home, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(POST_NAVIGATION_WAIT);
 
       // Click compose button
       setOperationStatus(accountId, 'post', 'opening_compose');
-      console.log(`[XPlaywright] Clicking compose button`);
+      logger.info(`[XPlaywright] Clicking compose button`);
       const composeBtn = page.locator(X_SELECTORS.composeTweetButton);
       await composeBtn.waitFor({ state: 'visible', timeout: 15_000 });
       await composeBtn.click();
@@ -113,14 +117,14 @@ export async function postToXViaPlaywright(
 
       // Fill text content (page.fill supports Japanese natively)
       setOperationStatus(accountId, 'post', 'entering_content');
-      console.log(`[XPlaywright] Entering post content (${content.length} chars)`);
+      logger.info(`[XPlaywright] Entering post content (${content.length} chars)`);
       await textArea.fill(content);
       await page.waitForTimeout(INTER_ACTION_DELAY);
 
       // Upload media if provided
       if (mediaUrls && mediaUrls.length > 0) {
         setOperationStatus(accountId, 'post', 'uploading_media');
-        console.log(`[XPlaywright] Uploading ${mediaUrls.length} media file(s)`);
+        logger.info(`[XPlaywright] Uploading ${mediaUrls.length} media file(s)`);
         const fileInput = page.locator(X_SELECTORS.mediaInput);
 
         // setInputFiles works with URLs or local paths
@@ -131,14 +135,14 @@ export async function postToXViaPlaywright(
             await fileInput.setInputFiles(mediaUrl);
             await page.waitForTimeout(2_000); // Wait for upload processing
           } catch (err: any) {
-            console.warn(`[XPlaywright] Media upload failed for ${mediaUrl}:`, err.message);
+            logger.warn(`[XPlaywright] Media upload failed for ${mediaUrl}:`, err.message);
           }
         }
       }
 
       // Click tweet button
       setOperationStatus(accountId, 'post', 'submitting_post');
-      console.log(`[XPlaywright] Clicking tweet button`);
+      logger.info(`[XPlaywright] Clicking tweet button`);
       const tweetBtn = page.locator(X_SELECTORS.tweetButton);
       await tweetBtn.waitFor({ state: 'visible', timeout: 10_000 });
       await tweetBtn.click();
@@ -157,7 +161,7 @@ export async function postToXViaPlaywright(
       const composeStillOpen = await textArea.isVisible().catch(() => false);
 
       if (toastVisible || !composeStillOpen) {
-        console.log(`[XPlaywright] Post successful for account ${accountId}`);
+        logger.info(`[XPlaywright] Post successful for account ${accountId}`);
 
         // Save session after successful post
         await saveSession(accountId);
@@ -169,7 +173,7 @@ export async function postToXViaPlaywright(
       }
 
       // If compose is still open, the post may have failed
-      console.warn(`[XPlaywright] Post may have failed — compose dialog still open`);
+      logger.warn(`[XPlaywright] Post may have failed — compose dialog still open`);
       return {
         success: false,
         message: 'Post verification failed — compose dialog did not close',
@@ -181,7 +185,7 @@ export async function postToXViaPlaywright(
       await releaseContext(accountId);
     }
   } catch (err: any) {
-    console.error(`[XPlaywright] Post failed for account ${accountId}:`, err.message);
+    logger.error(`[XPlaywright] Post failed for account ${accountId}:`, err.message);
     try {
       await releaseContext(accountId);
     } catch {

@@ -1,9 +1,14 @@
 import { protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { agents, posts, accounts } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("auto-content-generation.routers");
 
 /**
  * Auto Content Generation Router
@@ -27,7 +32,7 @@ export const autoContentGenerationRouter = router({
       });
 
       if (!agent) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Build prompt based on agent settings
@@ -52,7 +57,7 @@ export const autoContentGenerationRouter = router({
 
           generatedPosts.push(newPost);
         } catch (error: any) {
-          console.error(`[AutoContentGeneration] Failed to generate post ${i + 1}:`, error.message);
+          logger.error(`[AutoContentGeneration] Failed to generate post ${i + 1}:`, error.message);
         }
       }
 
@@ -98,7 +103,7 @@ export const autoContentGenerationRouter = router({
             content: newPost.content,
           });
         } catch (error: any) {
-          console.error(`[AutoContentGeneration] Failed to generate for agent ${agent.id}:`, error.message);
+          logger.error(`[AutoContentGeneration] Failed to generate for agent ${agent.id}:`, error.message);
           results.push({
             agentId: agent.id,
             agentName: agent.name,
@@ -204,12 +209,12 @@ async function generateContent(prompt: string, agent: any): Promise<string> {
 
     const content = response.choices[0]?.message?.content;
     if (!content) {
-      throw new Error("No content generated from AI");
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "No content generated from AI" });
     }
 
     return typeof content === 'string' ? content.trim() : JSON.stringify(content);
   } catch (error: any) {
-    console.error("[AutoContentGeneration] AI generation error:", error.message);
-    throw new Error(`Failed to generate content: ${error.message}`);
+    logger.error("[AutoContentGeneration] AI generation error:", error.message);
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Failed to generate content: ${error.message}` });
   }
 }

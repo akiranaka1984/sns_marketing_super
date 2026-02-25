@@ -7,6 +7,10 @@
 
 import type { Page, CDPSession } from 'playwright';
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("screencast-service");
+
 export type FrameListener = (frame: Buffer) => void;
 
 export interface OperationStatus {
@@ -85,9 +89,9 @@ export async function startScreencast(
       everyNthFrame: 1,
     });
 
-    console.log(`[Screencast] Started for account ${accountId}`);
+    logger.info(`[Screencast] Started for account ${accountId}`);
   } catch (err: any) {
-    console.error(`[Screencast] Failed to start for account ${accountId}:`, err.message);
+    logger.error(`[Screencast] Failed to start for account ${accountId}:`, err.message);
     activeSessions.delete(accountId);
   }
 }
@@ -108,7 +112,7 @@ export async function stopScreencast(accountId: number): Promise<void> {
 
   session.listeners.clear();
   activeSessions.delete(accountId);
-  console.log(`[Screencast] Stopped for account ${accountId}`);
+  logger.info(`[Screencast] Stopped for account ${accountId}`);
 }
 
 /**

@@ -1,7 +1,12 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import { suggestKPIs, generateStrategyWithContext } from "./aiEngine";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("projects.routers");
 
 /**
  * Projects Router
@@ -38,18 +43,18 @@ export const projectsRouter = router({
   byId: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-      console.log('[DEBUG] projects.byId called with:', {
+      logger.info({
         inputId: input.id,
         userId: ctx.user.id,
         userOpenId: ctx.user.openId
-      });
+      }, '[DEBUG] projects.byId called with');
       const project = await db.getProjectById(input.id, ctx.user.id);
       if (!project) {
-        console.log('[DEBUG] Project not found for:', { inputId: input.id, userId: ctx.user.id });
+        logger.info({ inputId: input.id, userId: ctx.user.id }, '[DEBUG] Project not found for');
         return null;
       }
 
-      console.log('[DEBUG] Raw project data from DB:', {
+      logger.info({
         id: project.id,
         startDate: project.startDate,
         endDate: project.endDate,
@@ -57,7 +62,7 @@ export const projectsRouter = router({
         endDateType: typeof project.endDate,
         startDateConstructor: project.startDate?.constructor?.name,
         endDateConstructor: project.endDate?.constructor?.name
-      });
+      }, '[DEBUG] Raw project data from DB');
 
       // Get related data
       const accounts = await db.getProjectAccounts(input.id);
@@ -83,7 +88,7 @@ export const projectsRouter = router({
           // Fallback: try to create a Date from it
           return new Date(date).toISOString();
         } catch (e) {
-          console.error('[ERROR] Failed to convert date:', date, e);
+          logger.error({ data: date, e }, '[ERROR] Failed to convert date');
           return null;
         }
       };
@@ -97,10 +102,10 @@ export const projectsRouter = router({
         posts,
       };
 
-      console.log('[DEBUG] Processed dates:', {
+      logger.info({
         startDate: result.startDate,
         endDate: result.endDate
-      });
+      }, '[DEBUG] Processed dates');
 
       return result;
     }),
@@ -379,7 +384,7 @@ export const projectsRouter = router({
       // 1. Get project to retrieve objective and targets
       const project = await db.getProjectById(input.projectId, ctx.user.id);
       if (!project) {
-        throw new Error("Project not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Project not found" });
       }
 
       // Use provided objective or fall back to project's objective
@@ -395,7 +400,7 @@ export const projectsRouter = router({
             projectTargets[key] = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
           }
         } catch (e) {
-          console.error("[generateStrategyWithContext] Failed to parse project targets:", e);
+          logger.error({ err: e }, "[generateStrategyWithContext] Failed to parse project targets");
         }
       }
 

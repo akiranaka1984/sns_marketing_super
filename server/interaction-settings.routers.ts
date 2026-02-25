@@ -1,9 +1,14 @@
 import { z } from "zod";
 import { router, publicProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { db } from "./db";
 import { interactionSettings, projects, strategies } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("interaction-settings.routers");
 
 // AI parsing function for engagement strategy
 async function parseEngagementStrategyWithAI(strategyText: string): Promise<{
@@ -66,7 +71,7 @@ async function parseEngagementStrategyWithAI(strategyText: string): Promise<{
 
   const content = result.choices[0]?.message?.content;
   if (!content || typeof content !== 'string') {
-    throw new Error("AI response is empty");
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "AI response is empty" });
   }
 
   const parsed = JSON.parse(content);
@@ -239,12 +244,12 @@ export const interactionSettingsRouter = router({
             followDelayMax: jsonStrategy?.mutualFollows?.delayMinutes?.max ?? 180,
             reactionProbability: jsonStrategy?.reactionProbability ?? 80,
           };
-          console.log('[InteractionSettings] Parsed as JSON');
+          logger.info({ data: parsedStrategy }, '[InteractionSettings] Parsed as JSON');
         } catch (parseError) {
           // JSON parse failed, use AI to analyze natural language
-          console.log('[InteractionSettings] Using AI to parse natural language strategy');
+          logger.info('[InteractionSettings] Using AI to parse natural language strategy');
           parsedStrategy = await parseEngagementStrategyWithAI(strategy.engagementStrategy);
-          console.log('[InteractionSettings] AI parsed result:', parsedStrategy);
+          logger.info('[InteractionSettings] AI parsed result');
         }
 
         // Build settings object

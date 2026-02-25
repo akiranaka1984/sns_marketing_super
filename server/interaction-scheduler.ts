@@ -5,6 +5,10 @@ import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./
 import { getAccountLearnings } from "./services/account-learning-service";
 import { addInteractionJob, type InteractionJob } from "./queue-manager";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("interaction-scheduler");
+
 /**
  * Build persona string from project account settings
  */
@@ -77,7 +81,7 @@ async function buildPersonaWithLearnings(
     // Combine base persona with learned styles
     return `${basePersona}。追加のスタイル指針: ${styleHints.slice(0, 2).join('。')}`;
   } catch (error) {
-    console.error(`[InteractionScheduler] Failed to get account learnings:`, error);
+    logger.error({ err: error }, `[InteractionScheduler] Failed to get account learnings`);
     return basePersona;
   }
 }
@@ -121,7 +125,7 @@ async function processScheduledInteractions(): Promise<{
     if (!task.account || (!isFollowTask && !task.postUrl)) continue;
 
     result.processed++;
-    console.log(`[InteractionScheduler] Processing ${task.interaction.interactionType} task ${task.interaction.id}`);
+    logger.info(`[InteractionScheduler] Processing ${task.interaction.interactionType} task ${task.interaction.id}`);
 
     // ステータスを処理中に更新
     await db.update(interactions)
@@ -186,7 +190,7 @@ async function processScheduledInteractions(): Promise<{
           })
           .where(eq(interactions.id, task.interaction.id));
         result.succeeded++;
-        console.log(`[InteractionScheduler] Task ${task.interaction.id} completed`);
+        logger.info(`[InteractionScheduler] Task ${task.interaction.id} completed`);
       } else {
         const retryCount = (task.interaction.retryCount || 0) + 1;
         const newStatus = retryCount >= 3 ? "failed" : "pending";
@@ -205,7 +209,7 @@ async function processScheduledInteractions(): Promise<{
           })
           .where(eq(interactions.id, task.interaction.id));
         result.failed++;
-        console.log(`[InteractionScheduler] Task ${task.interaction.id} failed (retry ${retryCount}/3): ${execResult.error}`);
+        logger.info(`[InteractionScheduler] Task ${task.interaction.id} failed (retry ${retryCount}/3): ${execResult.error}`);
       }
     } catch (error) {
       await db.update(interactions)
@@ -215,7 +219,7 @@ async function processScheduledInteractions(): Promise<{
         })
         .where(eq(interactions.id, task.interaction.id));
       result.failed++;
-      console.error(`[InteractionScheduler] Task ${task.interaction.id} error:`, error);
+      logger.error(`[InteractionScheduler] Task ${task.interaction.id} error`);
     }
 
     // タスク間に5秒の待機（連続実行を避ける）
@@ -254,7 +258,7 @@ export async function enqueuePendingInteractions(): Promise<number> {
     return 0;
   }
 
-  console.log(`[InteractionScheduler] Enqueueing ${tasks.length} interactions to queue`);
+  logger.info(`[InteractionScheduler] Enqueueing ${tasks.length} interactions to queue`);
 
   let enqueued = 0;
   for (const task of tasks) {
@@ -282,7 +286,7 @@ export async function enqueuePendingInteractions(): Promise<number> {
 
       enqueued++;
     } catch (error) {
-      console.error(`[InteractionScheduler] Failed to enqueue interaction ${task.interaction.id}:`, error);
+      logger.error(`[InteractionScheduler] Failed to enqueue interaction ${task.interaction.id}`);
     }
   }
 
@@ -295,12 +299,12 @@ export async function enqueuePendingInteractions(): Promise<number> {
  */
 export function startInteractionEnqueuer(): void {
   if (isRunning) {
-    console.log("[InteractionScheduler] Already running");
+    logger.info("[InteractionScheduler] Already running");
     return;
   }
 
   isRunning = true;
-  console.log("[InteractionScheduler] Started enqueuer");
+  logger.info("[InteractionScheduler] Started enqueuer");
 
   // Run immediately
   enqueuePendingInteractions().catch(console.error);
@@ -310,10 +314,10 @@ export function startInteractionEnqueuer(): void {
     try {
       const count = await enqueuePendingInteractions();
       if (count > 0) {
-        console.log(`[InteractionScheduler] Enqueued ${count} interactions`);
+        logger.info(`[InteractionScheduler] Enqueued ${count} interactions`);
       }
     } catch (error) {
-      console.error("[InteractionScheduler] Enqueuer error:", error);
+      logger.error("[InteractionScheduler] Enqueuer error");
     }
   }, 60 * 1000);
 }
@@ -323,7 +327,7 @@ export function startInteractionEnqueuer(): void {
  * Legacy function for backward compatibility - now uses queue-based processing
  */
 export function startInteractionScheduler(): void {
-  console.log("[InteractionScheduler] Warning: startInteractionScheduler is deprecated, use startInteractionEnqueuer");
+  logger.info("[InteractionScheduler] Warning: startInteractionScheduler is deprecated, use startInteractionEnqueuer");
   startInteractionEnqueuer();
 }
 
@@ -336,7 +340,7 @@ export function stopInteractionScheduler(): void {
     schedulerInterval = null;
   }
   isRunning = false;
-  console.log("[InteractionScheduler] Stopped");
+  logger.info("[InteractionScheduler] Stopped");
 }
 
 /**

@@ -16,29 +16,29 @@ type Platform = "all" | "twitter" | "facebook" | "instagram" | "tiktok";
 type SortField = "username" | "status" | "createdAt";
 type SortOrder = "asc" | "desc";
 
-// Notion-style status tag
+// Neobrutalism status tag
 function StatusTag({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; dot: string }> = {
-    active: { bg: "bg-[#DBEDDB]", text: "text-[#1F7A1F]", dot: "bg-[#1F7A1F]" },
-    pending: { bg: "bg-[#FADEC9]", text: "text-[#9F6B53]", dot: "bg-[#D9730D]" },
-    failed: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]", dot: "bg-[#E03E3E]" },
-    suspended: { bg: "bg-[#FFE2DD]", text: "text-[#93391E]", dot: "bg-[#E03E3E]" },
+    active: { bg: "bg-[#A8E6CF]", text: "text-[#1A1A1A]", dot: "bg-[#1A1A1A]" },
+    pending: { bg: "bg-[#FFD700]", text: "text-[#1A1A1A]", dot: "bg-[#1A1A1A]" },
+    failed: { bg: "bg-[#FF6B6B]", text: "text-[#1A1A1A]", dot: "bg-[#1A1A1A]" },
+    suspended: { bg: "bg-[#FF6B6B]", text: "text-[#1A1A1A]", dot: "bg-[#1A1A1A]" },
   };
   const { bg, text, dot } = config[status] || config.pending;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] text-[12px] ${bg} ${text}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[12px] font-bold border-2 border-[#1A1A1A] ${bg} ${text}`}>
       <span className={`w-[6px] h-[6px] rounded-full ${dot}`} />
       {status}
     </span>
   );
 }
 
-// Notion-style plan tag
+// Neobrutalism plan tag
 function PlanTag({ plan }: { plan: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    free: { bg: "bg-[#F1F1EF]", text: "text-[#787774]" },
-    premium: { bg: "bg-[#D3E5EF]", text: "text-[#2B6B8A]" },
-    premium_plus: { bg: "bg-[#FDECC8]", text: "text-[#9F6B53]" },
+    free: { bg: "bg-[#87CEEB]", text: "text-[#1A1A1A]" },
+    premium: { bg: "bg-[#DDA0DD]", text: "text-[#1A1A1A]" },
+    premium_plus: { bg: "bg-[#FFD700]", text: "text-[#1A1A1A]" },
   };
   const labels: Record<string, string> = {
     free: "Free",
@@ -47,18 +47,18 @@ function PlanTag({ plan }: { plan: string }) {
   };
   const { bg, text } = config[plan] || config.free;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-[3px] text-[12px] ${bg} ${text}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[12px] font-bold border-2 border-[#1A1A1A] ${bg} ${text}`}>
       {labels[plan] || plan}
     </span>
   );
 }
 
-// Notion-style property pill
+// Neobrutalism property pill
 function PropertyPill({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center gap-1.5 text-[13px]">
-      <span className="text-[#9B9A97]">{label}</span>
-      <span className="text-[#37352F] font-medium">{value}</span>
+      <span className="text-[#6B6B6B] font-bold">{label}</span>
+      <span className="text-[#1A1A1A] font-black">{value}</span>
     </div>
   );
 }
@@ -184,28 +184,30 @@ export default function Accounts() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-[#9B9A97]" />
-          <span className="text-[13px] text-[#9B9A97]">読み込み中...</span>
+          <Loader2 className="h-8 w-8 animate-spin text-[#1A1A1A]" />
+          <span className="text-[14px] font-bold text-[#1A1A1A]">読み込み中...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full">
-      {/* Page Title - Notion style */}
+    <div className="min-h-full bg-[#FFFDF7]">
+      {/* Page Title - Neobrutalism style */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-3">
           <span className="text-[40px]">👥</span>
-          <h1 className="text-[32px] font-bold text-[#37352F]">アカウント</h1>
+          <h1 className="text-[40px] font-black text-[#1A1A1A]">アカウント</h1>
         </div>
-        <p className="text-[14px] text-[#9B9A97]">
-          SNSアカウントの管理・監視
-        </p>
+        <div className="inline-block bg-[#FFD700] border-2 border-[#1A1A1A] px-3 py-1 rounded-lg">
+          <p className="text-[14px] font-bold text-[#1A1A1A]">
+            SNSアカウントの管理・監視
+          </p>
+        </div>
       </div>
 
-      {/* Quick Stats - Notion callout style */}
-      <div className="bg-[#F7F6F3] rounded-[4px] p-4 mb-6">
+      {/* Quick Stats - Neobrutalism callout */}
+      <div className="bg-[#FFD700] border-2 border-[#1A1A1A] rounded-lg p-5 mb-6 shadow-[4px_4px_0_#1A1A1A]">
         <div className="flex items-center gap-6 flex-wrap">
           <PropertyPill label="アカウント総数" value={platformCounts.all} />
           <PropertyPill label="アクティブ" value={activeCount} />
@@ -215,21 +217,24 @@ export default function Accounts() {
             <button
               onClick={() => batchActivateMutation.mutate()}
               disabled={batchActivateMutation.isPending}
-              className="flex items-center gap-1 text-[13px] text-[#1F7A1F] hover:underline disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-bold text-[#1A1A1A] bg-[#A8E6CF] border-2 border-[#1A1A1A] rounded-lg shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50"
             >
               <Power className="w-3.5 h-3.5" />
               一括アクティブ化
             </button>
           )}
-          <Link href="/accounts/new" className="flex items-center gap-1 text-[13px] text-[#2383E2] hover:underline">
+          <Link
+            href="/accounts/new"
+            className="flex items-center gap-1.5 px-3 py-2 text-[13px] font-bold text-[#1A1A1A] bg-[#4ECDC4] border-2 border-[#1A1A1A] rounded-lg shadow-[2px_2px_0_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+          >
             <Plus className="w-3.5 h-3.5" />
             アカウント追加
           </Link>
         </div>
       </div>
 
-      {/* Platform Filter Tabs - Notion style */}
-      <div className="flex items-center gap-1 mb-4">
+      {/* Platform Filter Tabs - Neobrutalism style */}
+      <div className="flex items-center gap-2 mb-6">
         {([
           { key: "all" as Platform, label: "すべて", emoji: "📋" },
           { key: "twitter" as Platform, label: "X", emoji: "𝕏" },
@@ -240,30 +245,30 @@ export default function Accounts() {
           <button
             key={tab.key}
             onClick={() => setSelectedPlatform(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[13px] transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold border-2 border-[#1A1A1A] transition-all ${
               selectedPlatform === tab.key
-                ? "bg-[#EBEBEA] text-[#37352F] font-medium"
-                : "text-[#9B9A97] hover:bg-[#F7F6F3]"
+                ? "bg-[#4ECDC4] text-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A]"
+                : "bg-white text-[#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px]"
             }`}
           >
             <span>{tab.emoji}</span>
             {tab.label}
-            <span className="text-[12px] text-[#9B9A97]">
+            <span className="text-[12px] font-black">
               {platformCounts[tab.key]}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Database View - Notion style */}
+      {/* Database View - Neobrutalism style */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1">
-            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#9B9A97] hover:bg-[#EBEBEA] rounded-[4px] transition-colors">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold text-[#1A1A1A] bg-white border-2 border-[#1A1A1A] rounded-lg hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
               <Filter className="w-3.5 h-3.5" />
               フィルター
             </button>
-            <button className="flex items-center gap-1 px-2 py-1 text-[12px] text-[#9B9A97] hover:bg-[#EBEBEA] rounded-[4px] transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-2 text-[12px] font-bold text-[#1A1A1A] bg-white border-2 border-[#1A1A1A] rounded-lg hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
               <ArrowUpDown className="w-3.5 h-3.5" />
               ソート
             </button>
@@ -271,42 +276,42 @@ export default function Accounts() {
         </div>
 
         {/* Table View */}
-        <div className="border border-[#E9E9E7] rounded-[4px] overflow-hidden">
+        <div className="border-2 border-[#1A1A1A] rounded-lg overflow-hidden shadow-[4px_4px_0_#1A1A1A]">
           {/* Header */}
-          <div className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] bg-[#F7F6F3] border-b border-[#E9E9E7]">
+          <div className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] bg-[#FFD700] border-b-2 border-[#1A1A1A]">
             <button
               onClick={() => handleSort("username")}
-              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+              className="px-3 py-3 text-[12px] font-black text-[#1A1A1A] text-left hover:bg-[#FFC700] flex items-center gap-1"
             >
               名前
               {sortField === "username" && <ArrowUpDown className="w-3 h-3" />}
             </button>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">プラットフォーム</div>
+            <div className="px-3 py-3 text-[12px] font-black text-[#1A1A1A]">プラットフォーム</div>
             <button
               onClick={() => handleSort("status")}
-              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+              className="px-3 py-3 text-[12px] font-black text-[#1A1A1A] text-left hover:bg-[#FFC700] flex items-center gap-1"
             >
               ステータス
               {sortField === "status" && <ArrowUpDown className="w-3 h-3" />}
             </button>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]">プラン</div>
+            <div className="px-3 py-3 text-[12px] font-black text-[#1A1A1A]">プラン</div>
             <button
               onClick={() => handleSort("createdAt")}
-              className="px-3 py-2 text-[12px] font-medium text-[#9B9A97] text-left hover:text-[#37352F] flex items-center gap-1"
+              className="px-3 py-3 text-[12px] font-black text-[#1A1A1A] text-left hover:bg-[#FFC700] flex items-center gap-1"
             >
               作成日
               {sortField === "createdAt" && <ArrowUpDown className="w-3 h-3" />}
             </button>
-            <div className="px-3 py-2 text-[12px] font-medium text-[#9B9A97]"></div>
+            <div className="px-3 py-3 text-[12px] font-black text-[#1A1A1A]"></div>
           </div>
 
           {/* Rows */}
           {filteredAndSortedAccounts.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-[13px] text-[#9B9A97] mb-3">アカウントがありません</p>
+            <div className="p-8 text-center bg-white">
+              <p className="text-[14px] font-bold text-[#6B6B6B] mb-4">アカウントがありません</p>
               <Link
                 href="/accounts/new"
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#2383E2] text-white text-[13px] rounded-[4px] hover:bg-[#0B6BCB] transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#4ECDC4] text-[#1A1A1A] text-[13px] font-bold rounded-lg border-2 border-[#1A1A1A] shadow-[4px_4px_0_#1A1A1A] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
                 新規作成
@@ -317,42 +322,42 @@ export default function Accounts() {
               <div
                 key={account.id}
                 onClick={() => navigate(`/accounts/${account.id}`)}
-                className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] border-b border-[#E9E9E7] last:border-b-0 hover:bg-[#F7F6F3] transition-colors cursor-pointer group"
+                className="grid grid-cols-[1fr_140px_100px_80px_120px_60px] bg-white border-b-2 border-[#1A1A1A] last:border-b-0 hover:bg-[#FFF8DC] transition-colors cursor-pointer group"
               >
-                <div className="px-3 py-2.5 flex items-center gap-2">
+                <div className="px-3 py-3 flex items-center gap-2">
                   <span className="text-[14px]">{getPlatformEmoji(account.platform)}</span>
                   <div className="min-w-0">
-                    <span className="text-[14px] text-[#37352F] group-hover:text-[#2383E2] truncate block">
+                    <span className="text-[14px] font-bold text-[#1A1A1A] truncate block">
                       {account.username}
                     </span>
                     {(account as any).xHandle && (
-                      <span className="text-[11px] text-[#9B9A97]">@{(account as any).xHandle}</span>
+                      <span className="text-[11px] text-[#6B6B6B]">@{(account as any).xHandle}</span>
                     )}
                   </div>
                 </div>
-                <div className="px-3 py-2.5 text-[13px] text-[#787774]">
+                <div className="px-3 py-3 text-[13px] font-bold text-[#1A1A1A]">
                   {getPlatformName(account.platform)}
                 </div>
-                <div className="px-3 py-2.5">
+                <div className="px-3 py-3">
                   <StatusTag status={account.status} />
                 </div>
-                <div className="px-3 py-2.5">
+                <div className="px-3 py-3">
                   {account.platform === 'twitter' ? (
                     <PlanTag plan={(account as any).planType || 'free'} />
                   ) : (
-                    <span className="text-[12px] text-[#9B9A97]">—</span>
+                    <span className="text-[12px] font-bold text-[#6B6B6B]">—</span>
                   )}
                 </div>
-                <div className="px-3 py-2.5 text-[13px] text-[#9B9A97]">
+                <div className="px-3 py-3 text-[13px] font-bold text-[#6B6B6B]">
                   {new Date(account.createdAt).toLocaleDateString('ja-JP')}
                 </div>
-                <div className="px-3 py-2.5 flex items-center justify-end gap-1">
+                <div className="px-3 py-3 flex items-center justify-end gap-1">
                   {account.status === 'pending' && (
                     <button
                       onClick={(e) => handleActivate(account.id, e)}
                       disabled={activateMutation.isPending}
                       title="アクティブ化"
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#DBEDDB] rounded-[4px] transition-all text-[#1F7A1F]"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#A8E6CF] border-2 border-[#1A1A1A] rounded-lg transition-all text-[#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px]"
                     >
                       <Power className="w-3.5 h-3.5" />
                     </button>
@@ -361,12 +366,12 @@ export default function Accounts() {
                     onClick={(e) => handleDelete(account.id, e)}
                     disabled={deleteMutation.isPending}
                     title="削除"
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#FFE2DD] rounded-[4px] transition-all text-[#E03E3E]"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 bg-[#FF6B6B] border-2 border-[#1A1A1A] rounded-lg transition-all text-[#1A1A1A] hover:translate-x-[1px] hover:translate-y-[1px]"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
-                  <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#EBEBEA] rounded-[4px] transition-all">
-                    <MoreHorizontal className="w-4 h-4 text-[#9B9A97]" />
+                  <button className="opacity-0 group-hover:opacity-100 p-1.5 bg-white border-2 border-[#1A1A1A] rounded-lg transition-all hover:translate-x-[1px] hover:translate-y-[1px]">
+                    <MoreHorizontal className="w-4 h-4 text-[#1A1A1A]" />
                   </button>
                 </div>
               </div>
@@ -377,7 +382,7 @@ export default function Accounts() {
           {filteredAndSortedAccounts.length > 0 && (
             <Link
               href="/accounts/new"
-              className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#9B9A97] hover:bg-[#F7F6F3] transition-colors border-t border-[#E9E9E7]"
+              className="flex items-center gap-2 px-3 py-3 text-[13px] font-bold text-[#1A1A1A] bg-white hover:bg-[#FFF8DC] transition-colors border-t-2 border-[#1A1A1A]"
             >
               <Plus className="w-3.5 h-3.5" />
               新規追加

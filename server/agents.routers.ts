@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { agents, agentKnowledge, agentRules, agentAccounts, agentSchedules, agentExecutionLogs, accounts, aiOptimizations } from "../drizzle/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -37,7 +38,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
       
       // Get linked accounts
@@ -154,7 +155,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const { id, ...updateData } = input;
@@ -189,7 +190,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       await db.delete(agents).where(eq(agents.id, input.id));
@@ -216,7 +217,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Verify account ownership
@@ -227,7 +228,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (account.length === 0 || account[0].userId !== ctx.user.id) {
-        throw new Error("Account not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Account not found" });
       }
 
       // Check if link already exists
@@ -272,7 +273,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       await db
@@ -298,7 +299,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       return await db
@@ -335,7 +336,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       let query = db
@@ -389,7 +390,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const [result] = await db.insert(agentKnowledge).values({
@@ -461,7 +462,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       let query = db
@@ -515,7 +516,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const [result] = await db.insert(agentRules).values({
@@ -587,7 +588,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const result = await runAgent(input.agentId, input.accountId);
@@ -609,7 +610,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       return await db
@@ -644,7 +645,7 @@ export const agentsRouter = router({
         .limit(1);
       
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       await consolidateKnowledge(input.agentId);
@@ -730,12 +731,12 @@ Make each persona unique and engaging. Consider different niches, demographics, 
       });
 
       if (!response.choices || response.choices.length === 0) {
-        throw new Error("No response from AI");
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "No response from AI" });
       }
       
       const content = response.choices[0].message.content;
       if (!content || typeof content !== "string") {
-        throw new Error("Failed to generate agents: empty or invalid response");
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: "Failed to generate agents: empty or invalid response" });
       }
 
       const generatedData = JSON.parse(content);
@@ -790,7 +791,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const updateData: any = {};
@@ -826,7 +827,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const agentData = agent[0] as any;
@@ -868,7 +869,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       // Get current settings and merge with new ones
@@ -909,7 +910,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       const result = await triggerOptimizationCheck(input.agentId);
@@ -927,7 +928,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       return await getPendingOptimizations(input.agentId);
@@ -943,7 +944,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
       });
 
       if (!optimization) {
-        throw new Error("Optimization not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Optimization not found" });
       }
 
       // Verify agent ownership
@@ -954,7 +955,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       await approveOptimization(input.optimizationId);
@@ -971,7 +972,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
       });
 
       if (!optimization) {
-        throw new Error("Optimization not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Optimization not found" });
       }
 
       // Verify agent ownership
@@ -982,7 +983,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       await rejectOptimization(input.optimizationId);
@@ -1003,7 +1004,7 @@ Make each persona unique and engaging. Consider different niches, demographics, 
         .limit(1);
 
       if (agent.length === 0 || agent[0].userId !== ctx.user.id) {
-        throw new Error("Agent not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Agent not found" });
       }
 
       return await db.query.aiOptimizations.findMany({

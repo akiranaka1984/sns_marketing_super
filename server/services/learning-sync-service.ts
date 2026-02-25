@@ -11,6 +11,10 @@ import * as schema from "../../drizzle/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import { applyBuzzLearningToAccount } from "./account-learning-service";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("learning-sync-service");
+
 /**
  * Sync a single buzz learning to all relevant accounts.
  * Called after buzz analysis creates a new learning.
@@ -32,13 +36,13 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
     .where(eq(schema.buzzLearnings.id, buzzLearningId));
 
   if (!buzzLearning) {
-    console.warn(`[LearningSyncService] Buzz learning ${buzzLearningId} not found`);
+    logger.warn(`[LearningSyncService] Buzz learning ${buzzLearningId} not found`);
     return 0;
   }
 
   // Skip if confidence is below threshold
   if (buzzLearning.confidence < 60) {
-    console.log(
+    logger.info(
       `[LearningSyncService] Skipping buzz learning ${buzzLearningId}: confidence ${buzzLearning.confidence} < 60`
     );
     return 0;
@@ -50,7 +54,7 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
   const projectId = buzzLearning.projectId;
 
   if (!projectId) {
-    console.log(
+    logger.info(
       `[LearningSyncService] Buzz learning ${buzzLearningId} has no projectId, skipping sync`
     );
     return 0;
@@ -63,7 +67,7 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
     .where(eq(schema.modelAccounts.projectId, projectId));
 
   if (modelAccountsForProject.length === 0) {
-    console.log(
+    logger.info(
       `[LearningSyncService] No model accounts found for project ${projectId}`
     );
     return 0;
@@ -93,7 +97,7 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
   }
 
   if (accountLinks.length === 0) {
-    console.log(
+    logger.info(
       `[LearningSyncService] No accounts with autoApplyLearnings=1 for project ${projectId}`
     );
     return 0;
@@ -119,7 +123,7 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
         );
 
       if (existingSync) {
-        console.log(
+        logger.info(
           `[LearningSyncService] Already synced buzz learning ${buzzLearningId} to account ${accountId}, skipping`
         );
         continue;
@@ -157,18 +161,18 @@ export async function syncBuzzLearningToAccounts(buzzLearningId: number): Promis
       }
 
       syncedCount++;
-      console.log(
+      logger.info(
         `[LearningSyncService] Synced buzz learning ${buzzLearningId} -> account ${accountId} (accountLearningId: ${accountLearningId})`
       );
     } catch (error) {
-      console.error(
+      logger.error(
         `[LearningSyncService] Error syncing buzz learning ${buzzLearningId} to account ${accountId}:`,
         error
       );
     }
   }
 
-  console.log(
+  logger.info(
     `[LearningSyncService] Synced buzz learning ${buzzLearningId} to ${syncedCount}/${uniqueAccountIds.length} accounts`
   );
 
@@ -202,7 +206,7 @@ export async function syncAllBuzzLearnings(
     .orderBy(desc(schema.buzzLearnings.confidence));
 
   if (buzzLearnings.length === 0) {
-    console.log(
+    logger.info(
       `[LearningSyncService] No eligible buzz learnings found for project ${projectId}`
     );
     return { synced: 0, skipped: 0 };
@@ -217,7 +221,7 @@ export async function syncAllBuzzLearnings(
         skipped++;
       }
     } catch (error) {
-      console.error(
+      logger.error(
         `[LearningSyncService] Error syncing buzz learning ${learning.id}:`,
         error
       );
@@ -225,7 +229,7 @@ export async function syncAllBuzzLearnings(
     }
   }
 
-  console.log(
+  logger.info(
     `[LearningSyncService] Batch sync for project ${projectId}: synced=${synced}, skipped=${skipped}`
   );
 

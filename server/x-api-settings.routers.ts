@@ -4,6 +4,10 @@ import { db } from "./db";
 import { xApiSettings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("x-api-settings.routers");
+
 /**
  * X API Settings Router
  * Manages X (Twitter) API credentials
@@ -153,7 +157,7 @@ export const xApiSettingsRouter = router({
           }
         }
       } catch (error: any) {
-        console.error("[X API] Connection test failed:", error);
+        logger.error("[X API] Connection test failed:", error);
         return {
           success: false,
           message: `接続失敗: ${error.message}`,

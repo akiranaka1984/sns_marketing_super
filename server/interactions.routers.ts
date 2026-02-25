@@ -5,6 +5,9 @@ import { postUrls, interactions, accounts } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { executeLike, executeAiComment, executeRetweet, executeFollow } from "./utils/python-runner";
 import { getLatestTweets, buildTweetUrl } from "./x-api-service";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("interactions-router");
 
 export const interactionsRouter = router({
   // プロジェクトの投稿URL一覧を取得
@@ -59,38 +62,38 @@ export const interactionsRouter = router({
     }))
     .mutation(async ({ input }) => {
       try {
-        console.log("[fetchLatestPosts] Starting fetch with input:", input);
-        
+        logger.info({ input }, "Starting fetch latest posts");
+
         // アカウント情報を取得してxHandleを使用
         const account = await db.query.accounts.findFirst({
           where: eq(accounts.id, input.accountId),
         });
 
-        console.log("[fetchLatestPosts] Account found:", account?.id, account?.xHandle);
+        logger.info({ accountId: account?.id, xHandle: account?.xHandle }, "Account found");
 
         if (!account) {
-          console.error("[fetchLatestPosts] Account not found for id", input.accountId);
+          logger.error({ accountId: input.accountId }, "Account not found");
           return { success: false, added: 0, total: 0, error: "アカウントが見つかりません" };
         }
 
         if (!account.xHandle) {
-          console.error("[fetchLatestPosts] X Handle not found for account", input.accountId);
+          logger.error({ accountId: input.accountId }, "X Handle not found for account");
           return { success: false, added: 0, total: 0, error: "X Handleが設定されていません" };
         }
 
-        console.log("[fetchLatestPosts] Fetching tweets for", account.xHandle);
+        logger.info({ xHandle: account.xHandle }, "Fetching tweets");
         const tweets = await getLatestTweets(account.xHandle, input.count);
-        console.log("[fetchLatestPosts] Tweets found:", tweets.length, "tweets");
+        logger.info({ count: tweets.length }, "Tweets found");
         
         if (!tweets || tweets.length === 0) {
-          console.log("[fetchLatestPosts] No tweets found for", account.xHandle);
+          logger.info({ xHandle: account.xHandle }, "No tweets found");
           return { success: true, added: 0, total: 0 };
         }
         
         let added = 0;
         for (const tweet of tweets) {
           const postUrl = buildTweetUrl(account.xHandle, tweet.id);
-          console.log("[fetchLatestPosts] Processing tweet:", tweet.id, postUrl);
+          logger.info({ tweetId: tweet.id, postUrl }, "Processing tweet");
 
           // 既に存在するかチェック
           const existing = await db.query.postUrls.findFirst({
@@ -98,7 +101,7 @@ export const interactionsRouter = router({
           });
 
           if (!existing) {
-            console.log("[fetchLatestPosts] Inserting new post URL:", postUrl);
+            logger.info({ postUrl }, "Inserting new post URL");
             await db.insert(postUrls).values({
               projectId: input.projectId,
               accountId: input.accountId,
@@ -109,14 +112,14 @@ export const interactionsRouter = router({
             });
             added++;
           } else {
-            console.log("[fetchLatestPosts] Post URL already exists:", postUrl);
+            logger.info({ postUrl }, "Post URL already exists");
           }
         }
 
-        console.log("[fetchLatestPosts] Completed. Added:", added, "Total:", tweets.length);
+        logger.info({ added, total: tweets.length }, "Fetch latest posts completed");
         return { success: true, added, total: tweets.length };
       } catch (error) {
-        console.error("[fetchLatestPosts] Error:", error);
+        logger.error({ err: error }, "Error fetching latest posts");
         return { success: false, added: 0, total: 0, error: error instanceof Error ? error.message : "不明なエラーが発生しました" };
       }
     }),
@@ -251,7 +254,7 @@ export const interactionsRouter = router({
       if (!apiKey) {
         return { success: false, error: "AUTOMATION_API_KEYが設定されていません" };
       }
-      console.log(`[executeRetweet] PostUrlId: ${input.postUrlId}, URL: ${postUrl.postUrl}, Username: ${postUrl.username}`);
+      logger.info({ postUrlId: input.postUrlId, url: postUrl.postUrl, username: postUrl.username }, "Executing retweet");
       const result = await executeRetweet(apiKey, input.fromDeviceId, postUrl.postUrl);
 
       // 結果を更新

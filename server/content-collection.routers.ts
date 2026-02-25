@@ -1,4 +1,5 @@
 import { router, protectedProcedure } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "./db";
 import { collectedContents, collectionSchedules } from "../drizzle/schema";
@@ -160,7 +161,7 @@ export const contentCollectionRouter = router({
         );
 
       if (!schedule) {
-        throw new Error("Schedule not found");
+        throw new TRPCError({ code: 'NOT_FOUND', message: "Schedule not found" });
       }
 
       // Parse search parameters

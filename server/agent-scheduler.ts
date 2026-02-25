@@ -9,6 +9,9 @@ import { db } from "./db";
 import { agents, agentAccounts, agentSchedules, agentExecutionLogs, accounts, posts, scheduledPosts } from "../drizzle/schema";
 import { eq, and, lte, sql, desc, gte } from "drizzle-orm";
 import { runAgent } from "./agent-engine";
+import { createLogger } from "./utils/logger";
+
+const logger = createLogger("agent-scheduler");
 
 // ============================================
 // Types
@@ -141,7 +144,7 @@ export async function checkAndRunScheduledAgents(): Promise<{
 
   // JST時刻も表示
   const jstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  console.log(`[AgentScheduler] Checking scheduled agents at ${now.toISOString()} (JST: ${jstTime.toISOString().replace('Z', '+09:00')})`);
+  logger.info({ utc: now.toISOString(), jst: jstTime.toISOString().replace('Z', '+09:00') }, "Checking scheduled agents");
 
   // アクティブなエージェントを取得
   const activeAgents = await db
@@ -206,32 +209,32 @@ export async function checkAndRunScheduledAgents(): Promise<{
       });
 
       if (recentExecution) {
-        console.log(`[AgentScheduler] Skipping agent ${agent.id} (${agent.name}): already executed at ${recentExecution.createdAt}`);
+        logger.info({ agentId: agent.id, agentName: agent.name, lastExecution: recentExecution.createdAt }, "Skipping agent: already executed");
         continue;
       }
 
-      console.log(`[AgentScheduler] Running agent: ${agent.name} (ID: ${agent.id})`);
+      logger.info({ agentId: agent.id, agentName: agent.name }, "Running agent");
 
       // エージェントを実行
       const result = await runAgent(agent.id);
 
       if (result.success) {
         results.executed++;
-        console.log(`[AgentScheduler] Agent ${agent.id} executed successfully, postId: ${result.postId}`);
+        logger.info({ agentId: agent.id, postId: result.postId }, "Agent executed successfully");
       } else {
         results.failed++;
         results.errors.push(`Agent ${agent.id}: ${result.error}`);
-        console.error(`[AgentScheduler] Agent ${agent.id} failed: ${result.error}`);
+        logger.error({ agentId: agent.id, error: result.error }, "Agent failed");
       }
     } catch (error) {
       results.failed++;
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       results.errors.push(`Agent ${agent.id}: ${errorMessage}`);
-      console.error(`[AgentScheduler] Error running agent ${agent.id}:`, error);
+      logger.error({ err: error, agentId: agent.id }, "Error running agent");
     }
   }
 
-  console.log(`[AgentScheduler] Completed: ${results.executed} executed, ${results.failed} failed`);
+  logger.info({ executed: results.executed, failed: results.failed }, "Scheduler run completed");
   return results;
 }
 
@@ -409,30 +412,30 @@ let schedulerInterval: NodeJS.Timeout | null = null;
 
 export function startScheduler(): void {
   if (schedulerInterval) {
-    console.log("[AgentScheduler] Scheduler already running");
+    logger.info("Scheduler already running");
     return;
   }
 
-  console.log("[AgentScheduler] Starting scheduler...");
+  logger.info("Starting scheduler...");
   
   // 1分ごとにチェック
   schedulerInterval = setInterval(async () => {
     try {
       await checkAndRunScheduledAgents();
     } catch (error) {
-      console.error("[AgentScheduler] Scheduler error:", error);
+      logger.error({ err: error }, "Scheduler error");
     }
   }, 60 * 1000); // 1分
 
   // 初回実行
-  checkAndRunScheduledAgents().catch(console.error);
+  checkAndRunScheduledAgents().catch((err) => logger.error({ err }, "Initial scheduler run failed"));
 }
 
 export function stopScheduler(): void {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log("[AgentScheduler] Scheduler stopped");
+    logger.info("Scheduler stopped");
   }
 }
 

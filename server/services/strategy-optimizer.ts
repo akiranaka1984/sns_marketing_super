@@ -10,6 +10,10 @@ import { agents, strategies, aiOptimizations } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { EngagementInsight } from "./engagement-analyzer";
 
+import { createLogger } from "../utils/logger";
+
+const logger = createLogger("strategy-optimizer");
+
 export interface OptimizationSuggestion {
   type: 'tone_adjustment' | 'style_adjustment' | 'content_strategy' | 'timing_optimization';
   title: string;
@@ -161,7 +165,7 @@ export async function applyOptimization(
       .where(eq(agents.id, agentId));
   }
 
-  console.log(`[StrategyOptimizer] Applied optimization "${suggestion.title}" to agent ${agentId}`);
+  logger.info(`[StrategyOptimizer] Applied optimization "${suggestion.title}" to agent ${agentId}`);
 }
 
 /**
@@ -207,7 +211,7 @@ export async function evaluateOptimizationImpact(
     })
     .where(eq(aiOptimizations.id, optimizationId));
 
-  console.log(`[StrategyOptimizer] Updated optimization ${optimizationId} with actual improvement: ${actualImprovement}%`);
+  logger.info(`[StrategyOptimizer] Updated optimization ${optimizationId} with actual improvement: ${actualImprovement}%`);
 }
 
 /**
