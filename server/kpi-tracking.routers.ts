@@ -23,6 +23,11 @@ import {
 } from "../drizzle/schema";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Valid metric types
 const metricTypes = [
   'followers',
@@ -84,7 +89,7 @@ export const kpiTrackingRouter = router({
             .set({
               targetValue: target.targetValue.toString(),
               targetDeadline: target.targetDeadline || null,
-              updatedAt: new Date().toISOString(),
+              updatedAt: toMySQLTimestamp(new Date()),
             })
             .where(eq(projectKpiTracking.id, existing.id));
 
@@ -155,7 +160,7 @@ export const kpiTrackingRouter = router({
         where: and(
           eq(posts.projectId, projectId),
           eq(posts.status, "published"),
-          gte(posts.publishedAt, thirtyDaysAgo.toISOString())
+          gte(posts.publishedAt, toMySQLTimestamp(thirtyDaysAgo))
         ),
       });
 
@@ -272,8 +277,8 @@ export const kpiTrackingRouter = router({
             progressPercentage: progressPercentage.toFixed(2),
             onTrack: onTrack ? 1 : 0,
             valueHistory: JSON.stringify(valueHistory),
-            recordedAt: now.toISOString(),
-            updatedAt: now.toISOString(),
+            recordedAt: toMySQLTimestamp(now),
+            updatedAt: toMySQLTimestamp(now),
           })
           .where(eq(projectKpiTracking.id, kpi.id));
 

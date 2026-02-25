@@ -40,6 +40,7 @@ import { kpiTrackingRouter } from './kpi-tracking.routers';
 import { playwrightSessionRouter } from './playwright-session.routers';
 import { xApiSettingsRouter } from './x-api-settings.routers';
 import { learningInsightsRouter } from './learning-insights.routers';
+import { growthDashboardRouter } from './growth-dashboard.routers';
 import { startScheduler, stopScheduler, isSchedulerRunning, getAllScheduledExecutions, checkAndRunScheduledAgents } from "./agent-scheduler";
 import { getAccountGrowthStats, getAccountLearningsWithDetails, syncAccountGrowthFromLearnings } from "./services/account-growth-service";
 
@@ -86,6 +87,7 @@ export const appRouter = router({
   playwrightSession: playwrightSessionRouter,
   xApiSettings: xApiSettingsRouter,
   learningInsights: learningInsightsRouter,
+  growthDashboard: growthDashboardRouter,
 
   // Agent Scheduler endpoints
   agentScheduler: router({

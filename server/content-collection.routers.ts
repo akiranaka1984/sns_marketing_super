@@ -6,6 +6,11 @@ import { collectedContents, collectionSchedules } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import axios from "axios";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Content Collection Router
  * Manages content collection from various platforms
@@ -36,7 +41,7 @@ export const contentCollectionRouter = router({
         frequency: input.frequency,
         maxItemsPerRun: input.maxItemsPerRun,
         isActive: 1,
-        nextRunAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
+        nextRunAt: toMySQLTimestamp(new Date(Date.now() + 60 * 60 * 1000)), // 1 hour from now
       });
 
       return {
@@ -204,8 +209,8 @@ export const contentCollectionRouter = router({
       await db
         .update(collectionSchedules)
         .set({
-          lastRunAt: new Date().toISOString(),
-          nextRunAt: new Date(Date.now() + getNextRunDelay(schedule.frequency)).toISOString(),
+          lastRunAt: toMySQLTimestamp(new Date()),
+          nextRunAt: toMySQLTimestamp(new Date(Date.now() + getNextRunDelay(schedule.frequency))),
         })
         .where(eq(collectionSchedules.id, input.scheduleId));
 

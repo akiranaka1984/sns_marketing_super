@@ -5,6 +5,11 @@ import { db } from "./db";
 import { tenants, tenantUsers } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Tenant Router
  * Manages multi-tenant functionality
@@ -229,8 +234,8 @@ export const tenantRouter = router({
         userId: input.userId,
         role: input.role,
         invitedBy: ctx.user.id,
-        invitedAt: new Date().toISOString(),
-        joinedAt: new Date().toISOString(),
+        invitedAt: toMySQLTimestamp(new Date()),
+        joinedAt: toMySQLTimestamp(new Date()),
       });
 
       return { success: true };

@@ -10,6 +10,11 @@ import {
 import { db } from "./db";
 import { eq, and, desc, sql, gte } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const learningInsightsRouter = router({
   /**
    * Get unified view of the 3-layer learning system
@@ -119,7 +124,7 @@ export const learningInsightsRouter = router({
         .where(
           and(
             eq(learningSyncLog.targetAccountId, input.accountId),
-            gte(learningSyncLog.syncedAt, startDate.toISOString())
+            gte(learningSyncLog.syncedAt, toMySQLTimestamp(startDate))
           )
         )
         .groupBy(sql`DATE(${learningSyncLog.syncedAt})`)

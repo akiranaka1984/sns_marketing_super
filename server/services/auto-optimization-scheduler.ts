@@ -12,6 +12,11 @@ import { eq, and, gte, desc, lt, isNotNull } from "drizzle-orm";
 import { analyzeAgentPerformance, saveInsightsToKnowledge } from "./engagement-analyzer";
 import { generateOptimizationSuggestions, applyOptimization, OptimizationSuggestion } from "./strategy-optimizer";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // Auto-optimization settings per agent (stored in JSON in agents table)
 export interface AutoOptimizationSettings {
   enabled: boolean;
@@ -144,7 +149,7 @@ async function checkAndOptimizeAgent(agent: any): Promise<void> {
   const recentOptimizations = await db.query.aiOptimizations.findMany({
     where: and(
       eq(aiOptimizations.agentId, agent.id),
-      gte(aiOptimizations.createdAt, weekAgo.toISOString())
+      gte(aiOptimizations.createdAt, toMySQLTimestamp(weekAgo))
     ),
   });
 
@@ -279,8 +284,8 @@ export async function approveOptimization(optimizationId: number): Promise<void>
   await db.update(aiOptimizations)
     .set({
       status: 'applied',
-      appliedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      appliedAt: toMySQLTimestamp(new Date()),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(aiOptimizations.id, optimizationId));
 }
@@ -292,7 +297,7 @@ export async function rejectOptimization(optimizationId: number): Promise<void> 
   await db.update(aiOptimizations)
     .set({
       status: 'reverted', // Using 'reverted' status to indicate rejection
-      updatedAt: new Date().toISOString(),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(aiOptimizations.id, optimizationId));
 }

@@ -27,6 +27,11 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("ab-testing");
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -245,7 +250,7 @@ export async function startAbTest(testId: number): Promise<void> {
   await db.update(abTests)
     .set({
       status: "running",
-      startedAt: new Date().toISOString()
+      startedAt: toMySQLTimestamp(new Date())
     })
     .where(eq(abTests.id, testId));
 
@@ -428,9 +433,9 @@ export async function analyzeTestResults(testId: number): Promise<AnalysisResult
     .set({
       status: "completed",
       winnerId: winner.id,
-      winnerDeterminedAt: new Date().toISOString(),
+      winnerDeterminedAt: toMySQLTimestamp(new Date()),
       confidenceLevel: confidence,
-      completedAt: new Date().toISOString()
+      completedAt: toMySQLTimestamp(new Date())
     })
     .where(eq(abTests.id, testId));
 

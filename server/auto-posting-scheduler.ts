@@ -6,6 +6,11 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("auto-posting");
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 /**
  * Auto-posting scheduler
  * Runs periodically to check for scheduled posts and publish them
@@ -58,7 +63,7 @@ async function processScheduledPosts() {
       .where(
         and(
           eq(scheduledPosts.status, "pending"),
-          lte(scheduledPosts.scheduledTime, new Date().toISOString())
+          lte(scheduledPosts.scheduledTime, toMySQLTimestamp(new Date()))
         )
       );
 

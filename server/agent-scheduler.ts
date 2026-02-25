@@ -13,6 +13,11 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("agent-scheduler");
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -203,7 +208,7 @@ export async function checkAndRunScheduledAgents(): Promise<{
           eq(agentExecutionLogs.agentId, agent.id),
           eq(agentExecutionLogs.executionType, "content_generation"),
           eq(agentExecutionLogs.status, "success"),
-          gte(agentExecutionLogs.createdAt, thirtyMinutesAgo.toISOString())
+          gte(agentExecutionLogs.createdAt, toMySQLTimestamp(thirtyMinutesAgo))
         ),
         orderBy: [desc(agentExecutionLogs.createdAt)],
       });
@@ -254,7 +259,7 @@ export async function updateAgentSchedule(
     .set({
       postingFrequency: frequency as any,
       postingTimeSlots: JSON.stringify(timeSlots),
-      updatedAt: new Date().toISOString(),
+      updatedAt: toMySQLTimestamp(new Date()),
     })
     .where(eq(agents.id, agentId));
 }

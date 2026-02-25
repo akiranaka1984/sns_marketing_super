@@ -13,6 +13,11 @@ import { createLogger } from "../utils/logger";
 
 const logger = createLogger("buzz-detection-scheduler");
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -84,7 +89,7 @@ export async function scanOwnAccountsForBuzz(): Promise<DetectedBuzzPost[]> {
       .from(posts)
       .where(
         and(
-          gte(posts.createdAt, sevenDaysAgo.toISOString()),
+          gte(posts.createdAt, toMySQLTimestamp(sevenDaysAgo)),
           eq(posts.status, "published")
         )
       )
@@ -315,7 +320,7 @@ export async function detectBuzzForAccount(accountId: number): Promise<DetectedB
       .where(
         and(
           eq(posts.accountId, accountId),
-          gte(posts.createdAt, sevenDaysAgo.toISOString()),
+          gte(posts.createdAt, toMySQLTimestamp(sevenDaysAgo)),
           eq(posts.status, "published")
         )
       )

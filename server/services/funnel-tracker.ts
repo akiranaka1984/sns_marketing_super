@@ -10,6 +10,11 @@ import { db } from "../db";
 import * as schema from "../../drizzle/schema";
 import { eq, and, desc, sql, inArray, gte, lte, count } from "drizzle-orm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 const FUNNEL_STAGES = ['impression', 'engagement', 'profile_visit', 'follow', 'conversion'] as const;
 type FunnelEventType = typeof FUNNEL_STAGES[number];
 
@@ -33,7 +38,7 @@ export async function recordFunnelEvent(event: {
     sourceType: event.sourceType ?? null,
     value: event.value ?? 0,
     metadata: event.metadata ? JSON.stringify(event.metadata) : null,
-    recordedAt: new Date().toISOString(),
+    recordedAt: toMySQLTimestamp(new Date()),
   });
 }
 
@@ -48,7 +53,7 @@ export async function aggregatePostAnalyticsToFunnel(
 ): Promise<{ impressions: number; engagements: number }> {
   const conditions = [eq(schema.postAnalytics.accountId, accountId)];
   if (since) {
-    conditions.push(gte(schema.postAnalytics.recordedAt, since.toISOString()));
+    conditions.push(gte(schema.postAnalytics.recordedAt, toMySQLTimestamp(since)));
   }
 
   const rows = await db
@@ -109,7 +114,7 @@ export async function aggregateEngagementToFunnel(
     eq(schema.engagementLogs.status, 'success'),
   ];
   if (since) {
-    conditions.push(gte(schema.engagementLogs.createdAt, since.toISOString()));
+    conditions.push(gte(schema.engagementLogs.createdAt, toMySQLTimestamp(since)));
   }
 
   const rows = await db

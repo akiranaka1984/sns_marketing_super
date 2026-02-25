@@ -9,6 +9,11 @@ import { createLogger } from "./utils/logger";
 
 const logger = createLogger("interactions-router");
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 export const interactionsRouter = router({
   // プロジェクトの投稿URL一覧を取得
   getPostUrls: protectedProcedure
@@ -161,7 +166,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));
@@ -214,7 +219,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
           commentContent: result.comment || null,
           errorMessage: result.error || null,
         })
@@ -261,7 +266,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));
@@ -299,7 +304,7 @@ export const interactionsRouter = router({
       await db.update(interactions)
         .set({
           status: result.success ? "completed" : "failed",
-          executedAt: new Date().toISOString(),
+          executedAt: toMySQLTimestamp(new Date()),
           errorMessage: result.error || null,
         })
         .where(eq(interactions.id, task.insertId));

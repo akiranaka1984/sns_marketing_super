@@ -25,6 +25,11 @@ async function getDeviceScreenshot(_deviceId: string): Promise<string | null> {
 }
 import { invokeLLM } from "./_core/llm";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 // ============================================
 // Types
 // ============================================
@@ -307,7 +312,7 @@ export async function collectPostEngagement(postId: number): Promise<CollectionR
         sharesCount: engagementData.sharesCount,
         reachCount: engagementData.reachCount,
         engagementRate: engagementData.engagementRate,
-        updatedAt: new Date().toISOString()
+        updatedAt: toMySQLTimestamp(new Date())
       })
       .where(eq(posts.id, postId));
 
@@ -325,7 +330,7 @@ export async function collectPostEngagement(postId: number): Promise<CollectionR
       engagementRate: engagementData.engagementRate,
       reachCount: engagementData.reachCount,
       impressionsCount: engagementData.impressionsCount,
-      recordedAt: new Date().toISOString()
+      recordedAt: toMySQLTimestamp(new Date())
     });
 
     logger.info({ postId, likes: engagementData.likesCount, comments: engagementData.commentsCount }, "Collected engagement for post");
@@ -361,7 +366,7 @@ export async function collectAllPendingEngagements(): Promise<{
         eq(posts.status, "published"),
         or(
           isNull(posts.updatedAt),
-          lte(posts.updatedAt, oneHourAgo.toISOString())
+          lte(posts.updatedAt, toMySQLTimestamp(oneHourAgo))
         )
       )
     )
@@ -546,7 +551,7 @@ ${isHighPerformer ? "なぜ成功したのか" : "なぜ失敗したのか"}を�
       successFactors: isHighPerformer ? JSON.stringify({ content: post.content?.substring(0, 100), hashtags: post.hashtags }) : null,
       improvementAreas: isLowPerformer ? JSON.stringify({ suggestion: "コンテンツの改善が必要" }) : null,
       isProcessed: 1,
-      processedAt: new Date().toISOString()
+      processedAt: toMySQLTimestamp(new Date())
     });
 
   } catch (error) {
@@ -601,7 +606,7 @@ export async function updateKnowledgeConfidence(agentId: number): Promise<void> 
           confidence: newConfidence,
           successRate: newSuccessRate,
           usageCount: knowledge.usageCount + 1,
-          updatedAt: new Date().toISOString()
+          updatedAt: toMySQLTimestamp(new Date())
         })
         .where(eq(agentKnowledge.id, knowledge.id));
     }
@@ -642,8 +647,8 @@ export async function runScheduledCollection(): Promise<void> {
       .where(
         and(
           eq(posts.status, "published"),
-          gte(posts.publishedAt, windowStart.toISOString()),
-          lte(posts.publishedAt, windowEnd.toISOString())
+          gte(posts.publishedAt, toMySQLTimestamp(windowStart)),
+          lte(posts.publishedAt, toMySQLTimestamp(windowEnd))
         )
       );
 

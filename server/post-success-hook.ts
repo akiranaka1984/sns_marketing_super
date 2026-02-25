@@ -4,6 +4,11 @@ import { eq, and, ne, isNotNull, inArray } from "drizzle-orm";
 import { getPostUrlAfterPublish } from "./x-api-service";
 import { scheduleTrackingJobs } from "./services/performance-tracking-scheduler";
 
+/** Convert Date to MySQL-compatible timestamp string */
+function toMySQLTimestamp(date: Date): string {
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 interface AccountWithRelationship {
   account: typeof accounts.$inferSelect;
   relationship?: typeof accountRelationships.$inferSelect | null;
@@ -185,7 +190,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "like",
           status: "pending",
-          scheduledAt: likeScheduledAt.toISOString(),
+          scheduledAt: toMySQLTimestamp(likeScheduledAt),
         });
         tasksCreated++;
 
@@ -211,7 +216,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "comment",
           status: "pending",
-          scheduledAt: commentScheduledAt.toISOString(),
+          scheduledAt: toMySQLTimestamp(commentScheduledAt),
           metadata,
         });
         tasksCreated++;
@@ -233,7 +238,7 @@ export async function onPostSuccess(
           fromDeviceId: account.deviceId!,
           interactionType: "retweet",
           status: "pending",
-          scheduledAt: retweetScheduledAt.toISOString(),
+          scheduledAt: toMySQLTimestamp(retweetScheduledAt),
         });
         tasksCreated++;
 
@@ -252,7 +257,7 @@ export async function onPostSuccess(
           interactionType: "follow",
           targetUsername: username, // The posting user
           status: "pending",
-          scheduledAt: followScheduledAt.toISOString(),
+          scheduledAt: toMySQLTimestamp(followScheduledAt),
         });
         tasksCreated++;
 
@@ -285,7 +290,7 @@ export async function onPostSuccess(
                 interactionType: "follow",
                 targetUsername: cleanUsername,
                 status: "pending",
-                scheduledAt: followScheduledAt.toISOString(),
+                scheduledAt: toMySQLTimestamp(followScheduledAt),
               });
               tasksCreated++;
 
